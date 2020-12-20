@@ -29,6 +29,7 @@ setup(name="func_adl_xAOD",
           "uproot~=3.7",
           "retry~=0.9",
           "jinja2",
+          "qastle",
           f"func_adl.ast{version_func_adl}",
       ],
       extras_require={
