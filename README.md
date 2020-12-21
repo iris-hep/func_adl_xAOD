@@ -77,3 +77,7 @@ Contributing:
 - Submit a PR against the `master` branch.
 
 In general, the `master` branch should pass all tests all the time. Releases are made by tagging on the master branch.
+
+Publishing to PyPi:
+
+- Automated by declaring a new release (or pre-release) in github's web interface
