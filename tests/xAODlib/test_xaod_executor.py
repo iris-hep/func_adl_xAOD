@@ -23,7 +23,8 @@ def test_per_event_item():
 
 
 def test_dict_output():
-    r=dataset_for_testing() \
+    'This is integration testing - making sure the dict to root conversion works'
+    r=dataset_for_testing(root_result_only=True) \
         .Select(lambda e: e.EventInfo("EventInfo").runNumber()) \
         .Select(lambda e: {'run_number': e}) \
         .value()
