@@ -5,24 +5,25 @@ import ast
 import logging
 from typing import Any, Dict, List, Type, Union, cast
 
+import func_adl_xAOD.cpplib.cpp_ast as cpp_ast
+import func_adl_xAOD.cpplib.cpp_representation as crep
+import func_adl_xAOD.cpplib.cpp_types as ctyp
+import func_adl_xAOD.cpplib.math_utils  # (needed for math function injection)
+import func_adl_xAOD.xAODlib.EventCollections
+import func_adl_xAOD.xAODlib.Jets  # NOQA
+import func_adl_xAOD.xAODlib.result_handlers as rh
+import func_adl_xAOD.xAODlib.statement as statement
 from func_adl.ast.call_stack import argument_stack, stack_frame
 from func_adl.ast.func_adl_ast_utils import FuncADLNodeVisitor, function_call
 from func_adl.util_ast import lambda_unwrap
-from .utils import most_accurate_type
-
-import func_adl_xAOD.cpplib.cpp_ast as cpp_ast
 from func_adl_xAOD.cpplib.cpp_functions import FunctionAST
-import func_adl_xAOD.cpplib.cpp_representation as crep
-import func_adl_xAOD.cpplib.cpp_types as ctyp
 from func_adl_xAOD.cpplib.cpp_vars import unique_name
-import func_adl_xAOD.xAODlib.EventCollections
-import func_adl_xAOD.xAODlib.Jets  # NOQA
 from func_adl_xAOD.xAODlib.generated_code import generated_code
-import func_adl_xAOD.xAODlib.result_handlers as rh
-import func_adl_xAOD.xAODlib.statement as statement
-from func_adl_xAOD.xAODlib.util_scope import (
-    deepest_scope, gc_scope, gc_scope_top_level, top_level_scope)
+from func_adl_xAOD.xAODlib.util_scope import (deepest_scope, gc_scope,
+                                              gc_scope_top_level,
+                                              top_level_scope)
 
+from .utils import most_accurate_type
 
 # Convert between Python comparisons and C++.
 compare_operations = {
