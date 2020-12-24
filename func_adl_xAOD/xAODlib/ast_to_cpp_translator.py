@@ -224,18 +224,21 @@ class query_ast_visitor(FuncADLNodeVisitor):
         # which we can feed to the root guy.
         values = r.sequence_value()
         if isinstance(values, crep.cpp_dict):
+            values = cast(crep.cpp_dict, values)
             col_values = values.value_dict.values()
             col_names = ast.List(elts=list(values.value_dict.keys()))
             s_tuple = crep.cpp_tuple(tuple(col_values), values.scope())
-            tuple_sequence = crep.cpp_sequence(s_tuple, r.iterator_value(), r.scope())
+            tuple_sequence = crep.cpp_sequence(s_tuple, r.iterator_value(), r.scope())  # type: ignore
             ast_dummy_source = ast.Constant(value=1)
-            ast_dummy_source.rep = tuple_sequence
+            ast_dummy_source.rep = tuple_sequence  # type: ignore
             ast_ttree = function_call('ResultTTree',
                                       [ast_dummy_source,
                                        col_names,
                                        ast.parse('"xaod_tree"').body[0].value,  # type: ignore
                                        ast.parse('"xaod_output"').body[0].value])  # type: ignore
-            return self.get_rep(ast_ttree)
+            result = self.get_rep(ast_ttree)
+            assert isinstance(result, rh.cpp_ttree_rep)
+            return result
         else:
             raise ValueError(f'Do not know how to convert a sequence of {r.sequence_value} into a ROOT file.')
 
