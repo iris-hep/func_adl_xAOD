@@ -206,6 +206,7 @@ class query_ast_visitor(FuncADLNodeVisitor):
         with a tuple or a dict request, but not a AsAwkwardArray.
 
         1. If the top level ast node already requests an ROOTTTree, the representation is returned.
+        1. If the node is a sequence of `cpp_values`, then a single column tree is created.
         1. If the node is a sequence of dict's, a ttree is created that uses the dictionary
            key's as column names.
         1. Anything else causes an exception to be raised.
@@ -243,6 +244,15 @@ class query_ast_visitor(FuncADLNodeVisitor):
             ast_ttree = function_call('ResultTTree',
                                       [ast_dummy_source,
                                        col_names,
+                                       ast.parse('"xaod_tree"').body[0].value,  # type: ignore
+                                       ast.parse('"xaod_output"').body[0].value])  # type: ignore
+            result = self.get_rep(ast_ttree)
+            assert isinstance(result, rh.cpp_ttree_rep)
+            return result
+        elif isinstance(values, crep.cpp_value):
+            ast_ttree = function_call('ResultTTree',
+                                      [node,
+                                       ast.parse('"col1"').body[0].value,  # type: ignore
                                        ast.parse('"xaod_tree"').body[0].value,  # type: ignore
                                        ast.parse('"xaod_output"').body[0].value])  # type: ignore
             result = self.get_rep(ast_ttree)
