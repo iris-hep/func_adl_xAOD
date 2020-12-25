@@ -201,17 +201,25 @@ class query_ast_visitor(FuncADLNodeVisitor):
     def get_as_ROOT(self, node: ast.AST) -> rh.cpp_ttree_rep:
         '''For a given node, return a root ttree rep.
 
-        This is used to make sure whatever the sequence is, that it returns a RootTTree.
+        This is used to make sure whatever the sequence is, that it returns a RootTTree. Use this
+        when the user may not have explicitly requested an output format. For example, if they end
+        with a tuple or a dict request, but not a AsAwkwardArray.
 
-        1. If the node already does that, it is returned.
-        1. If the node is a tuple, a ttree is made up
-        1. If the node is a dict, a ttree is made up.
+        1. If the top level ast node already requests an ROOTTTree, the representation is returned.
+        1. If the node is a sequence of dict's, a ttree is created that uses the dictionary
+           key's as column names.
+        1. Anything else causes an exception to be raised.
 
         Args:
-            node (ast.AST): node to convert to a tree
+            node (ast.AST): Top level `func_adl` expression that is to be renered as a ROOT file.
 
         Returns:
             rh.cpp_ttree_rep: The resulting node that will generate a root file.
+
+        Exceptions:
+            ValueError: If we end with something other than above, we raise `ValueError` to
+                        indicate that we can't figure out how to convert something into a ROOT
+                        file.
         '''
         r = self.get_rep(node)
         if isinstance(r, rh.cpp_ttree_rep):
