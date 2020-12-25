@@ -13,7 +13,7 @@ class terminal:
         self._is_pointer = is_pointer
 
     def __str__(self):
-        return self.type
+        return str(self.type)
 
     def is_pointer(self):
         return self._is_pointer

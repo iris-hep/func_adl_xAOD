@@ -249,7 +249,7 @@ class query_ast_visitor(FuncADLNodeVisitor):
             assert isinstance(result, rh.cpp_ttree_rep)
             return result
         else:
-            raise ValueError(f'Do not know how to convert a sequence of {r.sequence_value} into a ROOT file.')
+            raise ValueError(f'Do not know how to convert a sequence of {r.sequence_value()} into a ROOT file.')
 
         raise NotImplementedError()
 
