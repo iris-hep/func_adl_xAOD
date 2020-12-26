@@ -249,6 +249,16 @@ class query_ast_visitor(FuncADLNodeVisitor):
             result = self.get_rep(ast_ttree)
             assert isinstance(result, rh.cpp_ttree_rep)
             return result
+        if isinstance(values, crep.cpp_tuple):
+            col_names = ast.List(elts=[ast.parse(f"'col{i}'").body[0].value for i, _ in enumerate(values.values())])
+            ast_ttree = function_call('ResultTTree',
+                                      [node,
+                                       col_names,
+                                       ast.parse('"xaod_tree"').body[0].value,  # type: ignore
+                                       ast.parse('"xaod_output"').body[0].value])  # type: ignore
+            result = self.get_rep(ast_ttree)
+            assert isinstance(result, rh.cpp_ttree_rep)
+            return result
         elif isinstance(values, crep.cpp_value):
             ast_ttree = function_call('ResultTTree',
                                       [node,
