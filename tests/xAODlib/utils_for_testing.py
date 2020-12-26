@@ -2,16 +2,17 @@
 # xaod executor.
 #
 import ast
-from typing import List, Any
+from pathlib import Path
+from typing import Any, List
+from func_adl.object_stream import ObjectStream
 
+import pandas as pd
+import awkward as ak
+import uproot
 from func_adl import EventDataset
-
-from func_adl_xAOD.cpplib.cpp_representation import (
-    cpp_sequence, cpp_variable)
-from func_adl_xAOD.xAODlib.ast_to_cpp_translator import (
-    query_ast_visitor)
-from func_adl_xAOD.xAODlib.atlas_xaod_executor import (
-    atlas_xaod_executor)
+from func_adl_xAOD.cpplib.cpp_representation import cpp_sequence, cpp_variable
+from func_adl_xAOD.xAODlib.ast_to_cpp_translator import query_ast_visitor
+from func_adl_xAOD.xAODlib.atlas_xaod_executor import atlas_xaod_executor
 from func_adl_xAOD.xAODlib.util_scope import top_level_scope
 
 
@@ -154,3 +155,73 @@ def find_open_blocks(lines):
             stack = stack[:-1]
         last_line_seen = l
     return stack
+
+
+def load_root_as_pandas(file: Path) -> pd.DataFrame:
+    '''Given the result from a query as a ROOT file path, return
+    the contents as a pandas dataframe.
+
+    Args:
+        file (Path): [description]
+
+    Returns:
+        pandas.DataFrame: [description]
+    '''
+    assert isinstance(file, Path)
+    assert file.exists()
+
+    with uproot.open(file) as input:
+        return input['xaod_tree'].pandas.df()  # type: ignore
+
+
+def load_root_as_awkward(file: Path) -> ak.JaggedArray:
+    '''Given the result from a query as a ROOT file path, return
+    the contents as a pandas dataframe.
+
+    Args:
+        file (Path): [description]
+
+    Returns:
+        pandas.DataFrame: [description]
+    '''
+    assert isinstance(file, Path)
+    assert file.exists()
+
+    with uproot.open(file) as input:
+        return input['xaod_tree'].arrays()  # type: ignore
+
+
+def as_pandas(o: ObjectStream) -> pd.DataFrame:
+    '''Return a query as a pandas dataframe.
+
+    Args:
+        o (ObjectStream): The query
+
+    Returns:
+        pd.DataFrame: The result
+    '''
+    return load_root_as_pandas(o.value())
+
+
+def as_awkward(o: ObjectStream) -> ak.JaggedArray:
+    '''Return a query as a pandas dataframe.
+
+    Args:
+        o (ObjectStream): The query
+
+    Returns:
+        pd.DataFrame: The result
+    '''
+    return load_root_as_awkward(o.value())
+
+
+async def as_pandas_async(o: ObjectStream) -> pd.DataFrame:
+    '''Return a query as a pandas dataframe.
+
+    Args:
+        o (ObjectStream): The query
+
+    Returns:
+        pd.DataFrame: The result
+    '''
+    return load_root_as_pandas(await o.value_async())
