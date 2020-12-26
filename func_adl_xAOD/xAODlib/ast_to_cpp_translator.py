@@ -250,7 +250,7 @@ class query_ast_visitor(FuncADLNodeVisitor):
             assert isinstance(result, rh.cpp_ttree_rep)
             return result
         if isinstance(values, crep.cpp_tuple):
-            col_names = ast.List(elts=[ast.parse(f"'col{i}'").body[0].value for i, _ in enumerate(values.values())])
+            col_names = ast.List(elts=[ast.parse(f"'col{i}'").body[0].value for i, _ in enumerate(values.values())])  # type: ignore
             ast_ttree = function_call('ResultTTree',
                                       [node,
                                        col_names,
