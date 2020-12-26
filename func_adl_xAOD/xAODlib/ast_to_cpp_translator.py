@@ -259,7 +259,7 @@ class query_ast_visitor(FuncADLNodeVisitor):
             result = self.get_rep(ast_ttree)
             assert isinstance(result, rh.cpp_ttree_rep)
             return result
-        elif isinstance(values, crep.cpp_value):
+        elif isinstance(values, crep.cpp_value) or isinstance(values, crep.cpp_sequence):
             ast_ttree = function_call('ResultTTree',
                                       [node,
                                        ast.parse('"col1"').body[0].value,  # type: ignore
