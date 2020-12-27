@@ -161,10 +161,13 @@ class query_ast_visitor(FuncADLNodeVisitor):
         node - if the node has a rep, just return
 
         '''
-        r = FuncADLNodeVisitor.visit(self, node)
+        if not hasattr(node, 'rep'):
+            FuncADLNodeVisitor.visit(self, node)
+
+        # Lots of nodes never get a representation - like `ast.Name`, so we
+        # need to protect the access here.
         if hasattr(node, 'rep'):
             self._result = node.rep
-        return r
 
     def get_rep(self, node: ast.AST, retain_scope: bool = False) -> Union[crep.cpp_value, crep.cpp_sequence]:
         r'''Return the rep for the node. If it isn't set yet, then run our visit on it.
@@ -203,7 +206,7 @@ class query_ast_visitor(FuncADLNodeVisitor):
 
         This is used to make sure whatever the sequence is, that it returns a RootTTree. Use this
         when the user may not have explicitly requested an output format. For example, if they end
-        with a tuple or a dict request, but not a AsAwkwardArray.
+        with a tuple or a dict request, but not a AsAwkwardArray or similar.
 
         1. If the top level ast node already requests an ROOTTTree, the representation is returned.
         1. If the node is a sequence of `cpp_values`, then a single column tree is created.
