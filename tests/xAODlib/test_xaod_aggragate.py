@@ -185,7 +185,6 @@ def test_First_selects_collection_count():
     # Make sure that we have the "First" predicate after if Where's if statement.
     r = dataset_for_testing() \
         .Select('lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: e.Tracks("InDetTrackParticles")).First().Count()') \
-        .AsPandasDF('TrackCount') \
         .value()
     lines = get_lines_of_code(r)
     print_lines(lines)
@@ -195,7 +194,6 @@ def test_First_selects_collection_count():
 def test_sequence_with_where_first():
     r = dataset_for_testing() \
         .Select('lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: e.Tracks("InDetTrackParticles").Where(lambda t: t.pt() > 1000.0)).First().Count()') \
-        .AsPandasDF('dude') \
         .value()
     lines = get_lines_of_code(r)
     print_lines(lines)
