@@ -15,7 +15,6 @@ class Atlas_xAOD_File_Type:
 def test_per_event_item():
     r=dataset_for_testing() \
         .Select('lambda e: e.EventInfo("EventInfo").runNumber()') \
-        .AsROOTTTree('root.root', 'analysis', 'RunNumber') \
         .value()
     vs = r.QueryVisitor._gc._class_vars
     assert 1 == len(vs)
@@ -154,7 +153,6 @@ def test_nested_lambda_argument_name_with_monad():
     r = dataset_for_testing() \
         .Select('lambda e: (e.Electrons("Electrons"), e.Muons("Muons"))') \
         .Select('lambda e: e[0].Select(lambda e: e.E())') \
-        .AsROOTTTree('dude.root', 'forkme', ['e_E']) \
         .value()
     lines = get_lines_of_code(r)
     print_lines(lines)
@@ -192,10 +190,10 @@ def test_per_jet_item_with_event_level():
 
 
 def test_func_sin_call():
-    dataset_for_testing().Select('lambda e: sin(e.EventInfo("EventInfo").runNumber())').AsROOTTTree('file.root', 'analysis', 'RunNumber').value()
+    dataset_for_testing().Select('lambda e: sin(e.EventInfo("EventInfo").runNumber())').value()
 
 def test_per_jet_item_as_call():
-    dataset_for_testing().SelectMany('lambda e: e.Jets("bogus")').Select('lambda j: j.pt()').AsROOTTTree('file.root', 'analysis', 'dude').value()
+    dataset_for_testing().SelectMany('lambda e: e.Jets("bogus")').Select('lambda j: j.pt()').value()
 
 def test_Select_is_an_array_with_where():
     # The following statement should be a straight sequence, not an array.
@@ -478,7 +476,6 @@ def test_electron_and_muon_with_tuple():
     r = dataset_for_testing() \
         .Select('lambda e: (e.Electrons("Electrons"), e.Muons("Muons"))') \
         .Select('lambda e: (e[0].Select(lambda ele: ele.E()), e[0].Select(lambda ele: ele.pt()), e[0].Select(lambda ele: ele.phi()), e[0].Select(lambda ele: ele.eta()), e[1].Select(lambda mu: mu.E()), e[1].Select(lambda mu: mu.pt()), e[1].Select(lambda mu: mu.phi()), e[1].Select(lambda mu: mu.eta()))') \
-        .AsROOTTTree('dude.root', 'forkme', ['e_E', 'e_pt', 'e_phi', 'e_eta', 'mu_E', 'mu_pt', 'mu_phi', 'mu_eta']) \
         .value()
     lines = get_lines_of_code(r)
     print_lines(lines)
@@ -490,7 +487,6 @@ def test_electron_and_muon_with_tuple_qastle():
     r = dataset_for_testing(qastle_roundtrip=True) \
         .Select('lambda e: (e.Electrons("Electrons"), e.Muons("Muons"))') \
         .Select('lambda e: (e[0].Select(lambda ele: ele.E()), e[0].Select(lambda ele: ele.pt()), e[0].Select(lambda ele: ele.phi()), e[0].Select(lambda ele: ele.eta()), e[1].Select(lambda mu: mu.E()), e[1].Select(lambda mu: mu.pt()), e[1].Select(lambda mu: mu.phi()), e[1].Select(lambda mu: mu.eta()))') \
-        .AsROOTTTree('dude.root', 'forkme', ['e_E', 'e_pt', 'e_phi', 'e_eta', 'mu_E', 'mu_pt', 'mu_phi', 'mu_eta']) \
         .value()
     lines = get_lines_of_code(r)
     print_lines(lines)
@@ -502,7 +498,6 @@ def test_electron_and_muon_with_list():
     r = dataset_for_testing() \
         .Select('lambda e: [e.Electrons("Electrons"), e.Muons("Muons")]') \
         .Select('lambda e: [e[0].Select(lambda ele: ele.E()), e[0].Select(lambda ele: ele.pt()), e[0].Select(lambda ele: ele.phi()), e[0].Select(lambda ele: ele.eta()), e[1].Select(lambda mu: mu.E()), e[1].Select(lambda mu: mu.pt()), e[1].Select(lambda mu: mu.phi()), e[1].Select(lambda mu: mu.eta())]') \
-        .AsROOTTTree('dude.root', 'forkme', ['e_E', 'e_pt', 'e_phi', 'e_eta', 'mu_E', 'mu_pt', 'mu_phi', 'mu_eta']) \
         .value()
     lines = get_lines_of_code(r)
     print_lines(lines)
@@ -514,7 +509,6 @@ def test_electron_and_muon_with_list_qastle():
     r = dataset_for_testing(qastle_roundtrip=True) \
         .Select('lambda e: [e.Electrons("Electrons"), e.Muons("Muons")]') \
         .Select('lambda e: [e[0].Select(lambda ele: ele.E()), e[0].Select(lambda ele: ele.pt()), e[0].Select(lambda ele: ele.phi()), e[0].Select(lambda ele: ele.eta()), e[1].Select(lambda mu: mu.E()), e[1].Select(lambda mu: mu.pt()), e[1].Select(lambda mu: mu.phi()), e[1].Select(lambda mu: mu.eta())]') \
-        .AsROOTTTree('dude.root', 'forkme', ['e_E', 'e_pt', 'e_phi', 'e_eta', 'mu_E', 'mu_pt', 'mu_phi', 'mu_eta']) \
         .value()
     lines = get_lines_of_code(r)
     print_lines(lines)

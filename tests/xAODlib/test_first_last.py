@@ -6,13 +6,11 @@ from func_adl import EventDataset
 def test_first_jet_in_event():
     dataset_for_testing() \
         .Select('lambda e: e.Jets("bogus").Select(lambda j: j.pt()).First()') \
-        .AsROOTTTree('dude.root', 'analysis', 'JetPt') \
         .value()
 
 def test_first_after_selectmany():
     dataset_for_testing() \
         .Select('lambda e: e.Jets("jets").SelectMany(lambda j: e.Tracks("InnerTracks")).First()') \
-        .AsROOTTTree('dude.root', 'analysis', 'JetPt') \
         .value()
 
 def test_first_after_where():
