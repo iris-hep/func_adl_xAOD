@@ -52,7 +52,7 @@ setup(name="func_adl_xAOD",
               'twine',
               'testfixtures',
               'wheel',
-              'asyncmock'
+              'asyncmock',
               "pandas~=1.0",
               "uproot~=3.7",
           ],
