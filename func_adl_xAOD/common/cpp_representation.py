@@ -134,7 +134,7 @@ class cpp_value(cpp_rep_base):
         if self._scope is None:
             self._scope = scope
         else:
-            raise RuntimeError("Internal Error: You can't reset the scope to something new")
+            raise RuntimeError("Internal Error: Scope is already set - it can't be set to a new value")
 
     def scope(self) -> Union[gc_scope, gc_scope_top_level]:
         'Return the scope at which this variable becomes valid.'
