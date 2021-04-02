@@ -55,6 +55,7 @@ class collection (terminal):
     def element_type(self):
         return self._element_type
 
+
 class tuple:
     'Represents a value which is a collection of other types'
 
