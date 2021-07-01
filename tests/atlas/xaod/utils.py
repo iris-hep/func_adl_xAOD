@@ -81,7 +81,7 @@ def load_root_as_pandas(file: Path) -> pd.DataFrame:
     assert file.exists()
 
     with uproot.open(file) as input:
-        return input['atlas_xaod_tree'].pandas.df()  # type: ignore
+        return input['atlas_xaod_tree'].arrays(library='pd')  # type: ignore
 
 
 def load_root_as_awkward(file: Path) -> ak.Array:
