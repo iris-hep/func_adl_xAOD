@@ -12,4 +12,4 @@ def test_deltaR_call():
 
 def test__bad_deltaR_call():
     with pytest.raises(ValueError):
-        atlas_xaod_dataset().Select('lambda e: DeltaR(1.0, 1.0, 1.0)').value()
+        atlas_xaod_dataset().Select(lambda e: DeltaR(1.0, 1.0, 1.0)).value()  # type: ignore
