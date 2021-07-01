@@ -1,4 +1,3 @@
-import pytest
 from func_adl_xAOD.cms.aod import IsNonnull
 from tests.cms.aod.utils import cms_aod_dataset
 
