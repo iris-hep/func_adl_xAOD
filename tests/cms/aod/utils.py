@@ -80,7 +80,7 @@ def load_root_as_pandas(file: Path) -> pd.DataFrame:
     assert file.exists()
 
     with uproot.open(file) as input:
-        return input['demo/cms_aod_tree'].pandas.df()  # type: ignore
+        return input['demo/cms_aod_tree'].arrays(library='pd')  # type: ignore
 
 
 def load_root_as_awkward(file: Path) -> ak.Array:
