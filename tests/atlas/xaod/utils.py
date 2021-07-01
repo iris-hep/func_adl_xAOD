@@ -84,7 +84,7 @@ def load_root_as_pandas(file: Path) -> pd.DataFrame:
         return input['atlas_xaod_tree'].pandas.df()  # type: ignore
 
 
-def load_root_as_awkward(file: Path) -> ak.JaggedArray:
+def load_root_as_awkward(file: Path) -> ak.Array:
     '''Given the result from a query as a ROOT file path, return
     the contents as a pandas dataframe.
 
@@ -113,7 +113,7 @@ def as_pandas(o: ObjectStream) -> pd.DataFrame:
     return load_root_as_pandas(o.value())
 
 
-def as_awkward(o: ObjectStream) -> ak.JaggedArray:
+def as_awkward(o: ObjectStream) -> ak.Array:
     '''Return a query as a pandas dataframe.
 
     Args:
