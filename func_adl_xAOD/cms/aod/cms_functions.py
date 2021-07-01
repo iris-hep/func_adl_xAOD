@@ -4,7 +4,7 @@ from func_adl_xAOD.common.cpp_representation import cpp_variable
 from func_adl_xAOD.common.cpp_vars import unique_name
 
 
-def IsNonnullAst(call_node):
+def isNonnullAst(call_node):
     r'''
     User is trying to test, on certian objects, if the object, when dereferenced, will be a null
     pointer. This is tricky for our data model because it treats an object as both a poitner and
@@ -30,12 +30,12 @@ def IsNonnullAst(call_node):
     return call_node
 
 
-def IsNonnull(cms_object) -> bool:
+def isNonnull(cms_object) -> bool:
     'See if dereferencing the cms object will return a null pointer or not'
     raise NotImplementedError('IsNonnull should never be called in python!')
 
 
 def get_cms_functions():
     return {
-        'IsNonnull': IsNonnullAst
+        'isNonnull': isNonnullAst
     }

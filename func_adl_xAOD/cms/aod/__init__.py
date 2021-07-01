@@ -1,1 +1,1 @@
-from .cms_functions import IsNonnull  # NOQA
+from .cms_functions import isNonnull  # NOQA
