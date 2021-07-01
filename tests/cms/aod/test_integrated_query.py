@@ -83,6 +83,7 @@ def test_isnonull_call():
     training_df = as_pandas(
         f_single
         .Select(lambda e: e.Muons("muons"))
-        .Where(lambda muons: muons.Where(lambda m: isNonnull(m.globalTrack())).Count())
+        .Select(lambda muons: muons.Where(lambda m: isNonnull(m.globalTrack())))
+        .Select(lambda muons: muons.Count())
     )
     assert training_df.iloc[0]['col1'] == 100.0
