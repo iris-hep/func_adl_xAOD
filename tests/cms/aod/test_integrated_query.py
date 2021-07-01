@@ -86,4 +86,4 @@ def test_isnonull_call():
         .Select(lambda muons: muons.Where(lambda m: isNonnull(m.globalTrack())))
         .Select(lambda muons: muons.Count())
     )
-    assert training_df.iloc[0]['col1'] == 100.0
+    assert training_df.iloc[0]['col1'] == 3

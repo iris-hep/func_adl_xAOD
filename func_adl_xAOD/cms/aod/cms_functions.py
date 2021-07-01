@@ -13,7 +13,7 @@ def isNonnullAst(call_node):
     '''
 
     if len(call_node.args) != 1:
-        raise ValueError("Calling IsNonnull(object) has incorrect number of arguments")
+        raise ValueError("Calling isNonnull(object) has incorrect number of arguments")
 
     # Create an AST to hold onto all of this.
     r = cpp_ast.CPPCodeValue()
@@ -22,7 +22,7 @@ def isNonnullAst(call_node):
     r.args = ['cms_object']
 
     # The code is three steps
-    r.running_code += ['auto result = (cms_object).IsNonnull();']
+    r.running_code += ['auto result = (cms_object).isNonnull();']
     r.result = 'result'
     r.result_rep = lambda scope: cpp_variable(unique_name('is_non_null'), scope=scope, cpp_type='bool')
 
