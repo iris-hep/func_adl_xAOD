@@ -56,27 +56,11 @@ class collection (terminal):
         return self._element_type
 
 
-class tuple:
-    'Represents a value which is a collection of other types'
-
-    def __init__(self, type_list):
-        '''
-        Initialize a type list. The value consists of `len(type_list)` items, each
-        of the type held inside type_lits.
-
-        type_list:      tuple,etc., that we can iterate over to get the types.
-        '''
-        self._type_list = type_list
-
-    def __str__(self):
-        return "(" + ','.join(self._type_list) + ")"
-
 ###########################
 # Manage types
 
 
 g_method_type_dict = {}
-g_variable_type_dict = {}
 
 
 def add_method_type_info(type_string, method_name, t):
@@ -92,19 +76,6 @@ def add_method_type_info(type_string, method_name, t):
     g_method_type_dict[type_string][method_name] = t
 
 
-def add_variable_type_info(type_string, variable_name, t):
-    '''
-    Define a type for a variable
-
-    type_string         String of the object the variable is being accessed against
-    variable_name       Name of the object
-    t                   The type (terminal, collection, etc.) of variable
-    '''
-    if type_string not in g_variable_type_dict:
-        g_variable_type_dict[type_string] = {}
-    g_variable_type_dict[type_string][variable_name] = t
-
-
 def method_type_info(type_string, method_name):
     '''
     Return the type of the method's return value
@@ -114,14 +85,3 @@ def method_type_info(type_string, method_name):
     if method_name not in g_method_type_dict[type_string]:
         return None
     return g_method_type_dict[type_string][method_name]
-
-
-def variable_type_info(type_string, variable_name):
-    '''
-    Return the type of the variable
-    '''
-    if type_string not in g_variable_type_dict:
-        return None
-    if variable_name not in g_variable_type_dict[type_string]:
-        return None
-    return g_variable_type_dict[type_string][variable_name]

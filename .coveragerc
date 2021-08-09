@@ -1,6 +1,8 @@
 [run]
 branch = True
-omit = func_adl_xAOD/template/
+omit = 
+    func_adl_xAOD/template/*
+    test/*
 
 [report]
 exclude_lines =
