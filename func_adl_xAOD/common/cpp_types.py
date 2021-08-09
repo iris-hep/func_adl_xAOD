@@ -85,4 +85,3 @@ def method_type_info(type_string, method_name):
     if method_name not in g_method_type_dict[type_string]:
         return None
     return g_method_type_dict[type_string][method_name]
-
