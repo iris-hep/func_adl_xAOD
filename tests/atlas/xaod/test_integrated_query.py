@@ -148,7 +148,7 @@ def test_1D_array():
                              .Select('lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()/1000.0)'))
     print(training_df)
     assert len(training_df[b'col1']) == 10
-    assert len(training_df[b'col1'][0]) == 32
+    assert len(training_df[b'col1'][0]) == 32  # type: ignore
 
 
 def test_2D_array():
@@ -157,8 +157,8 @@ def test_2D_array():
                              .Select('lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.Jets("AntiKt4EMTopoJets").Select(lambda j1: j1.pt()/1000.0))'))
     print(training_df)
     assert len(training_df[b'col1']) == 10
-    assert len(training_df[b'col1'][0]) == 32
-    assert len(training_df[b'col1'][0][0]) == 32
+    assert len(training_df[b'col1'][0]) == 32  # type: ignore
+    assert len(training_df[b'col1'][0][0]) == 32  # type: ignore
 
 
 def test_2D_nested_where():
@@ -172,4 +172,4 @@ def test_2D_nested_where():
     print(training_df)
     a = training_df[b'col1']
     assert len(a) == 10
-    assert len(a[0]) == 8
+    assert len(a[0]) == 8  # type: ignore
