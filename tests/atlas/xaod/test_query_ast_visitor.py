@@ -1,5 +1,6 @@
 # Some very direct white box testing
 import ast
+import sys
 
 import func_adl_xAOD.common.cpp_representation as crep
 import func_adl_xAOD.common.cpp_types as ctyp
@@ -25,6 +26,19 @@ def test_binary_plus_return_type_2():
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'double'
+
+
+def test_complex_number_not_understood():
+    if sys.version_info >= (3, 8):
+        import cmath  # NOQA
+        c = complex(1, 2)
+        node = ast.Constant(value=c, kind=None)
+
+        q = atlas_xaod_query_ast_visitor()        
+        with pytest.raises(Exception) as e:
+            q.get_rep(node)
+
+        assert 'complex' in str(e)
 
 
 def test_binary_plus_return_type_3():
