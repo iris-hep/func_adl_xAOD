@@ -185,25 +185,15 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         of visiting. BUT ALWAYS GO THROUGH get_rep to get the rep for a node you aren't handling directly. If you ever find yourself
         writing a "hasattr(node, 'rep')" you will almost certainly be introducing a bug. Use get_rep instead!!
         '''
-        # If the rep is present, make sure it is still valid by checking the scope.
-        result = None
-        if hasattr(node, 'rep'):
-            result = node.rep  # type: ignore
-            if not self._gc.current_scope().starts_with(result.scope()):
-                result = None
+        # Make sure the node representation is up-to-date.
+        s = self._gc.current_scope() if retain_scope else None
+        self.visit(node)
+        if s is not None:
+            self._gc.set_scope(s)
 
-        # If this node already has a representation, then it has been
-        # processed and we do not need to do it again.
-        if result is None:
-            s = self._gc.current_scope() if retain_scope else None
-            self.visit(node)
-            if s is not None:
-                self._gc.set_scope(s)
-
-        # If it still didn't work, this is an internal error. But make the error message a bit nicer.
+        # If it didn't work, this is an internal error. But make the error message a bit nicer.
         if not hasattr(node, 'rep'):
             raise Exception('Internal Error: attempted to get C++ representation for AST node "{0}", but failed.'.format(ast.dump(node)))
-        self._result = node.rep  # type: ignore
 
         return node.rep  # type: ignore
 
