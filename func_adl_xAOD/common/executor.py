@@ -118,7 +118,7 @@ class executor(ABC):
         from func_adl import find_EventDataset
         file = find_EventDataset(ast)
         iterator = crep.cpp_variable("bogus-do-not-use", top_level_scope(), cpp_type=None)
-        file.rep = crep.cpp_sequence(iterator, iterator, top_level_scope())  # type: ignore
+        crep.set_rep(file, crep.cpp_sequence(iterator, iterator, top_level_scope()))
 
         # Visit the AST to generate the code structure and find out what the
         # result is going to be.

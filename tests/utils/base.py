@@ -15,7 +15,7 @@ from func_adl_xAOD.common.result_ttree import cpp_ttree_rep
 from func_adl_xAOD.common.executor import executor
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
 from func_adl_xAOD.common.util_scope import top_level_scope
-from func_adl_xAOD.common.cpp_representation import cpp_sequence, cpp_variable
+from func_adl_xAOD.common.cpp_representation import cpp_sequence, cpp_variable, set_rep
 
 # Use this to turn on dumping of output and C++
 dump_running_log = True
@@ -186,7 +186,7 @@ class dataset(EventDataset, ABC):
         from func_adl import find_EventDataset
         file = find_EventDataset(a)
         iterator = cpp_variable("bogus-do-not-use", top_level_scope(), cpp_type=None)
-        file.rep = cpp_sequence(iterator, iterator, top_level_scope())  # type: ignore
+        set_rep(file, cpp_sequence(iterator, iterator, top_level_scope()))
 
         # Use the dummy executor to process this, and return it.
         exe = self.get_dummy_executor_obj()
