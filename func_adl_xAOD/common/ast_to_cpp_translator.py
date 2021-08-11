@@ -137,7 +137,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # Tracks the output of the code.
         self._gc = generated_code()
         self._arg_stack = argument_stack()
-        self._result = None
         self._prefix = prefix
         self._is_loop_var_a_ref = is_loop_var_a_ref
 
@@ -169,11 +168,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         if rep is None:
             FuncADLNodeVisitor.visit(self, node)
-
-        # Lots of nodes never get a representation - like `ast.Name`, so we
-        # need to protect the access here.
-        if hasattr(node, 'rep'):
-            self._result = node.rep
 
     def get_rep(self, node: ast.AST, retain_scope: bool = False) -> Union[crep.cpp_value, crep.cpp_sequence]:
         r'''Return the rep for the node. If it isn't set yet, then run our visit on it.
@@ -432,7 +426,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # # Cache the results in our result in case we are skipping nodes in the AST.
         # node.rep = accumulator
-        # self._result = accumulator
 
     def visit_call_Aggregate_initial(self, node: ast.Call, args: List[ast.AST]):
         '''
@@ -470,7 +463,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # Cache the results in our result in case we are skipping nodes in the AST.
         node.rep = accumulator  # type: ignore
-        self._result = accumulator
 
     def visit_call_Aggregate_initial_func(self, node: ast.Call, args: List[ast.AST]):
         '''
@@ -528,7 +520,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # # Cache the results in our result incase we are skipping nodes in the AST.
         # node.rep = result
-        # self._result = result
 
     def call_Aggregate(self, node: ast.Call, args: List[ast.AST]):
         r'''Implement the aggregate algorithm in C++
@@ -560,7 +551,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # This isn't good!
         raise Exception("Unknown call to Aggregate. Must be Aggregate(func), Aggregate(const, func), or Aggregate(func, func)")
 
-    def visit_Call_Member(self, call_node):
+    def visit_Call_Member(self, call_node: ast.Call):
         'Method call on an object'
 
         # Visit everything down a level.
@@ -580,7 +571,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         result_type = determine_type_mf(calling_against.cpp_type(), function_name)
 
         args = call_node.args
-        self._result = crep.cpp_value(c_stub + function_name + f"({','.join(self.get_rep(arg).as_cpp() for arg in args)})", calling_against.scope(), result_type)
+        call_node.rep = crep.cpp_value(c_stub + function_name + f"({','.join(self.get_rep(arg).as_cpp() for arg in args)})", calling_against.scope(), result_type)
 
     def visit_function_ast(self, call_node):
         'Drop-in replacement for a function'
@@ -600,7 +591,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
     def call_EventDataset(self, node: ast.Call, args: List[ast.AST]):
         'This has already been resolved, so return it.'
         assert hasattr(node, 'rep')
-        self._result = node.rep  # type: ignore
         return node.rep  # type: ignore
 
     def visit_Call(self, call_node: ast.Call):
@@ -613,17 +603,16 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         elif isinstance(call_node.func, ast.Attribute):
             self.visit_Call_Member(call_node)
         elif isinstance(call_node.func, cpp_ast.CPPCodeValue):
-            self._result = cpp_ast.process_ast_node(self, self._gc, call_node)
+            call_node.rep = cpp_ast.process_ast_node(self, self._gc, call_node)
         elif isinstance(call_node.func, FunctionAST):
-            self._result = self.visit_function_ast(call_node)
+            self.visit_function_ast(call_node)
         else:
             # Perhaps a method call we can normalize?
             r = FuncADLNodeVisitor.visit_Call(self, call_node)
             if r is None and not hasattr(call_node, 'rep'):
                 raise Exception("Do not know how to call '{0}'".format(ast.dump(call_node.func, annotate_fields=False)))
             if r is not None:
-                self._result = r
-        call_node.rep = self._result  # type: ignore
+                call_node.rep = r
 
     def visit_Attribute(self, node: ast.Attribute) -> Any:
 
@@ -633,7 +622,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             raise Exception("Do not know how to get member '{0}' of '{1}'".format(variable, type(obj).__name__))
         result_type = determine_type_mf(obj.cpp_type(), variable)
         node.rep = crep.cpp_value(f"{obj.as_cpp()}{'->' if obj.is_pointer() else '.'}{variable}", self._gc.current_scope(), result_type)
-        self._result = node.rep
 
     def visit_Name(self, name_node: ast.Name):
         'Visiting a name - which should represent something'
@@ -649,13 +637,11 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         index = self.get_rep(node.slice)
         node.rep = crep.cpp_value(f"{v.as_cpp()}{'->' if v.is_pointer() else '.'}at({index.as_cpp()})", self._gc.current_scope(), cpp_type=v.get_element_type())  # type: ignore
-        self._result = node.rep
 
     def visit_Index(self, node):
         'We can only do single items, we cannot do slices yet'
         v = self.get_rep(node.value)
         node.rep = v
-        self._result = node
 
     def visit_Tuple(self, tuple_node):
         r'''
@@ -664,7 +650,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         See github bug #21 for the special case of dealing with (x1, x2, x3)[0].
         '''
         tuple_node.rep = crep.cpp_tuple(tuple(self.get_rep(e, retain_scope=True) for e in tuple_node.elts), self._gc.current_scope())
-        self._result = tuple_node.rep
 
     def visit_Dict(self, node: ast.Dict):
         '''Process a dictionary. We create a C++ representation of this. The
@@ -679,7 +664,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         values = {k: self.get_rep(v, retain_scope=True) for k, v in zip(node.keys, node.values)}
         node.rep = crep.cpp_dict(values, self._gc.current_scope())  # type: ignore
-        self._result = node.rep  # type: ignore
 
     def visit_List(self, list_node):
         r'''
@@ -688,7 +672,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         See github bug #21 for the special case of dealing with (x1, x2, x3)[0].
         '''
         list_node.rep = crep.cpp_tuple(tuple(self.get_rep(e, retain_scope=True) for e in list_node.elts), self._gc.current_scope())
-        self._result = list_node.rep
 
     def visit_BinOp(self, node):
         'An in-line add'
@@ -707,7 +690,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # Cache the result to push it back further up.
         node.rep = r
-        self._result = r
 
     def visit_UnaryOp(self, node: ast.UnaryOp):
         if type(node.op) not in _known_unary_operators:
@@ -719,7 +701,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         r = crep.cpp_value(f"({_known_unary_operators[type(node.op)]}({operand.as_cpp()}))",
                            s, operand.cpp_type())
         node.rep = r  # type: ignore
-        self._result = r
 
     def visit_IfExp(self, node):
         r'''
@@ -750,7 +731,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # Done, the result is the rep of this node!
         node.rep = result
-        self._result = result
 
     def visit_Compare(self, node):
         'A compare between two things. Python supports more than that, but not implemented yet.'
@@ -762,7 +742,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         r = crep.cpp_value('({0}{1}{2})'.format(left.as_cpp(), compare_operations[type(node.ops[0])], right.as_cpp()), self._gc.current_scope(), ctyp.terminal("bool"))
         node.rep = r
-        self._result = r
 
     def visit_BoolOp(self, node):
         '''A bool op like And or Or on a set of values
@@ -792,16 +771,13 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             first = False
 
         # Cache result variable so those above us have something to use.
-        self._result = result
         node.rep = result
 
     def visit_Num(self, node):
         node.rep = crep.cpp_value(node.n, self._gc.current_scope(), guess_type_from_number(node.n))
-        self._result = node.rep
 
     def visit_Str(self, node):
         node.rep = crep.cpp_value('"{0}"'.format(node.s), self._gc.current_scope(), ctyp.terminal("string"))
-        self._result = node.rep
 
     def code_fill_ttree(self, e_rep: crep.cpp_rep_base, e_name: crep.cpp_variable,
                         scope_fill: Union[gc_scope, gc_scope_top_level]) -> Union[gc_scope, gc_scope_top_level]:
@@ -960,7 +936,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         rep = crep.cpp_sequence(new_sequence_value, seq.iterator_value(), self._gc.current_scope())
 
         node.rep = rep  # type: ignore
-        self._result = rep
         return rep
 
     def call_SelectMany(self, node: ast.AST, args: List[ast.AST]):
@@ -989,7 +964,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         seq = self.as_sequence(c)
 
         node.rep = seq  # type: ignore
-        self._result = seq
         return seq
 
     def call_Where(self, node: ast.AST, args: List[ast.AST]):
@@ -1018,8 +992,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             raise Exception("Error: A Where clause must evaluate to a value, not a sequence")
         new_sequence_var = w_val.copy_with_new_scope(self._gc.current_scope())
         node.rep = crep.cpp_sequence(new_sequence_var, seq.iterator_value(), self._gc.current_scope())  # type: ignore
-
-        self._result = node.rep  # type: ignore
 
     def call_Range(self, node: ast.AST, args: List[ast.AST]):
         'Create a collection of numbers from lower_bound'
@@ -1060,7 +1032,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         seq = self.make_sequence_from_collection(vector_value)
         node.rep = seq  # type: ignore
-        self._result = seq
         return seq
 
     def call_First(self, node: ast.AST, args: List[ast.AST]) -> Any:
@@ -1104,4 +1075,3 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         first_value = sv if isinstance(sv, crep.cpp_sequence) else sv.copy_with_new_scope(self._gc.current_scope())
 
         node.rep = first_value  # type: ignore
-        self._result = first_value
