@@ -687,7 +687,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             right = cast(crep.cpp_value, self.get_rep(node.right))
             best_type = ctyp.terminal('double', False)
             s = deepest_scope(left, right).scope()
-            r = crep.cpp_value(f"pow({left.as_cpp()}, {right.as_cpp()})", s, best_type)
+            r = crep.cpp_value(f"std::pow({left.as_cpp()}, {right.as_cpp()})", s, best_type)
             self._gc.add_include('<cmath>')
 
             crep.set_rep(node, r)
