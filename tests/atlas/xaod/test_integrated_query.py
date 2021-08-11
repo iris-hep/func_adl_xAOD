@@ -33,7 +33,7 @@ def test_select_first_of_array():
     assert training_df.iloc[-1]['col1'] == 336
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def event_loop():
     'Get the loop done right on windows'
     if os.name == 'nt':

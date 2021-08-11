@@ -32,7 +32,7 @@ class hash_event_dataset(EventDataset):
         return ExecutorInfo(f_spec.main_script, f_spec.result_rep.filename)
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def cache_directory():
     'Return a directory that can be deleted when the test is done'
     with tempfile.TemporaryDirectory() as d_temp:
