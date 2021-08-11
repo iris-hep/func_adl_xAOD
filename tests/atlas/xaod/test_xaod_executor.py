@@ -1,7 +1,9 @@
-from tests.utils.locators import find_line_numbers_with, find_line_with, find_open_blocks
-from tests.utils.general import get_lines_of_code, print_lines
 import pytest
+from func_adl import Range
 from tests.atlas.xaod.utils import atlas_xaod_dataset, exe_from_qastle
+from tests.utils.general import get_lines_of_code, print_lines
+from tests.utils.locators import (find_line_numbers_with, find_line_with,
+                                  find_open_blocks)
 
 # Tests that make sure the xaod executor is working correctly
 
@@ -596,3 +598,20 @@ async def test_electron_and_muon_from_qastle():
     q = "(call ResultTTree (call Select (call Select (call EventDataset (list 'localds:bogus')) (lambda (list e) (list (call (attr e 'Electrons') 'Electrons') (call (attr e 'Muons') 'Muons')))) (lambda (list e) (list (call (attr (subscript e 0) 'Select') (lambda (list ele) (call (attr ele 'E')))) (call (attr (subscript e 0) 'Select') (lambda (list ele) (call (attr ele 'pt')))) (call (attr (subscript e 0) 'Select') (lambda (list ele) (call (attr ele 'phi')))) (call (attr (subscript e 0) 'Select') (lambda (list ele) (call (attr ele 'eta')))) (call (attr (subscript e 1) 'Select') (lambda (list mu) (call (attr mu 'E')))) (call (attr (subscript e 1) 'Select') (lambda (list mu) (call (attr mu 'pt')))) (call (attr (subscript e 1) 'Select') (lambda (list mu) (call (attr mu 'phi')))) (call (attr (subscript e 1) 'Select') (lambda (list mu) (call (attr mu 'eta'))))))) (list 'e_E' 'e_pt' 'e_phi' 'e_eta' 'mu_E' 'mu_pt' 'mu_phi' 'mu_eta') 'forkme' 'dude.root')"
     r = await exe_from_qastle(q)
     print(r)
+
+
+def test_Range_good_call():
+    # The following statement should be a straight sequence, not an array.
+    r = (atlas_xaod_dataset()
+         .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+         .Select(lambda j: Range(0, 10)
+                 .Select(lambda index: j.pt() * index))
+         .value()
+         )
+    # Check to see if there mention of push_back anywhere.
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    for_loops = find_line_numbers_with('for (', lines)
+    assert len(for_loops) == 2
+    find_line_with('(0)', lines)
+    find_line_with('(10)', lines)

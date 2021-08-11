@@ -1016,11 +1016,10 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         new_sequence_var = w_val.copy_with_new_scope(self._gc.current_scope())
         crep.set_rep(node, crep.cpp_sequence(new_sequence_var, seq.iterator_value(), self._gc.current_scope()))
 
-    def call_Range(self, node: ast.AST, args: List[ast.AST]):
+    def call_Range(self, node: ast.Call, args: List[ast.AST]):
         'Create a collection of numbers from lower_bound'
 
-        if len(args) != 2:
-            raise Exception('blah blah')
+        assert len(args) == 2, 'Range(lower bound, upper bound) is the only allowed form'
         lower_bound = args[0]
         upper_bound = args[1]
 
