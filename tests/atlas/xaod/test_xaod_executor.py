@@ -409,6 +409,28 @@ def test_generate_binary_operators():
         _ = find_line_with(f"pt(){o}1", lines)
 
 
+def test_generate_binary_operator_pow():
+    # Make sure the pow operator works correctly - that it doesn't cause a crash in generation.
+    r = atlas_xaod_dataset() \
+        .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()**2)') \
+        .value()
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    l1 = find_line_with("pow(i_obj", lines)
+    l2 = find_line_with("->pt(), 2)", lines)
+    assert l1 == l2
+
+
+def test_generate_binary_operator_unsupported():
+    # Make sure an unsupported binary operator triggers an exception
+    with pytest.raises(Exception) as e:
+        atlas_xaod_dataset() \
+            .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()//2)') \
+            .value()
+
+    assert "FloorDiv" in str(e)
+
+
 def test_generate_unary_operations():
     ops = ['+', '-']
     for o in ops:
