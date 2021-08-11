@@ -78,8 +78,8 @@ class dummy_ast(ast.AST):
     'A dummy ast'
     _fields = tuple()
 
-    def __init__(self, rep=None):
-        self.rep = rep
+    def __init__(self, node: cpp_rep_base):
+        set_rep(self, node)
 
 
 class cpp_rep_base:
@@ -290,3 +290,17 @@ class cpp_sequence(cpp_rep_base):
     def scope(self) -> Union[gc_scope, gc_scope_top_level]:
         'Return scope where this sequence was created/valid'
         return self._scope
+
+
+def set_rep(node: ast.AST, value: cpp_rep_base):
+    '''
+    Set the representation of a node to a value.
+    '''
+    node.rep = value  # type: ignore
+
+
+def get_rep(node: ast.AST) -> cpp_rep_base:
+    '''
+    Get the representation of a node.
+    '''
+    return node.rep  # type: ignore

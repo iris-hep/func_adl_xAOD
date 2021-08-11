@@ -8,6 +8,27 @@ on:
   - cron:  '1 0 * * *'
 
 jobs:
+  flake8:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@master
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install git+https://github.com/iris-hep/ast-language.git@e6470deb68529e1885a4bc46f781e2fe43a6f4c8
+        pip install --no-cache-dir -e .[test]
+        pip list
+    - name: Lint with Flake8
+      if: matrix.python-version == 3.7 && matrix.platform == 'ubuntu-latest'
+      run: |
+        flake8 --ignore=E501,W503
+
   test:
 
     strategy:
@@ -15,6 +36,7 @@ jobs:
         platform: [ubuntu-latest, macOS-latest, windows-latest]
         python-version: [3.7, 3.8, 3.9]
     runs-on: ${{ matrix.platform }}
+    needs: flake8
 
     steps:
     - uses: actions/checkout@master

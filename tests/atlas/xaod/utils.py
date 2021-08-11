@@ -9,7 +9,7 @@ from func_adl.object_stream import ObjectStream
 from func_adl_xAOD.atlas.xaod.executor import atlas_xaod_executor
 from func_adl_xAOD.atlas.xaod.query_ast_visitor import \
     atlas_xaod_query_ast_visitor
-from func_adl_xAOD.common.cpp_representation import cpp_sequence, cpp_variable
+from func_adl_xAOD.common.cpp_representation import cpp_sequence, cpp_variable, set_rep
 from func_adl_xAOD.common.util_scope import top_level_scope
 from tests.utils.base import LocalFile, dataset, dummy_executor
 
@@ -59,7 +59,7 @@ async def exe_from_qastle(q: str):
     from func_adl import find_EventDataset
     file = find_EventDataset(a)
     iterator = cpp_variable("bogus-do-not-use", top_level_scope(), cpp_type=None)
-    file.rep = cpp_sequence(iterator, iterator, top_level_scope())  # type: ignore
+    set_rep(file, cpp_sequence(iterator, iterator, top_level_scope()))
 
     # Use the dummy executor to process this, and return it.
     exe = atlas_xaod_dummy_executor()

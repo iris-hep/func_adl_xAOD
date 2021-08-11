@@ -4,6 +4,7 @@ import ast
 import func_adl_xAOD.common.cpp_representation as crep
 import func_adl_xAOD.common.cpp_types as ctyp
 import func_adl_xAOD.common.result_ttree as rh
+import pytest
 from func_adl_xAOD.atlas.xaod.query_ast_visitor import \
     atlas_xaod_query_ast_visitor
 from func_adl_xAOD.common.util_scope import gc_scope_top_level
@@ -12,8 +13,7 @@ from tests.atlas.xaod.utils import ast_parse_with_replacement
 
 def test_binary_plus_return_type_1():
     q = atlas_xaod_query_ast_visitor()
-    q.visit(ast.parse('1+1.2'))
-    r = q._result
+    r = q.get_rep(ast.parse('1+1.2').body[0].value)  # type: ignore
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'double'
@@ -21,8 +21,7 @@ def test_binary_plus_return_type_1():
 
 def test_binary_plus_return_type_2():
     q = atlas_xaod_query_ast_visitor()
-    q.visit(ast.parse('1.2+1'))
-    r = q._result
+    r = q.get_rep(ast.parse('1.2+1').body[0].value)  # type: ignore
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'double'
@@ -30,8 +29,7 @@ def test_binary_plus_return_type_2():
 
 def test_binary_plus_return_type_3():
     q = atlas_xaod_query_ast_visitor()
-    q.visit(ast.parse('1+1'))
-    r = q._result
+    r = q.get_rep(ast.parse('1+1').body[0].value)  # type: ignore
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'int'
@@ -39,8 +37,7 @@ def test_binary_plus_return_type_3():
 
 def test_binary_mult_return_type_1():
     q = atlas_xaod_query_ast_visitor()
-    q.visit(ast.parse('1.2*1'))
-    r = q._result
+    r = q.get_rep(ast.parse('1.2*1').body[0].value)  # type: ignore
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'double'
@@ -48,8 +45,7 @@ def test_binary_mult_return_type_1():
 
 def test_binary_mult_return_type_2():
     q = atlas_xaod_query_ast_visitor()
-    q.visit(ast.parse('1*1'))
-    r = q._result
+    r = q.get_rep(ast.parse('1*1').body[0].value)  # type: ignore
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'int'
@@ -57,8 +53,7 @@ def test_binary_mult_return_type_2():
 
 def test_binary_divide_return_type_1():
     q = atlas_xaod_query_ast_visitor()
-    q.visit(ast.parse('1.2/1'))
-    r = q._result
+    r = q.get_rep(ast.parse('1.2/1').body[0].value)  # type: ignore
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'double'
@@ -66,8 +61,7 @@ def test_binary_divide_return_type_1():
 
 def test_binary_divide_return_type_2():
     q = atlas_xaod_query_ast_visitor()
-    q.visit(ast.parse('1/1'))
-    r = q._result
+    r = q.get_rep(ast.parse('1/1').body[0].value)  # type: ignore
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'double'
@@ -132,3 +126,14 @@ def test_subscript():
     assert isinstance(as_root, crep.cpp_value)
     assert as_root.cpp_type() == 'int'
     assert as_root.as_cpp() == 'jets.at(10)'
+
+
+def test_name():
+    'This should fail b.c. name never gets a rep'
+    q = atlas_xaod_query_ast_visitor()
+    n = ast.Name(id='a')
+
+    with pytest.raises(Exception) as e:
+        q.get_rep(n)
+
+    assert 'Internal' in str(e)
