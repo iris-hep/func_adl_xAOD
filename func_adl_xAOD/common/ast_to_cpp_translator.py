@@ -433,7 +433,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
                         update it on every single element. This is called `agg_initial`
         '''
         raw_seq = node.args[0]
-        init_val = self.get_rep(node.args[1])
+        init_val = cast(crep.cpp_value, self.get_rep(node.args[1]))
         agg_lambda = node.args[2]
         assert isinstance(agg_lambda, ast.Lambda)
 
@@ -448,7 +448,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         else:
             self._gc.set_scope(sv.scope())
         call = ast.Call(func=agg_lambda, args=[accumulator.as_ast(), seq.sequence_value().as_ast()])
-        update_lambda = self.get_rep(call)
+        update_lambda = cast(crep.cpp_value, self.get_rep(call))
 
         # Check the accumulator value still hols out. Since we need the accumulator previously,
         # this will allow us to patch things up. This isn't perfect, but it will do.
@@ -559,8 +559,8 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # figure out what we are calling against, and the
         # method name we are going to be calling against.
-        calling_against = self.get_rep(call_node.func.value)
-        function_name = call_node.func.attr
+        calling_against = self.get_rep(call_node.func.value)  # type: ignore
+        function_name = call_node.func.attr  # type: ignore
         if not isinstance(calling_against, crep.cpp_value):
             # We didn't use get_rep_value above because now we can make a better error message.
             raise Exception("Do not know how to call '{0}' on '{1}'".format(function_name, type(calling_against).__name__))
@@ -571,7 +571,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         result_type = determine_type_mf(calling_against.cpp_type(), function_name)
 
         args = call_node.args
-        crep.set_rep(call_node, crep.cpp_value(c_stub + function_name + f"({','.join(self.get_rep(arg).as_cpp() for arg in args)})", calling_against.scope(), result_type))
+        crep.set_rep(call_node, crep.cpp_value(c_stub + function_name + f"({','.join(self.get_rep(arg).as_cpp() for arg in args)})", calling_against.scope(), result_type))  # type: ignore
 
     def visit_function_ast(self, call_node):
         'Drop-in replacement for a function'
@@ -633,10 +633,10 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         'Index into an array. Check types, as tuple indexing can be very bad for us'
         v = self.get_rep(node.value)
         if not isinstance(v, crep.cpp_collection):
-            raise Exception("Do not know how to take the index of type '{0}'".format(v.cpp_type()))
+            raise Exception("Do not know how to take the index of type '{0}'".format(v.cpp_type()))  # type: ignore
 
         index = self.get_rep(node.slice)
-        crep.set_rep(node, crep.cpp_value(f"{v.as_cpp()}{'->' if v.is_pointer() else '.'}at({index.as_cpp()})", self._gc.current_scope(), cpp_type=v.get_element_type()))
+        crep.set_rep(node, crep.cpp_value(f"{v.as_cpp()}{'->' if v.is_pointer() else '.'}at({index.as_cpp()})", self._gc.current_scope(), cpp_type=v.get_element_type()))  # type: ignore
 
     def visit_Index(self, node):
         'We can only do single items, we cannot do slices yet'
@@ -677,8 +677,8 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         'An in-line add'
         if type(node.op) not in _known_binary_operators:
             raise Exception(f"Do not know how to translate Binary operator {ast.dump(node.op)}!")
-        left = self.get_rep(node.left)
-        right = self.get_rep(node.right)
+        left = cast(crep.cpp_value, self.get_rep(node.left))
+        right = cast(crep.cpp_value, self.get_rep(node.right))
 
         best_type = most_accurate_type([left.cpp_type(), right.cpp_type()])
         if type(node.op) is ast.Div:
@@ -695,7 +695,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         if type(node.op) not in _known_unary_operators:
             raise Exception(f"Do not know how to translate Unary operator {ast.dump(node.op)}!")
 
-        operand = self.get_rep(node.operand)
+        operand = cast(crep.cpp_value, self.get_rep(node.operand))
 
         s = operand.scope()
         r = crep.cpp_value(f"({_known_unary_operators[type(node.op)]}({operand.as_cpp()}))",
@@ -737,8 +737,8 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         if len(node.ops) != 1:
             raise Exception("Do not support 1 < a < 10 comparisons yet!")
 
-        left = self.get_rep(node.left)
-        right = self.get_rep(node.comparators[0])
+        left = cast(crep.cpp_value, self.get_rep(node.left))
+        right = cast(crep.cpp_value, self.get_rep(node.comparators[0]))
 
         r = crep.cpp_value('({0}{1}{2})'.format(left.as_cpp(), compare_operations[type(node.ops[0])], right.as_cpp()), self._gc.current_scope(), ctyp.terminal("bool"))
         crep.set_rep(node, r)
@@ -930,7 +930,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # Simulate this as a "call"
         selection = lambda_unwrap(selection)
         c = ast.Call(func=selection, args=[seq.sequence_value().as_ast()])
-        new_sequence_value = self.get_rep(c)
+        new_sequence_value = cast(crep.cpp_value, self.get_rep(c))
 
         # We need to build a new sequence.
         rep = crep.cpp_sequence(new_sequence_value, seq.iterator_value(), self._gc.current_scope())
@@ -1028,7 +1028,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
                            vector_value_end.as_ast(),
                            begin_value.as_ast()])
 
-        self._gc.add_statement(statement.arbitrary_statement(self.get_rep(c).as_cpp()))
+        self._gc.add_statement(statement.arbitrary_statement(self.get_rep(c).as_cpp()))  # type: ignore
 
         seq = self.make_sequence_from_collection(vector_value)
         crep.set_rep(node, seq)

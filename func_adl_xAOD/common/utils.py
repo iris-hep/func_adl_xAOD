@@ -1,5 +1,3 @@
-import ast
-from func_adl_xAOD.common.cpp_representation import cpp_rep_base
 from typing import Dict, List
 
 import func_adl_xAOD.common.cpp_types as ctyp

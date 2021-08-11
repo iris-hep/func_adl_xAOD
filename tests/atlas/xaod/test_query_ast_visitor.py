@@ -20,7 +20,7 @@ def test_binary_plus_return_type_1():
 
 def test_binary_plus_return_type_2():
     q = atlas_xaod_query_ast_visitor()
-    r = q.get_rep(ast.parse('1.2+1').body[0].value)
+    r = q.get_rep(ast.parse('1.2+1').body[0].value)  # type: ignore
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'double'
@@ -28,7 +28,7 @@ def test_binary_plus_return_type_2():
 
 def test_binary_plus_return_type_3():
     q = atlas_xaod_query_ast_visitor()
-    r = q.get_rep(ast.parse('1+1').body[0].value)
+    r = q.get_rep(ast.parse('1+1').body[0].value)  # type: ignore
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'int'
@@ -36,7 +36,7 @@ def test_binary_plus_return_type_3():
 
 def test_binary_mult_return_type_1():
     q = atlas_xaod_query_ast_visitor()
-    r = q.get_rep(ast.parse('1.2*1').body[0].value)
+    r = q.get_rep(ast.parse('1.2*1').body[0].value)  # type: ignore
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'double'
@@ -44,7 +44,7 @@ def test_binary_mult_return_type_1():
 
 def test_binary_mult_return_type_2():
     q = atlas_xaod_query_ast_visitor()
-    r = q.get_rep(ast.parse('1*1').body[0].value)
+    r = q.get_rep(ast.parse('1*1').body[0].value)  # type: ignore
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'int'
@@ -52,7 +52,7 @@ def test_binary_mult_return_type_2():
 
 def test_binary_divide_return_type_1():
     q = atlas_xaod_query_ast_visitor()
-    r = q.get_rep(ast.parse('1.2/1').body[0].value)
+    r = q.get_rep(ast.parse('1.2/1').body[0].value)  # type: ignore
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'double'
@@ -60,7 +60,7 @@ def test_binary_divide_return_type_1():
 
 def test_binary_divide_return_type_2():
     q = atlas_xaod_query_ast_visitor()
-    r = q.get_rep(ast.parse('1/1').body[0].value)
+    r = q.get_rep(ast.parse('1/1').body[0].value)  # type: ignore
 
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'double'
