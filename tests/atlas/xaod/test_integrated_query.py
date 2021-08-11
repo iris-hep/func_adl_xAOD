@@ -66,7 +66,7 @@ def test_flatten_array():
 
 
 def test_simple_dict_output():
-    # A very simple flattening of arrays
+    # A very simple flattening of arrays, and the binary division operator
     training_df = as_pandas(f_single
                             .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
                             .Select(lambda j: {
@@ -78,12 +78,12 @@ def test_simple_dict_output():
 
 
 def test_single_column_output():
-    # A very simple flattening of arrays
+    # And a power operator
     training_df = as_pandas(f_single
                             .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
-                            .Select(lambda j: j.pt() / 1000.0))
+                            .Select(lambda j: j.pt() ** 2))
     print(training_df)
-    assert int(training_df.iloc[0]['col1']) == 257  # type: ignore
+    assert int(training_df.iloc[0]['col1']) == 66211749007  # type: ignore
     assert int(training_df.iloc[0]['col1']) != int(training_df.iloc[1]['col1'])  # type: ignore
 
 

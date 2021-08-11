@@ -673,23 +673,46 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         '''
         crep.set_rep(list_node, crep.cpp_tuple(tuple(self.get_rep(e, retain_scope=True) for e in list_node.elts), self._gc.current_scope()))
 
-    def visit_BinOp(self, node):
+    def visit_special_BinOp(self, node: ast.BinOp):
+        '''Some binary operations can be handled specially. We do that here.
+
+            - ast.Pow
+
+        Args:
+            node (ast.BinOp): The binary node to process
+
+        '''
+        if type(node.op) == ast.Pow:
+            left = cast(crep.cpp_value, self.get_rep(node.left))
+            right = cast(crep.cpp_value, self.get_rep(node.right))
+            best_type = ctyp.terminal('double', False)
+            s = deepest_scope(left, right).scope()
+            r = crep.cpp_value(f"std::pow({left.as_cpp()}, {right.as_cpp()})", s, best_type)
+            self._gc.add_include('cmath')
+
+            crep.set_rep(node, r)
+
+        else:
+            raise Exception(f"Do not know how to translate Binary operator {ast.dump(node.op)}!")
+
+    def visit_BinOp(self, node: ast.BinOp):
         'An in-line add'
         if type(node.op) not in _known_binary_operators:
-            raise Exception(f"Do not know how to translate Binary operator {ast.dump(node.op)}!")
-        left = cast(crep.cpp_value, self.get_rep(node.left))
-        right = cast(crep.cpp_value, self.get_rep(node.right))
+            self.visit_special_BinOp(node)
+        else:
+            left = cast(crep.cpp_value, self.get_rep(node.left))
+            right = cast(crep.cpp_value, self.get_rep(node.right))
 
-        best_type = most_accurate_type([left.cpp_type(), right.cpp_type()])
-        if type(node.op) is ast.Div:
-            best_type = ctyp.terminal('double', False)
+            best_type = most_accurate_type([left.cpp_type(), right.cpp_type()])
+            if type(node.op) is ast.Div:
+                best_type = ctyp.terminal('double', False)
 
-        s = deepest_scope(left, right).scope()
-        r = crep.cpp_value(f"({left.as_cpp()}{_known_binary_operators[type(node.op)]}{right.as_cpp()})",
-                           s, best_type)
+            s = deepest_scope(left, right).scope()
+            r = crep.cpp_value(f"({left.as_cpp()}{_known_binary_operators[type(node.op)]}{right.as_cpp()})",
+                               s, best_type)
 
-        # Cache the result to push it back further up.
-        crep.set_rep(node, r)
+            # Cache the result to push it back further up.
+            crep.set_rep(node, r)
 
     def visit_UnaryOp(self, node: ast.UnaryOp):
         if type(node.op) not in _known_unary_operators:

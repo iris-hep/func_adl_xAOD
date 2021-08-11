@@ -52,7 +52,7 @@ Template functions don't make sense yet in python.
 
 ### Math
 
-- Math Operators: +, -, *, /, %
+- Math Operators: +, -, *, /, %, **
 - Comparison Operators: <, <=, >, >=, ==, !=
 - Unary Operators: +, -, not
 - Math functions are pulled from the C++ [`cmath` library](http://www.cplusplus.com/reference/cmath/): `sin`, `cos`, `tan`, `acos`, `asin`, `atan`, `atan2`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`, `exp`, `ldexp`, `log`, `ln`, `log10`, `exp2`, `expm1`, `ilogb`, `log1p`, `log2`, `scalbn`, `scalbln`, `pow`, `sqrt`, `cbrt`, `hypot`, `erf`, `erfc`, `tgamma`, `lgamma`, `ceil`, `floor`, `fmod`, `trunc`, `round`, `rint`, `nearbyint`, `remainder`, `remquo`, `copysign`, `nan`, `nextafter`, `nexttoward`, `fdim`, `fmax`, `fmin`, `fabs`, `abs`, `fma`.
