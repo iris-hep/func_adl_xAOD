@@ -34,7 +34,7 @@ def test_complex_number_not_understood():
         c = complex(1, 2)
         node = ast.Constant(value=c, kind=None)
 
-        q = atlas_xaod_query_ast_visitor()        
+        q = atlas_xaod_query_ast_visitor()
         with pytest.raises(Exception) as e:
             q.get_rep(node)
 
