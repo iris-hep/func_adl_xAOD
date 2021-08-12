@@ -11,7 +11,7 @@ class ast_translator_ds(EventDataset):
     def __init__(self):
         EventDataset.__init__(self)
 
-    async def execute_result_async(self, a: ast.AST) -> Any:
+    async def execute_result_async(self, a: ast.AST, title: str) -> Any:
         return python_ast_to_text_ast(a)
 
 

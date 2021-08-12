@@ -68,7 +68,7 @@ class LocalFile(EventDataset, ABC):
     def get_executor_obj(self) -> executor:
         pass
 
-    async def execute_result_async(self, a: ast.AST) -> Any:
+    async def execute_result_async(self, a: ast.AST, title: str) -> Any:
         '''
         Run the file locally with docker
         '''
@@ -172,7 +172,7 @@ class dataset(EventDataset, ABC):
     def get_dummy_executor_obj(self) -> dummy_executor:
         pass
 
-    async def execute_result_async(self, a: ast.AST) -> Any:
+    async def execute_result_async(self, a: ast.AST, title: str) -> Any:
         'Dummy executor that will return the ast properly rendered. If qastle_roundtrip is true, then we will round trip the ast via qastle first.'
         # Round trip qastle if requested.
         if self._q_roundtrip:

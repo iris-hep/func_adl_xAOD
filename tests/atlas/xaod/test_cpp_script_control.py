@@ -24,7 +24,7 @@ class hash_event_dataset(EventDataset):
         super().__init__()
         self._dir = output_dir
 
-    async def execute_result_async(self, a: ast.AST) -> Any:
+    async def execute_result_async(self, a: ast.AST, title: str) -> Any:
         if self._dir.exists():
             self._dir.mkdir(parents=True, exist_ok=True)
         exe = atlas_xaod_executor()
