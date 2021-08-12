@@ -11,7 +11,7 @@ def test_ctor():
 
 
 class query_as_ast(EventDataset):
-    async def execute_result_async(self, a: ast.AST):
+    async def execute_result_async(self, a: ast.AST, title: str):
         return a
 
 
