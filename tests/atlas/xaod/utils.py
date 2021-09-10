@@ -9,9 +9,10 @@ from func_adl.object_stream import ObjectStream
 from func_adl_xAOD.atlas.xaod.executor import atlas_xaod_executor
 from func_adl_xAOD.atlas.xaod.query_ast_visitor import \
     atlas_xaod_query_ast_visitor
-from func_adl_xAOD.common.cpp_representation import cpp_sequence, cpp_variable, set_rep
+from func_adl_xAOD.common.cpp_representation import (cpp_sequence,
+                                                     cpp_variable, set_rep)
 from func_adl_xAOD.common.util_scope import top_level_scope
-from tests.utils.base import LocalFile, dataset, dummy_executor
+from tests.utils.base import LocalFile, dataset, dummy_executor  # type: ignore
 
 
 class atlas_xaod_dummy_executor(dummy_executor):

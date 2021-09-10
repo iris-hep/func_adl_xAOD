@@ -1,6 +1,6 @@
 import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.ast_to_cpp_translator import xAODTranslationError
-from tests.atlas.xaod.utils import atlas_xaod_dataset
+from tests.atlas.xaod.utils import atlas_xaod_dataset  # type: ignore
 
 # Test the simple type information system.
 
