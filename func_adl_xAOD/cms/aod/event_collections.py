@@ -79,25 +79,23 @@ cms_aod_collections = [
 class cms_aod_event_collections(event_collections):
     def __init__(self):
         super().__init__(cms_aod_collections)
+        ctyp.add_method_type_info("reco::Track", "hitPattern", ctyp.terminal('reco::HitPattern'))
+
+        ctyp.add_method_type_info("reco::Muon", "globalTrack", ctyp.terminal('reco::Track', is_pointer=True))
+        ctyp.add_method_type_info("reco::Muon", "hitPattern", ctyp.terminal('reco::HitPattern'))
+        ctyp.add_method_type_info("reco::Muon", "isPFIsolationValid", ctyp.terminal('bool'))
+        ctyp.add_method_type_info("reco::Muon", "isPFMuon", ctyp.terminal('bool'))
+        ctyp.add_method_type_info("reco::Muon", "pfIsolationR04", ctyp.terminal('reco::MuonPFIsolation'))
+
+        ctyp.add_method_type_info("reco::GsfElectron", "gsfTrack", ctyp.terminal('reco::GsfTrack', is_pointer=True))
+        ctyp.add_method_type_info("reco::GsfElectron", "isEB", ctyp.terminal('bool'))
+        ctyp.add_method_type_info("reco::GsfElectron", "isEE", ctyp.terminal('bool'))
+        ctyp.add_method_type_info("reco::GsfElectron", "passingPflowPreselection", ctyp.terminal('bool'))
+        ctyp.add_method_type_info("reco::GsfElectron", "superCluster", ctyp.terminal('reco::SuperClusterRef', is_pointer=True))
+        ctyp.add_method_type_info("reco::GsfElectron", "pfIsolationVariables", ctyp.terminal('reco::GsfElectron::PflowIsolationVariables'))
+
+        ctyp.add_method_type_info("reco::GsfTrack", "trackerExpectedHitsInner", ctyp.terminal('reco::HitPattern'))  # reco::HitPattern is the expected return type
 
     def get_running_code(self, container_type: event_collection_container) -> list:
         return [f'{container_type} result;',
                 'iEvent.getByLabel(collection_name, result);']
-
-
-ctyp.add_method_type_info("reco::Track", "hitPattern", ctyp.terminal('reco::HitPattern'))
-
-ctyp.add_method_type_info("reco::Muon", "globalTrack", ctyp.terminal('reco::Track', is_pointer=True))
-ctyp.add_method_type_info("reco::Muon", "hitPattern", ctyp.terminal('reco::HitPattern'))
-ctyp.add_method_type_info("reco::Muon", "isPFIsolationValid", ctyp.terminal('bool'))
-ctyp.add_method_type_info("reco::Muon", "isPFMuon", ctyp.terminal('bool'))
-ctyp.add_method_type_info("reco::Muon", "pfIsolationR04", ctyp.terminal('reco::MuonPFIsolation'))
-
-ctyp.add_method_type_info("reco::GsfElectron", "gsfTrack", ctyp.terminal('reco::GsfTrack', is_pointer=True))
-ctyp.add_method_type_info("reco::GsfElectron", "isEB", ctyp.terminal('bool'))
-ctyp.add_method_type_info("reco::GsfElectron", "isEE", ctyp.terminal('bool'))
-ctyp.add_method_type_info("reco::GsfElectron", "passingPflowPreselection", ctyp.terminal('bool'))
-ctyp.add_method_type_info("reco::GsfElectron", "superCluster", ctyp.terminal('reco::SuperClusterRef', is_pointer=True))
-ctyp.add_method_type_info("reco::GsfElectron", "pfIsolationVariables", ctyp.terminal('reco::GsfElectron::PflowIsolationVariables'))
-
-ctyp.add_method_type_info("reco::GsfTrack", "trackerExpectedHitsInner", ctyp.terminal('reco::HitPattern'))  # reco::HitPattern is the expected return type

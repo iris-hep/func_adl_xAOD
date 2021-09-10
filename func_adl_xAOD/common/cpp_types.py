@@ -1,6 +1,9 @@
 # Simple type system to help reason about types as they go through the system.
 
 
+from typing import Optional
+
+
 class terminal:
     'Represents something we cannot see inside, like float, or int, or bool'
 
@@ -63,7 +66,7 @@ class collection (terminal):
 g_method_type_dict = {}
 
 
-def add_method_type_info(type_string, method_name, t):
+def add_method_type_info(type_string: str, method_name: str, t: terminal):
     '''
     Define a return type for a method
 
@@ -76,7 +79,7 @@ def add_method_type_info(type_string, method_name, t):
     g_method_type_dict[type_string][method_name] = t
 
 
-def method_type_info(type_string, method_name):
+def method_type_info(type_string, method_name) -> Optional[terminal]:
     '''
     Return the type of the method's return value
     '''
