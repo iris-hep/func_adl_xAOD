@@ -1,11 +1,88 @@
+from func_adl_xAOD.common.cpp_types import method_type_info
 from typing import List
-from func_adl_xAOD.common.event_collections import event_collection_container, event_collections
-from func_adl_xAOD.common.executor import executor
-from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
-from tests.utils.base import dataset, dummy_executor  # type: ignore
+
 import func_adl_xAOD.common.statement as statement
+import pytest
+from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
+from func_adl_xAOD.common.event_collections import (event_collection_container,
+                                                    event_collections)
+from func_adl_xAOD.common.executor import executor
+from func_adl_xAOD.common.meta_data import process_metadata
+from tests.utils.base import dataset, dummy_executor  # type: ignore
 
 
+def test_malformed_meta_data():
+    'Pass a bogus metadata and watch it burn'
+    metadata = [
+        {
+            'one': 'two',
+        }
+    ]
+    with pytest.raises(ValueError) as e:
+        process_metadata(metadata)
+
+    assert 'one' in str(e)
+
+
+def test_bad_meta_data():
+    'Pass a bogus metadata and watch it burn'
+    metadata = [
+        {
+            'metadata_type': 'add_method_type_info_iiii',
+            'type_string': 'my_namespace::obj',
+            'method_name': 'pT',
+            'return_type': 'int',
+            'is_pointer': 'False',
+        }
+    ]
+
+    with pytest.raises(ValueError) as e:
+        process_metadata(metadata)
+
+    assert 'add_method_type_info_iiii' in str(e)
+
+
+def test_md_method_type_double():
+    'Make sure a double can be set'
+    metadata = [
+        {
+            'metadata_type': 'add_method_type_info',
+            'type_string': 'my_namespace::obj',
+            'method_name': 'pT',
+            'return_type': 'double',
+            'is_pointer': 'False',
+        }
+    ]
+
+    process_metadata(metadata)
+
+    t = method_type_info('my_namespace::obj', 'pT')
+    assert t is not None
+    assert t.type == 'double'
+    assert t.is_pointer() is False
+
+
+def test_md_method_type_object_pointer():
+    'Make sure a double can be set'
+    metadata = [
+        {
+            'metadata_type': 'add_method_type_info',
+            'type_string': 'my_namespace::obj',
+            'method_name': 'vertex',
+            'return_type': 'my_namespace::vertex',
+            'is_pointer': 'True',
+        }
+    ]
+
+    process_metadata(metadata)
+
+    t = method_type_info('my_namespace::obj', 'vertex')
+    assert t is not None
+    assert t.type == 'my_namespace::vertex'
+    assert t.is_pointer() is True
+
+
+# Some integration tests!
 # We need to setup a whole dummy dataset so we can test this in isolation of CMS and ATLAS
 # code.
 class my_event_collection_container(event_collection_container):

@@ -1,6 +1,7 @@
 # Drive the translate of the AST from start into a set of files, which one can then do whatever
 # is needed to.
 import ast
+from func_adl_xAOD.common.meta_data import process_metadata
 import os
 import sys
 from abc import ABC, abstractmethod
@@ -13,6 +14,7 @@ import jinja2
 from func_adl.ast.aggregate_shortcuts import aggregate_node_transformer
 from func_adl.ast.func_adl_ast_utils import change_extension_functions_to_calls
 from func_adl.ast.function_simplifier import simplify_chained_calls
+from func_adl.ast.meta_data import extract_metadata
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
 from func_adl_xAOD.common.cpp_functions import find_known_functions
 from func_adl_xAOD.common.util_scope import top_level_scope
@@ -93,6 +95,8 @@ class executor(ABC):
         '''
 
         # Do tuple resolutions. This might eliminate a whole bunch fo code!
+        a, meta_data = extract_metadata(a)
+        process_metadata(meta_data)
         a = change_extension_functions_to_calls(a)
         a = aggregate_node_transformer().visit(a)
         a = simplify_chained_calls().visit(a)
