@@ -1,5 +1,4 @@
-import ast
-from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification, CPPCodeValue, build_CPPCodeValue
+from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
 from func_adl_xAOD.common.cpp_types import method_type_info
 from typing import List
 
