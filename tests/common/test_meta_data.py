@@ -5,7 +5,7 @@ from typing import List
 import func_adl_xAOD.common.statement as statement
 import pytest
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
-from func_adl_xAOD.common.event_collections import (event_collection_container,
+from func_adl_xAOD.common.event_collections import (EventCollectionSpecification, event_collection_container,
                                                     event_collections)
 from func_adl_xAOD.common.executor import executor
 from func_adl_xAOD.common.meta_data import process_metadata
@@ -81,6 +81,162 @@ def test_md_method_type_object_pointer():
     assert t is not None
     assert t.type == 'my_namespace::vertex'
     assert t.is_pointer() is True
+
+
+def test_md_atlas_collection():
+    'Make a collection container md'
+    metadata = [
+        {
+            'metadata_type': 'add_atlas_event_collection_info',
+            'name': 'TruthParticles',
+            'include_files': ['file1.h', 'file2.h'],
+            'container_type': 'xAOD::ElectronContainer',
+            'element_type': 'xAOD::Electron',
+            'contains_collection': True,
+        }
+    ]
+    result = process_metadata(metadata)
+    assert len(result) == 1
+    s = result[0]
+    assert isinstance(s, EventCollectionSpecification)
+    assert s.backend_name == 'atlas'
+    assert s.name == 'TruthParticles'
+    assert s.include_files == ['file1.h', 'file2.h']
+    assert s.container_type == 'xAOD::ElectronContainer'
+    assert s.element_type == 'xAOD::Electron'
+    assert s.contains_collection
+
+
+def test_md_atlas_collection_single_obj():
+    'A collection container that does not have other things'
+    metadata = [
+        {
+            'metadata_type': 'add_atlas_event_collection_info',
+            'name': 'EventInfo',
+            'include_files': ['xAODEventInfo/EventInfo.h'],
+            'container_type': 'xAOD::EventInfo',
+            'contains_collection': False,
+        }
+    ]
+    result = process_metadata(metadata)
+    assert len(result) == 1
+    s = result[0]
+    assert isinstance(s, EventCollectionSpecification)
+    assert s.backend_name == 'atlas'
+    assert s.name == 'EventInfo'
+    assert s.include_files == ['xAODEventInfo/EventInfo.h']
+    assert s.container_type == 'xAOD::EventInfo'
+    assert s.element_type is None
+    assert not s.contains_collection
+
+
+def test_md_atlas_collection_no_element():
+    'A collection container that needs an element type'
+    metadata = [
+        {
+            'metadata_type': 'add_atlas_event_collection_info',
+            'name': 'EventInfo',
+            'include_files': ['xAODEventInfo/EventInfo.h'],
+            'container_type': 'xAOD::EventInfo',
+            'contains_collection': True,
+        }
+    ]
+    with pytest.raises(ValueError):
+        process_metadata(metadata)
+
+
+def test_md_atlas_collection_no_collection_and_element():
+    'A collection container that needs an element type'
+    metadata = [
+        {
+            'metadata_type': 'add_atlas_event_collection_info',
+            'name': 'EventInfo',
+            'include_files': ['xAODEventInfo/EventInfo.h'],
+            'container_type': 'xAOD::EventInfo',
+            'contains_collection': False,
+            'element_type': 'Fork'
+        }
+    ]
+
+    with pytest.raises(ValueError):
+        process_metadata(metadata)
+
+
+def test_md_atlas_collection_bogus_extra():
+    'A collection container that needs an element type'
+    metadata = [
+        {
+            'metadata_type': 'add_atlas_event_collection_info',
+            'name': 'EventInfo',
+            'include_files': ['xAODEventInfo/EventInfo.h'],
+            'container_type': 'xAOD::EventInfo',
+            'contains_collection': True,
+            'element_type': 'Fork',
+            'what_the_heck': 23
+        }
+    ]
+
+    with pytest.raises(ValueError):
+        process_metadata(metadata)
+
+
+def test_md_cms_collection():
+    'Make a CMS collection container'
+    metadata = [
+        {
+            'metadata_type': 'add_cms_event_collection_info',
+            'name': 'Vertex',
+            'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
+            'container_type': 'reco::VertexCollection',
+            'contains_collection': True,
+            'element_type': 'reco::Vertex',
+            'element_pointer': False,
+        }
+    ]
+    result = process_metadata(metadata)
+    assert len(result) == 1
+    s = result[0]
+    assert isinstance(s, EventCollectionSpecification)
+    assert s.backend_name == 'cms'
+    assert s.name == 'Vertex'
+    assert s.include_files == ['DataFormats/VertexReco/interface/Vertex.h']
+    assert s.container_type == 'reco::VertexCollection'
+    assert s.element_type == 'reco::Vertex'
+    assert s.contains_collection
+    assert not s.element_pointer
+
+
+def test_md_cms_collection_no_element_type():
+    'Make a CMS collection container badly'
+    metadata = [
+        {
+            'metadata_type': 'add_cms_event_collection_info',
+            'name': 'Vertex',
+            'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
+            'container_type': 'reco::VertexCollection',
+            'contains_collection': False,
+            'element_type': 'reco::Vertex',
+            'element_pointer': False,
+        }
+    ]
+    with pytest.raises(ValueError):
+        process_metadata(metadata)
+
+
+def test_md_cms_collection_element_type_needed():
+    'Make a CMS collection container badly'
+    metadata = [
+        {
+            'metadata_type': 'add_cms_event_collection_info',
+            'name': 'Vertex',
+            'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
+            'container_type': 'reco::VertexCollection',
+            'contains_collection': True,
+            'element_pointer': False,
+        }
+    ]
+    with pytest.raises(ValueError):
+        process_metadata(metadata)
 
 
 def test_md_function_call():

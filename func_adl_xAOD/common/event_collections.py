@@ -1,5 +1,6 @@
 # Collected code to get collections from the event object
 import ast
+from collections import namedtuple
 import copy
 from abc import ABC, abstractmethod
 
@@ -8,6 +9,9 @@ import func_adl_xAOD.common.cpp_representation as crep
 import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.cpp_vars import unique_name
 from func_adl_xAOD.common.math_utils import get_math_methods
+
+
+EventCollectionSpecification = namedtuple('EventCollectionSpecification', ['backend_name', 'name', 'include_files', 'container_type', 'element_type', 'contains_collection', 'element_pointer'])
 
 
 # Need a type for our type system to reason about the containers.
