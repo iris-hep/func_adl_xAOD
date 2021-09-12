@@ -1,6 +1,7 @@
 # Drive the translate of the AST from start into a set of files, which one can then do whatever
 # is needed to.
 import ast
+from typing import Callable, Dict
 from func_adl_xAOD.common.meta_data import process_metadata
 import os
 import sys
@@ -78,7 +79,8 @@ def _is_format_request(a: ast.AST) -> bool:
 
 
 class executor(ABC):
-    def __init__(self, file_names: list, runner_name: str, template_dir_name: str, method_names: dict):
+    def __init__(self, file_names: list, runner_name: str, template_dir_name: str,
+                 method_names: Dict[str, Callable[[ast.Call], ast.Call]]):
         self._file_names = file_names
         self._runner_name = runner_name
         self._template_dir_name = template_dir_name
@@ -96,14 +98,19 @@ class executor(ABC):
 
         # Do tuple resolutions. This might eliminate a whole bunch fo code!
         a, meta_data = extract_metadata(a)
-        process_metadata(meta_data)
+        cpp_functions = process_metadata(meta_data)
         a = change_extension_functions_to_calls(a)
         a = aggregate_node_transformer().visit(a)
         a = simplify_chained_calls().visit(a)
         a = find_known_functions().visit(a)
 
         # Any C++ custom code needs to be threaded into the ast
-        a = cpp_ast.cpp_ast_finder(self._method_names).visit(a)
+        method_names = dict(self._method_names)
+        method_names.update({
+            md.name: lambda call_node: cpp_ast.build_CPPCodeValue(md, call_node)
+            for md in cpp_functions
+        })
+        a = cpp_ast.cpp_ast_finder(method_names).visit(a)
 
         # And return the modified ast
         return a

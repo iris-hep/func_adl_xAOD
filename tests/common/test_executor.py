@@ -1,4 +1,5 @@
 import ast
+from func_adl_xAOD.common.cpp_ast import CPPCodeValue
 from func_adl_xAOD.common.cpp_types import method_type_info
 
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
@@ -18,7 +19,7 @@ def parse_statement(st: str) -> ast.AST:
     return ast.parse(st).body[0].value  # type: ignore
 
 
-def test_metadata_dealt_with():
+def test_metadata_method():
     'Make sure the metadata call is properly dealt with'
 
     a1 = parse_statement('Select(MetaData(ds, {'
@@ -38,3 +39,27 @@ def test_metadata_dealt_with():
     assert t is not None
     assert t.type == 'int'
     assert t.is_pointer() is False
+
+
+def test_metadata_cpp_code():
+    'Make sure the metadata from a C++ bit of code is correctly put into type system'
+
+    a1 = parse_statement('Select(MetaData(ds, {'
+                         '"metadata_type": "add_cpp_function",'
+                         '"name": "MyDeltaR",'
+                         '"include_files": ["TVector2.h", "math.h"],'
+                         '"arguments": ["eta1", "phi1", "eta2", "phi2"],'
+                         '"code": ['
+                         '   "auto d_eta = eta1 - eta2;",'
+                         '   "auto d_phi = TVector2::Phi_mpi_pi(phi1-phi2);",'
+                         '   "auto result = (d_eta*d_eta + d_phi*d_phi);"'
+                         '],'
+                         '"return_type": "double"'
+                         '}), lambda e: MyDeltaR(1,2,3,4))')
+
+    new_a1 = do_nothing_executor().apply_ast_transformations(a1)
+
+    assert 'CPPCodeValue' in ast.dump(new_a1)
+
+    call_obj = new_a1.args[1].body.func  # type: ignore
+    assert isinstance(call_obj, CPPCodeValue)
