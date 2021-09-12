@@ -1,4 +1,6 @@
 import ast
+from typing import Callable
+from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 from func_adl_xAOD.common.cpp_ast import CPPCodeValue
 from func_adl_xAOD.common.cpp_types import method_type_info
 
@@ -12,6 +14,9 @@ class do_nothing_executor(executor):
 
     def get_visitor_obj(self) -> query_ast_visitor:
         assert False
+
+    def build_collection_callback(self, metadata: EventCollectionSpecification) -> Callable[[ast.Call], ast.Call]:
+        raise NotImplementedError()
 
 
 def parse_statement(st: str) -> ast.AST:

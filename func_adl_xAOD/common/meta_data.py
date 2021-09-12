@@ -1,4 +1,6 @@
 
+from func_adl_xAOD.cms.aod.event_collections import cms_aod_event_collection_collection, cms_aod_event_collection_container
+from func_adl_xAOD.atlas.xaod.event_collections import atlas_xaod_event_collection_collection, atlas_xaod_event_collection_container
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
 from func_adl_xAOD.common.cpp_types import add_method_type_info, terminal
@@ -36,33 +38,32 @@ def process_metadata(md_list: List[Dict[str, str]]) -> List[Union[CPPCodeSpecifi
             for k in md.keys():
                 if k not in ['metadata_type', 'name', 'include_files', 'container_type', 'element_type', 'contains_collection']:
                     raise ValueError(f'Unexpected key {k} when declaring ATLAS collection metadata')
+            if (md['contains_collection'] and 'element_type' not in md) or (not md['contains_collection'] and 'element_type' in md):
+                raise ValueError('In collection metadata, `element_type` must be specified if `contains_collection` is true and not if it is false')
+
+            container_type = atlas_xaod_event_collection_collection(md['container_type'], md['element_type']) if md['contains_collection'] \
+                else atlas_xaod_event_collection_container(md['container_type'])
             spec = EventCollectionSpecification(
                 'atlas',
                 md['name'],
                 md['include_files'],
-                md['container_type'],
-                md.get('element_type'),
-                md['contains_collection'],
-                False  # This is ignored for ATLAS
-            )
-            if (spec.contains_collection and spec.element_type is None) or (not spec.contains_collection and spec.element_type is not None):
-                raise ValueError('In collection metadata, `element_type` must be specified if `contains_collection` is true and not if it is false')
+                container_type)
             cpp_funcs.append(spec)
         elif md_type == 'add_cms_event_collection_info':
             for k in md.keys():
                 if k not in ['metadata_type', 'name', 'include_files', 'container_type', 'element_type', 'contains_collection', 'element_pointer']:
                     raise ValueError(f'Unexpected key {k} when declaring ATLAS collection metadata')
+            if (md['contains_collection'] and 'element_type' not in md) or (not md['contains_collection'] and 'element_type' in md):
+                raise ValueError('In collection metadata, `element_type` must be specified if `contains_collection` is true and not if it is false')
+
+            container_type = cms_aod_event_collection_collection(md['container_type'], md['element_type']) if md['contains_collection'] \
+                else cms_aod_event_collection_container(md['container_type'])
+
             spec = EventCollectionSpecification(
                 'cms',
                 md['name'],
                 md['include_files'],
-                md['container_type'],
-                md.get('element_type'),
-                md['contains_collection'],
-                md['element_pointer']  # This is ignored for ATLAS
-            )
-            if (spec.contains_collection and spec.element_type is None) or (not spec.contains_collection and spec.element_type is not None):
-                raise ValueError('In collection metadata, `element_type` must be specified if `contains_collection` is true and not if it is false')
+                container_type)
             cpp_funcs.append(spec)
         else:
             raise ValueError(f'Unknown metadata type ({md_type})')

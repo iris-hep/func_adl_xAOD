@@ -1,6 +1,7 @@
 # Drive the translate of the AST from start into a set of files, which one can then do whatever
 # is needed to.
 import ast
+from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 from typing import Callable, Dict
 from func_adl_xAOD.common.meta_data import process_metadata
 import os
@@ -107,13 +108,22 @@ class executor(ABC):
         # Any C++ custom code needs to be threaded into the ast
         method_names = dict(self._method_names)
         method_names.update({
-            md.name: lambda call_node: cpp_ast.build_CPPCodeValue(md, call_node)
+            md.name:
+                (lambda call_node: cpp_ast.build_CPPCodeValue(md, call_node)) if isinstance(md, cpp_ast.CPPCodeSpecification)
+                else self.build_collection_callback(md)
             for md in cpp_functions
         })
         a = cpp_ast.cpp_ast_finder(method_names).visit(a)
 
         # And return the modified ast
         return a
+
+    @abstractmethod
+    def build_collection_callback(self, metadata: EventCollectionSpecification) -> Callable[[ast.Call], ast.Call]:
+        '''Given the specification for a collection, build the callback that will replace the AST properly
+        when it comes time. These collections are things like Jets, etc., and all off the top level event.
+        '''
+        pass
 
     @abstractmethod
     def get_visitor_obj(self) -> query_ast_visitor:

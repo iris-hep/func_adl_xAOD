@@ -1,4 +1,6 @@
 # Some math utilities
+import ast
+from typing import Callable, Dict
 import func_adl_xAOD.common.cpp_ast as cpp_ast
 
 
@@ -49,7 +51,7 @@ def DeltaR(eta1, phi1, eta2, phi2):
     raise NotImplementedError('DeltaR should never be called in python!')
 
 
-def get_math_methods():
+def get_math_methods() -> Dict[str, Callable[[ast.Call], ast.Call]]:
     return {
         'DeltaR': lambda call_node: cpp_ast.build_CPPCodeValue(DeltaRSpec, call_node)
     }

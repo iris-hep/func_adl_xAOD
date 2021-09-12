@@ -1,12 +1,15 @@
-from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
-from func_adl_xAOD.common.cpp_types import method_type_info
-from typing import List
+import ast
+from func_adl_xAOD.cms.aod.event_collections import cms_aod_event_collection_collection, cms_aod_event_collection_container
+from func_adl_xAOD.atlas.xaod.event_collections import atlas_xaod_event_collection_collection, atlas_xaod_event_collection_container
+from typing import Callable, List
 
 import func_adl_xAOD.common.statement as statement
 import pytest
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
-from func_adl_xAOD.common.event_collections import (EventCollectionSpecification, event_collection_container,
-                                                    event_collections)
+from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
+from func_adl_xAOD.common.cpp_types import method_type_info
+from func_adl_xAOD.common.event_collections import (
+    EventCollectionSpecification, event_collection_coder, event_collection_container)
 from func_adl_xAOD.common.executor import executor
 from func_adl_xAOD.common.meta_data import process_metadata
 from tests.utils.base import dataset, dummy_executor  # type: ignore
@@ -102,9 +105,9 @@ def test_md_atlas_collection():
     assert s.backend_name == 'atlas'
     assert s.name == 'TruthParticles'
     assert s.include_files == ['file1.h', 'file2.h']
-    assert s.container_type == 'xAOD::ElectronContainer'
-    assert s.element_type == 'xAOD::Electron'
-    assert s.contains_collection
+    assert isinstance(s.container_type, atlas_xaod_event_collection_collection)
+    assert s.container_type._element_name == 'xAOD::Electron'
+    assert s.container_type._type_name == 'xAOD::ElectronContainer'
 
 
 def test_md_atlas_collection_single_obj():
@@ -125,9 +128,8 @@ def test_md_atlas_collection_single_obj():
     assert s.backend_name == 'atlas'
     assert s.name == 'EventInfo'
     assert s.include_files == ['xAODEventInfo/EventInfo.h']
-    assert s.container_type == 'xAOD::EventInfo'
-    assert s.element_type is None
-    assert not s.contains_collection
+    assert isinstance(s.container_type, atlas_xaod_event_collection_container)
+    assert s.container_type._type_name == 'xAOD::EventInfo'
 
 
 def test_md_atlas_collection_no_element():
@@ -200,10 +202,9 @@ def test_md_cms_collection():
     assert s.backend_name == 'cms'
     assert s.name == 'Vertex'
     assert s.include_files == ['DataFormats/VertexReco/interface/Vertex.h']
-    assert s.container_type == 'reco::VertexCollection'
-    assert s.element_type == 'reco::Vertex'
-    assert s.contains_collection
-    assert not s.element_pointer
+    assert isinstance(s.container_type, cms_aod_event_collection_collection)
+    assert s.container_type._element_name == 'reco::Vertex'
+    assert s.container_type._type_name == 'reco::VertexCollection'
 
 
 def test_md_cms_collection_no_element_type():
@@ -304,20 +305,23 @@ class my_event_collection_container(event_collection_container):
         return 'my_namespace::obj'
 
 
+class dummy_collection_container(event_collection_container):
+    def __init__(self):
+        super().__init__('my_namespace::obj', True)
+    
+    def __str__(self):
+        return "my_namespace::obj"
+
+
 dummy_collections = [
-    {
-        'function_name': "info",
-        'include_files': ['xAODEventInfo/EventInfo.h'],
-        'container_type': my_event_collection_container('base_cpp:info_object'),
-        'is_collection': False,
-    }
+    EventCollectionSpecification('dummy',
+                                 'info',
+                                 ['xAODEventInfo/EventInfo.h'],
+                                 dummy_collection_container()),
 ]
 
 
-class dummy_event_collections(event_collections):
-    def __init__(self):
-        super().__init__(dummy_collections)
-
+class dummy_event_collection_coder(event_collection_coder):
     def get_running_code(self, container_type: event_collection_container) -> List[str]:
         return [f'{container_type} result;']
 
@@ -351,11 +355,18 @@ class dummy_query_ast_visitor(query_ast_visitor):
 
 class my_executor(executor):
     def __init__(self):
-        method_names = dummy_event_collections().get_method_names()
-        super().__init__([], 'dummy.sh', 'dude/shark', method_names)
+        ecc = dummy_event_collection_coder()
+        functions = {
+            md.name: lambda cn: ecc.get_collection(md, cn)
+            for md in dummy_collections
+        }
+        super().__init__([], 'dummy.sh', 'dude/shark', functions)
 
     def get_visitor_obj(self) -> query_ast_visitor:
         return dummy_query_ast_visitor()
+
+    def build_collection_callback(self, metadata: EventCollectionSpecification) -> Callable[[ast.Call], ast.Call]:
+        raise NotImplementedError()
 
 
 class my_dummy_executor(dummy_executor):
