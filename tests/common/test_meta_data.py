@@ -1,3 +1,5 @@
+import ast
+from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification, CPPCodeValue, build_CPPCodeValue
 from func_adl_xAOD.common.cpp_types import method_type_info
 from typing import List
 
@@ -80,6 +82,60 @@ def test_md_method_type_object_pointer():
     assert t is not None
     assert t.type == 'my_namespace::vertex'
     assert t.is_pointer() is True
+
+
+def test_md_function_call():
+    'Inject code to run some C++'
+    metadata = [
+        {
+            'metadata_type': 'add_cpp_function',
+            'name': 'MyDeltaR',
+            'include_files': ['TVector2.h', 'math.h'],
+            'arguments': ['eta1', 'phi1', 'eta2', 'phi2'],
+            'code': [
+                'auto d_eta = eta1 - eta2;',
+                'auto d_phi = TVector2::Phi_mpi_pi(phi1-phi2);',
+                'auto result = sqrt(d_eta*d_eta + d_phi*d_phi);'
+            ],
+            'return_type': 'double'
+        }
+    ]
+
+    specs = process_metadata(metadata)
+    assert len(specs) == 1
+    spec = specs[0]
+    assert isinstance(spec, CPPCodeSpecification)
+    assert spec.name == 'MyDeltaR'
+    assert spec.include_files == ['TVector2.h', 'math.h']
+    assert spec.arguments == ['eta1', 'phi1', 'eta2', 'phi2']
+    assert len(spec.code) == 3
+    assert spec.result == 'result'
+    assert spec.cpp_return_type == 'double'
+
+
+def test_md_function_call_renamed_result():
+    'Check result name is properly set'
+    metadata = [
+        {
+            'metadata_type': 'add_cpp_function',
+            'name': 'MyDeltaR',
+            'include_files': ['TVector2.h', 'math.h'],
+            'arguments': ['eta1', 'phi1', 'eta2', 'phi2'],
+            'code': [
+                'auto d_eta = eta1 - eta2;',
+                'auto d_phi = TVector2::Phi_mpi_pi(phi1-phi2);',
+                'auto result_fork = sqrt(d_eta*d_eta + d_phi*d_phi);'
+            ],
+            'return_type': 'double',
+            'result_name': 'result_fork'
+        }
+    ]
+
+    specs = process_metadata(metadata)
+    assert len(specs) == 1
+    spec = specs[0]
+    assert isinstance(spec, CPPCodeSpecification)
+    assert spec.result == 'result_fork'
 
 
 # Some integration tests!
@@ -180,9 +236,6 @@ def test_no_type_info_warning(caplog):
 
 def test_with_type(caplog):
     'Call a function that is "ok" and has type info declared in metadata'
-
-    # import func_adl_xAOD.common.cpp_types as ctyp
-    # ctyp.add_method_type_info('my_namespace::obj', 'pT', ctyp.terminal('int'))
 
     (my_dataset()
         .MetaData({
