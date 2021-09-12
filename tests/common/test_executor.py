@@ -1,11 +1,16 @@
 import ast
-from typing import Callable
-from func_adl_xAOD.common.event_collections import EventCollectionSpecification
+from typing import Callable, List
+from func_adl_xAOD.common.event_collections import EventCollectionSpecification, event_collection_coder, event_collection_container
 from func_adl_xAOD.common.cpp_ast import CPPCodeValue
 from func_adl_xAOD.common.cpp_types import method_type_info
 
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
 from func_adl_xAOD.common.executor import executor
+
+
+class dummy_event_collection_coder(event_collection_coder):
+    def get_running_code(self, container_type: event_collection_container) -> List[str]:
+        return [f'{container_type} result = dude;']
 
 
 class do_nothing_executor(executor):
@@ -16,7 +21,8 @@ class do_nothing_executor(executor):
         assert False
 
     def build_collection_callback(self, metadata: EventCollectionSpecification) -> Callable[[ast.Call], ast.Call]:
-        raise NotImplementedError()
+        ecc = dummy_event_collection_coder()
+        return lambda cd: ecc.get_collection(metadata, cd)
 
 
 def parse_statement(st: str) -> ast.AST:
@@ -68,3 +74,24 @@ def test_metadata_cpp_code():
 
     call_obj = new_a1.args[1].body.func  # type: ignore
     assert isinstance(call_obj, CPPCodeValue)
+
+
+def test_metadata_collection():
+    'Make sure the metadata for a new collections goes all the way through'
+
+    a1 = parse_statement('Select(MetaData(ds, {'
+                         '"metadata_type": "add_atlas_event_collection_info",'
+                         '"name": "crazy",'
+                         '"include_files": ["xAODEventInfo/EventInfo.h"],'
+                         '"container_type": "xAOD::EventInfo",'
+                         '"contains_collection": True,'
+                         '"element_type": "Fork",'
+                         '}), lambda e: e.crazy("fork").pT())')
+
+    new_a1 = do_nothing_executor().apply_ast_transformations(a1)
+
+    assert 'CPPCodeValue' in ast.dump(new_a1)
+
+    call_obj = new_a1.args[1].body.func.value.func  # type: ignore
+    assert isinstance(call_obj, CPPCodeValue)
+    assert "dude" in "-".join(call_obj.running_code)
