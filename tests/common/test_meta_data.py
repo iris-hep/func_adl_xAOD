@@ -207,6 +207,25 @@ def test_md_cms_collection():
     assert s.container_type._type_name == 'reco::VertexCollection'
 
 
+def test_md_cms_collection_extra():
+    'Make a CMS collection container'
+    metadata = [
+        {
+            'metadata_type': 'add_cms_event_collection_info',
+            'name': 'Vertex',
+            'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
+            'container_type': 'reco::VertexCollection',
+            'contains_collection': True,
+            'element_type': 'reco::Vertex',
+            'element_pointer': False,
+            'fork_it_over': True,
+        }
+    ]
+
+    with pytest.raises(ValueError):
+        process_metadata(metadata)
+
+
 def test_md_cms_collection_no_element_type():
     'Make a CMS collection container badly'
     metadata = [

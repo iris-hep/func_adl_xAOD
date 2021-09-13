@@ -1,4 +1,3 @@
-
 from func_adl_xAOD.cms.aod.event_collections import cms_aod_event_collection_collection, cms_aod_event_collection_container
 from func_adl_xAOD.atlas.xaod.event_collections import atlas_xaod_event_collection_collection, atlas_xaod_event_collection_container
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
