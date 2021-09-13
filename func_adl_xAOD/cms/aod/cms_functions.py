@@ -8,7 +8,7 @@ from func_adl_xAOD.common.cpp_vars import unique_name
 def isNonnullAst(call_node):
     r'''
     User is trying to test, on certian objects, if the object, when dereferenced, will be a null
-    pointer. This is tricky for our data model because it treats an object as both a poitner and
+    pointer. This is tricky for our data model because it treats an object as both a pointer and
     a object. Most of `func_adl_xAOD` is setup to deal with it as a pointer. This allows us to
     get around ths.
     '''

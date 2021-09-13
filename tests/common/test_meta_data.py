@@ -1,5 +1,5 @@
 import ast
-from func_adl_xAOD.cms.aod.event_collections import cms_aod_event_collection_collection, cms_aod_event_collection_container
+from func_adl_xAOD.cms.aod.event_collections import cms_aod_event_collection_collection
 from func_adl_xAOD.atlas.xaod.event_collections import atlas_xaod_event_collection_collection, atlas_xaod_event_collection_container
 from typing import Callable, List
 
@@ -308,7 +308,7 @@ class my_event_collection_container(event_collection_container):
 class dummy_collection_container(event_collection_container):
     def __init__(self):
         super().__init__('my_namespace::obj', True)
-    
+
     def __str__(self):
         return "my_namespace::obj"
 
