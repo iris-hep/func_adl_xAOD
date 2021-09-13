@@ -16,7 +16,7 @@ import jinja2
 from func_adl.ast.aggregate_shortcuts import aggregate_node_transformer
 from func_adl.ast.func_adl_ast_utils import change_extension_functions_to_calls
 from func_adl.ast.function_simplifier import simplify_chained_calls
-from func_adl.ast.meta_data import extract_metadata
+from func_adl.ast import extract_metadata
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
 from func_adl_xAOD.common.cpp_functions import find_known_functions
 from func_adl_xAOD.common.util_scope import top_level_scope
