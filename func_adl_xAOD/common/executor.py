@@ -123,11 +123,11 @@ class executor(ABC):
         '''Given the specification for a collection, build the callback that will replace the AST properly
         when it comes time. These collections are things like Jets, etc., and all off the top level event.
         '''
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def get_visitor_obj(self) -> query_ast_visitor:
-        pass
+        pass  # pragma: no cover
 
     def write_cpp_files(self, ast: ast.AST, output_path: Path) -> ExecutionInfo:
         r"""

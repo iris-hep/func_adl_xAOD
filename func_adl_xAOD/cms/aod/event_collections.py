@@ -3,12 +3,13 @@ from func_adl_xAOD.common.event_collections import (
     EventCollectionSpecification, event_collection_coder, event_collection_collection, event_collection_container)
 
 
-class cms_aod_event_collection_container(event_collection_container):
-    def __init__(self, type_name, is_pointer=True):
-        super().__init__(type_name, is_pointer)
+# class cms_aod_event_collection_container(event_collection_container):
+#     'There is nothing turned on here - till we have a real use case.'
+#     def __init__(self, type_name, is_pointer=True):
+#         super().__init__(type_name, is_pointer)
 
-    def __str__(self):
-        return f"edm::Handle<{self._type_name}>"
+#     def __str__(self):
+#         return f"edm::Handle<{self._type_name}>"
 
 
 class cms_aod_event_collection_collection(event_collection_collection):
