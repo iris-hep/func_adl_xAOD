@@ -803,7 +803,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         crep.set_rep(node, crep.cpp_value('"{0}"'.format(node.s), self._gc.current_scope(), ctyp.terminal("string")))
 
     def visit_Constant(self, node: ast.Constant):
-        '''Visit Constnat node.
+        '''Visit constant node.
 
         Note that this has to take the place of `visit_Str` and `visit_Num` as we roll
         python versions forward. So those methods and this method must be kept in sync.
