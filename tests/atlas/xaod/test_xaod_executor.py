@@ -615,3 +615,41 @@ def test_Range_good_call():
     assert len(for_loops) == 2
     find_line_with('(0)', lines)
     find_line_with('(10)', lines)
+
+
+def test_metadata_collection():
+    'This is integration testing - making sure the dict to root conversion works'
+    r = (atlas_xaod_dataset()
+         .MetaData({
+            'metadata_type': 'add_atlas_event_collection_info',
+            'name': 'ForkInfo',
+            'include_files': ['xAODEventInfo/EventInfo.h'],
+            'container_type': 'xAOD::EventInfo',
+            'contains_collection': False,
+         })
+         .Select(lambda e: e.ForkInfo("EventInfo").runNumber())
+         .Select(lambda e: {'run_number': e})
+         .value())
+    vs = r.QueryVisitor._gc._class_vars
+    assert 1 == len(vs)
+    assert "double" == str(vs[0].cpp_type())
+
+
+def test_metadata_collection_bad_experiment():
+    'This is integration testing - making sure the dict to root conversion works'
+    with pytest.raises(ValueError) as e:
+        (atlas_xaod_dataset()
+         .MetaData({
+            'metadata_type': 'add_cms_event_collection_info',
+            'name': 'Vertex',
+            'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
+            'container_type': 'reco::VertexCollection',
+            'contains_collection': True,
+            'element_type': 'reco::Vertex',
+            'element_pointer': False,
+         })
+         .Select(lambda e: e.ForkInfo("EventInfo").runNumber())
+         .Select(lambda e: {'run_number': e})
+         .value())
+
+    assert "backend; only" in str(e.value)

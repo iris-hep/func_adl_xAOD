@@ -38,9 +38,6 @@ class atlas_xaod_executor(executor):
         Args:
             metadata (EventCollectionSpecification): The metadata describing this collection
 
-        Raises:
-            NotImplementedError: [description]
-
         Returns:
             Callable[[ast.Call], ast.Call]: Function that will implement what is needed to build the ast properly.
         '''
