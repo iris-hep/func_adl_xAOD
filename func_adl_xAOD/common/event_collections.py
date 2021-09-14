@@ -90,4 +90,3 @@ class event_collection_coder(ABC):
         Returns:
             List[str]: Lines of C++ code to execute to get this out.
         '''
-        pass

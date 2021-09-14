@@ -653,3 +653,25 @@ def test_metadata_collection_bad_experiment():
          .value())
 
     assert "backend; only" in str(e.value)
+
+
+def test_event_collection_too_many_arg():
+    'This is integration testing - making sure the dict to root conversion works'
+    with pytest.raises(ValueError) as e:
+        (atlas_xaod_dataset()
+            .Select(lambda e: e.EventInfo("EventInfo", "dork").runNumber())
+            .Select(lambda e: {'run_number': e})
+            .value())
+
+    assert "only one argument" in str(e)
+
+
+def test_event_collection_bad_type_arg():
+    'This is integration testing - making sure the dict to root conversion works'
+    with pytest.raises(ValueError) as e:
+        (atlas_xaod_dataset()
+            .Select(lambda e: e.EventInfo(2).runNumber())
+            .Select(lambda e: {'run_number': e})
+            .value())
+
+    assert "is a string" in str(e)
