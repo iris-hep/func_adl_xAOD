@@ -123,11 +123,16 @@ class executor(ABC):
         '''Given the specification for a collection, build the callback that will replace the AST properly
         when it comes time. These collections are things like Jets, etc., and all off the top level event.
         '''
-        pass  # pragma: no cover
 
     @abstractmethod
     def get_visitor_obj(self) -> query_ast_visitor:
-        pass  # pragma: no cover
+        '''Subclass should return a query ast visitor for the flavor of C++ backend
+        implemented.
+
+        Returns:
+            query_ast_visitor: The ast visitor that can be used to convert the ast into
+            code.
+        '''
 
     def write_cpp_files(self, ast: ast.AST, output_path: Path) -> ExecutionInfo:
         r"""

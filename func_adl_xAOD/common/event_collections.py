@@ -24,8 +24,13 @@ class event_collection_container(ABC):
         return self._is_pointer
 
     @abstractmethod
-    def __str__(self):
-        pass
+    def __str__(self) -> str:
+        '''Return the string representation of this event collection.
+        Helpful for identifying it in ast dumps
+
+        Returns:
+            str: Description
+        '''
 
 
 class event_collection_collection(event_collection_container):
