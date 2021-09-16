@@ -2,10 +2,12 @@
 #
 # This is one mechanism to allow for a leaky abstraction.
 import ast
-from typing import Callable, Optional, cast
+from collections import namedtuple
+from typing import Callable, Dict, Optional, cast
 
 import func_adl_xAOD.common.statement as statements
 from func_adl_xAOD.common.cpp_representation import cpp_value, cpp_variable
+from func_adl_xAOD.common.cpp_vars import unique_name
 from func_adl_xAOD.common.util_scope import gc_scope
 
 # The list of methods and the re-write functions for them. Each rewrite function
@@ -54,12 +56,55 @@ class CPPCodeValue (ast.AST):
         self.fields = []
 
 
+# Info used to build a code spec
+CPPCodeSpecification = namedtuple('CPPCodeSpecification', ['name', 'include_files', 'arguments', 'code', 'result', 'cpp_return_type'])
+
+
+def build_CPPCodeValue(spec: CPPCodeSpecification, call_node: ast.Call) -> ast.Call:
+    '''
+    Given the specification for a C++ code block, invoked as a function in our AST, replace
+    the call node with a cpp spec callback AST so the C++ code is properly inserted into the
+    call stream.
+
+
+    Args:
+        spec (CPPCodeSpecification): The specification, including the code, that we should insert at this call node
+        call_node (ast.Call): The call node (with arguments) that we are going to replace with this
+        C++ code.
+
+    Raises:
+        ValueError: Raised if something is wrong with the call site
+
+    Returns:
+        [type]: The C++ ast that can easily be emitted as code
+    '''
+
+    if len(call_node.args) != len(spec.arguments):
+        raise ValueError(f"The call of {spec.name}({', '.join(spec.arguments)}) has insufficient arguments ({len(call_node.args)}).")
+
+    # Create an AST to hold onto all of this.
+    r = CPPCodeValue()
+    # We need TVector2 included here
+    r.include_files += spec.include_files
+
+    # We need all four arguments pushed through.
+    r.args = spec.arguments
+
+    # The code is three steps
+    r.running_code += spec.code
+    r.result = spec.result
+    r.result_rep = lambda scope: cpp_variable(unique_name(spec.name), scope=scope, cpp_type=spec.cpp_return_type)
+
+    call_node.func = r  # type: ignore
+    return call_node
+
+
 class cpp_ast_finder(ast.NodeTransformer):
     r'''
     Look through the complete ast and replace method calls that are to a C++ plug in with a c++ ast
     node.
     '''
-    def __init__(self, method_names: dict):
+    def __init__(self, method_names: Dict[str, Callable[[ast.Call], ast.Call]]):
         self._method_names = method_names
 
     def try_call(self, name, node):
@@ -109,7 +154,7 @@ def process_ast_node(visitor, gc, call_node: ast.Call):
 
     # We write everything into a new scope to prevent conflicts. So we have to declare the result ahead of time.
     cpp_ast_node = cast(CPPCodeValue, call_node.func)
-    result_rep = cpp_ast_node.result_rep(gc.current_scope())
+    result_rep = cpp_ast_node.result_rep(gc.current_scope())  # type: ignore
 
     gc.declare_variable(result_rep)
 

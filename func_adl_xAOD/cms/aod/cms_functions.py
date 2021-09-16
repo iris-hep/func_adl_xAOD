@@ -1,3 +1,5 @@
+import ast
+from typing import Callable, Dict
 import func_adl_xAOD.common.cpp_ast as cpp_ast
 from func_adl_xAOD.common.cpp_representation import cpp_variable
 from func_adl_xAOD.common.cpp_vars import unique_name
@@ -6,7 +8,7 @@ from func_adl_xAOD.common.cpp_vars import unique_name
 def isNonnullAst(call_node):
     r'''
     User is trying to test, on certian objects, if the object, when dereferenced, will be a null
-    pointer. This is tricky for our data model because it treats an object as both a poitner and
+    pointer. This is tricky for our data model because it treats an object as both a pointer and
     a object. Most of `func_adl_xAOD` is setup to deal with it as a pointer. This allows us to
     get around ths.
     '''
@@ -34,7 +36,7 @@ def isNonnull(cms_object) -> bool:
     raise NotImplementedError('IsNonnull should never be called in python!')
 
 
-def get_cms_functions():
+def get_cms_functions() -> Dict[str, Callable[[ast.Call], ast.Call]]:
     return {
         'isNonnull': isNonnullAst
     }

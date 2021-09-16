@@ -1,6 +1,7 @@
 import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.event_collections import (
-    event_collection_collection, event_collection_container, event_collections)
+    EventCollectionSpecification, event_collection_coder,
+    event_collection_collection, event_collection_container)
 
 
 class atlas_xaod_event_collection_container(event_collection_container):
@@ -22,56 +23,46 @@ class atlas_xaod_event_collection_collection(event_collection_collection):
 # all the collections types that are available. This is required because C++
 # is strongly typed, and thus we have to transmit this information.
 atlas_xaod_collections = [
-    {
-        'function_name': "Jets",
-        'include_files': ['xAODJet/JetContainer.h'],
-        'container_type': atlas_xaod_event_collection_collection('xAOD::JetContainer', 'xAOD::Jet'),
-    },
-    {
-        'function_name': "Tracks",
-        'include_files': ['xAODTracking/TrackParticleContainer.h'],
-        'container_type': atlas_xaod_event_collection_collection('xAOD::TrackParticleContainer', 'xAOD::TrackParticle')
-    },
-    {
-        'function_name': "EventInfo",
-        'include_files': ['xAODEventInfo/EventInfo.h'],
-        'container_type': atlas_xaod_event_collection_container('xAOD::EventInfo'),
-        'is_collection': False,
-    },
-    {
-        'function_name': "TruthParticles",
-        'include_files': ['xAODTruth/TruthParticleContainer.h', 'xAODTruth/TruthParticle.h', 'xAODTruth/TruthVertex.h'],
-        'container_type': atlas_xaod_event_collection_collection('xAOD::TruthParticleContainer', 'xAOD::TruthParticle')
-    },
-    {
-        'function_name': "Electrons",
-        'include_files': ['xAODEgamma/ElectronContainer.h', 'xAODEgamma/Electron.h'],
-        'container_type': atlas_xaod_event_collection_collection('xAOD::ElectronContainer', 'xAOD::Electron')
-    },
-    {
-        'function_name': "Muons",
-        'include_files': ['xAODMuon/MuonContainer.h', 'xAODMuon/Muon.h'],
-        'container_type': atlas_xaod_event_collection_collection('xAOD::MuonContainer', 'xAOD::Muon')
-    },
-    {
-        'function_name': "MissingET",
-        'include_files': ['xAODMissingET/MissingETContainer.h', 'xAODMissingET/MissingET.h'],
-        'container_type': atlas_xaod_event_collection_collection('xAOD::MissingETContainer', 'xAOD::MissingET'),
-    },
+    EventCollectionSpecification('atlas', 'Jets',
+                                 ['xAODJet/JetContainer.h'],
+                                 atlas_xaod_event_collection_collection('xAOD::JetContainer', 'xAOD::Jet'),
+                                 ),
+    EventCollectionSpecification('atlas', 'Tracks',
+                                 ['xAODTracking/TrackParticleContainer.h'],
+                                 atlas_xaod_event_collection_collection('xAOD::TrackParticleContainer', 'xAOD::TrackParticle'),
+                                 ),
+    EventCollectionSpecification('atlas', 'EventInfo',
+                                 ['xAODEventInfo/EventInfo.h'],
+                                 atlas_xaod_event_collection_container('xAOD::EventInfo'),
+                                 ),
+    EventCollectionSpecification('atlas', 'TruthParticles',
+                                 ['xAODTruth/TruthParticleContainer.h', 'xAODTruth/TruthParticle.h', 'xAODTruth/TruthVertex.h'],
+                                 atlas_xaod_event_collection_collection('xAOD::TruthParticleContainer', 'xAOD::TruthParticle'),
+                                 ),
+    EventCollectionSpecification('atlas', 'Electrons',
+                                 ['xAODEgamma/ElectronContainer.h', 'xAODEgamma/Electron.h'],
+                                 atlas_xaod_event_collection_collection('xAOD::ElectronContainer', 'xAOD::Electron'),
+                                 ),
+    EventCollectionSpecification('atlas', 'Muons',
+                                 ['xAODMuon/MuonContainer.h', 'xAODMuon/Muon.h'],
+                                 atlas_xaod_event_collection_collection('xAOD::MuonContainer', 'xAOD::Muon'),
+                                 ),
+    EventCollectionSpecification('atlas', 'MissingET',
+                                 ['xAODMissingET/MissingETContainer.h', 'xAODMissingET/MissingET.h'],
+                                 atlas_xaod_event_collection_collection('xAOD::MissingETContainer', 'xAOD::MissingET'),
+                                 ),
 ]
 
 
-class atlas_xaod_event_collections(event_collections):
-    def __init__(self):
-        super().__init__(atlas_xaod_collections)
+def define_default_atlas_types():
+    'Define the default atlas types'
+    ctyp.add_method_type_info("xAOD::TruthParticle", "prodVtx", ctyp.terminal('xAODTruth::TruthVertex', is_pointer=True))
+    ctyp.add_method_type_info("xAOD::TruthParticle", "decayVtx", ctyp.terminal('xAODTruth::TruthVertex', is_pointer=True))
+    ctyp.add_method_type_info("xAOD::TruthParticle", "parent", ctyp.terminal('xAOD::TruthParticle', is_pointer=True))
+    ctyp.add_method_type_info("xAOD::TruthParticle", "child", ctyp.terminal('xAOD::TruthParticle', is_pointer=True))
 
+
+class atlas_event_collection_coder(event_collection_coder):
     def get_running_code(self, container_type: event_collection_container) -> list:
         return [f'{container_type} result = 0;',
                 'ANA_CHECK (evtStore()->retrieve(result, collection_name));']
-
-
-# Configure some info about the types.
-ctyp.add_method_type_info("xAOD::TruthParticle", "prodVtx", ctyp.terminal('xAODTruth::TruthVertex', is_pointer=True))
-ctyp.add_method_type_info("xAOD::TruthParticle", "decayVtx", ctyp.terminal('xAODTruth::TruthVertex', is_pointer=True))
-ctyp.add_method_type_info("xAOD::TruthParticle", "parent", ctyp.terminal('xAOD::TruthParticle', is_pointer=True))
-ctyp.add_method_type_info("xAOD::TruthParticle", "child", ctyp.terminal('xAOD::TruthParticle', is_pointer=True))

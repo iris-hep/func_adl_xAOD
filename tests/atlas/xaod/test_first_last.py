@@ -1,7 +1,7 @@
 # Code to do the testing starts here.
-from tests.utils.locators import find_line_with, find_open_blocks
-from tests.utils.general import get_lines_of_code, print_lines
-from tests.atlas.xaod.utils import atlas_xaod_dataset
+from tests.utils.locators import find_line_with, find_open_blocks  # type: ignore
+from tests.utils.general import get_lines_of_code, print_lines  # type: ignore
+from tests.atlas.xaod.utils import atlas_xaod_dataset  # type: ignore
 
 
 def test_first_jet_in_event():

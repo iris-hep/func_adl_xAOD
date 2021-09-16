@@ -1,6 +1,9 @@
 # Drive the translate of the AST from start into a set of files, which one can then do whatever
 # is needed to.
 import ast
+from func_adl_xAOD.common.event_collections import EventCollectionSpecification
+from typing import Callable, Dict
+from func_adl_xAOD.common.meta_data import process_metadata
 import os
 import sys
 from abc import ABC, abstractmethod
@@ -13,6 +16,7 @@ import jinja2
 from func_adl.ast.aggregate_shortcuts import aggregate_node_transformer
 from func_adl.ast.func_adl_ast_utils import change_extension_functions_to_calls
 from func_adl.ast.function_simplifier import simplify_chained_calls
+from func_adl.ast import extract_metadata
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
 from func_adl_xAOD.common.cpp_functions import find_known_functions
 from func_adl_xAOD.common.util_scope import top_level_scope
@@ -76,7 +80,8 @@ def _is_format_request(a: ast.AST) -> bool:
 
 
 class executor(ABC):
-    def __init__(self, file_names: list, runner_name: str, template_dir_name: str, method_names: dict):
+    def __init__(self, file_names: list, runner_name: str, template_dir_name: str,
+                 method_names: Dict[str, Callable[[ast.Call], ast.Call]]):
         self._file_names = file_names
         self._runner_name = runner_name
         self._template_dir_name = template_dir_name
@@ -93,20 +98,41 @@ class executor(ABC):
         '''
 
         # Do tuple resolutions. This might eliminate a whole bunch fo code!
+        a, meta_data = extract_metadata(a)
+        cpp_functions = process_metadata(meta_data)
         a = change_extension_functions_to_calls(a)
         a = aggregate_node_transformer().visit(a)
         a = simplify_chained_calls().visit(a)
         a = find_known_functions().visit(a)
 
         # Any C++ custom code needs to be threaded into the ast
-        a = cpp_ast.cpp_ast_finder(self._method_names).visit(a)
+        method_names = dict(self._method_names)
+        method_names.update({
+            md.name:
+                (lambda call_node: cpp_ast.build_CPPCodeValue(md, call_node)) if isinstance(md, cpp_ast.CPPCodeSpecification)  # type: ignore
+                else self.build_collection_callback(md)
+            for md in cpp_functions
+        })
+        a = cpp_ast.cpp_ast_finder(method_names).visit(a)
 
         # And return the modified ast
         return a
 
     @abstractmethod
+    def build_collection_callback(self, metadata: EventCollectionSpecification) -> Callable[[ast.Call], ast.Call]:
+        '''Given the specification for a collection, build the callback that will replace the AST properly
+        when it comes time. These collections are things like Jets, etc., and all off the top level event.
+        '''
+
+    @abstractmethod
     def get_visitor_obj(self) -> query_ast_visitor:
-        pass
+        '''Subclass should return a query ast visitor for the flavor of C++ backend
+        implemented.
+
+        Returns:
+            query_ast_visitor: The ast visitor that can be used to convert the ast into
+            code.
+        '''
 
     def write_cpp_files(self, ast: ast.AST, output_path: Path) -> ExecutionInfo:
         r"""
