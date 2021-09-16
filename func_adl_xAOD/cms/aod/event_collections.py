@@ -64,57 +64,6 @@ cms_aod_collections = [
                                   ],
                                  cms_aod_event_collection_collection('reco::GsfElectronCollection', 'reco::GsfElectron'),
                                  ),
-    # {
-    #     'function_name': "Tracks",
-    #     'include_files': [
-    #         'DataFormats/TrackReco/interface/Track.h',
-    #         'DataFormats/TrackReco/interface/TrackFwd.h',
-    #         'DataFormats/TrackReco/interface/HitPattern.h'
-    #     ],
-    #     'container_type': cms_aod_event_collection_collection('reco::TrackCollection', 'reco::Track')
-    # },
-    # {
-    #     'function_name': "TrackMuons",
-    #     'include_files': [
-    #         'DataFormats/MuonReco/interface/Muon.h',
-    #         'DataFormats/MuonReco/interface/MuonFwd.h',
-    #         'DataFormats/MuonReco/interface/MuonSelectors.h',
-    #         'DataFormats/MuonReco/interface/MuonIsolation.h',
-    #         'DataFormats/MuonReco/interface/MuonPFIsolation.h',
-    #         'DataFormats/TrackReco/interface/Track.h',
-    #         'DataFormats/TrackReco/interface/TrackFwd.h',
-    #         'DataFormats/TrackReco/interface/HitPattern.h'
-    #     ],
-    #     'container_type': cms_aod_event_collection_collection('reco::TrackCollection', 'reco::Track')
-    # },
-    # {
-    #     'function_name': "Muons",
-    #     'include_files': [
-    #         'DataFormats/MuonReco/interface/Muon.h',
-    #         'DataFormats/MuonReco/interface/MuonFwd.h',
-    #         'DataFormats/MuonReco/interface/MuonSelectors.h',
-    #         'DataFormats/MuonReco/interface/MuonIsolation.h',
-    #         'DataFormats/MuonReco/interface/MuonPFIsolation.h'
-    #     ],
-    #     'container_type': cms_aod_event_collection_collection('reco::MuonCollection', 'reco::Muon')
-    # },
-    # {
-    #     'function_name': "Vertex",
-    #     'include_files': [
-    #         "DataFormats/VertexReco/interface/Vertex.h",
-    #         "DataFormats/VertexReco/interface/VertexFwd.h"
-    #     ],
-    #     'container_type': cms_aod_event_collection_collection('reco::VertexCollection', 'reco::Vertex', is_element_pointer=False)
-    # },
-    # {
-    #     'function_name': "GsfElectrons",
-    #     'include_files': [
-    #         'DataFormats/EgammaCandidates/interface/GsfElectron.h',
-    #         'DataFormats/GsfTrackReco/interface/GsfTrack.h',
-    #         'DataFormats/GsfTrackReco/interface/GsfTrackFwd.h'
-    #     ],
-    #     'container_type': cms_aod_event_collection_collection('reco::GsfElectronCollection', 'reco::GsfElectron')
-    # }
 ]
 
 
