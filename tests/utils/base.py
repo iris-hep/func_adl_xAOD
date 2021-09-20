@@ -150,6 +150,7 @@ class dummy_executor(ABC):
         a_transformed = rnr.apply_ast_transformations(a)
         self.ResultRep = \
             self.QueryVisitor.get_as_ROOT(a_transformed)
+        self._job_option_blocks = rnr._job_option_blocks
 
     def get_result(self, q_visitor, result_rep):
         'Got the result. Cache for use in tests'

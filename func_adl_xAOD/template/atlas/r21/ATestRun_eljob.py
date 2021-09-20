@@ -26,6 +26,10 @@ sh.printContent()
 job = ROOT.EL.Job()
 job.sampleHandler(sh)
 
+{% for i in job_option_additions %}
+{{i}}
+{% endfor %}
+
 # Commented out for now because it really slows things down. Uncomment and change
 # the bank to be Analysis_NOSYS in query.cxx and it will work again.
 # #Get the systematics tool in - because we need it.

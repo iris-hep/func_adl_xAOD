@@ -2,8 +2,8 @@
 # is needed to.
 import ast
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
-from typing import Callable, Dict
-from func_adl_xAOD.common.meta_data import process_metadata
+from typing import Any, Callable, Dict
+from func_adl_xAOD.common.meta_data import JobScriptSpecification, process_metadata
 import os
 import sys
 from abc import ABC, abstractmethod
@@ -86,6 +86,7 @@ class executor(ABC):
         self._runner_name = runner_name
         self._template_dir_name = template_dir_name
         self._method_names = method_names
+        self._job_option_blocks = []
 
     def _copy_template_file(self, j2_env, info, template_file, final_dir: Path):
         'Copy a file to a final directory'
@@ -111,9 +112,14 @@ class executor(ABC):
             md.name:
                 (lambda call_node: cpp_ast.build_CPPCodeValue(md, call_node)) if isinstance(md, cpp_ast.CPPCodeSpecification)  # type: ignore
                 else self.build_collection_callback(md)
-            for md in cpp_functions
+            for md in cpp_functions if isinstance(md, (cpp_ast.CPPCodeSpecification, EventCollectionSpecification))
         })
         a = cpp_ast.cpp_ast_finder(method_names).visit(a)
+
+        # Pull off any joboption blocks
+        for m in cpp_functions:
+            if isinstance(m, JobScriptSpecification):
+                self._job_option_blocks.append(m)
 
         # And return the modified ast
         return a
@@ -133,6 +139,15 @@ class executor(ABC):
             query_ast_visitor: The ast visitor that can be used to convert the ast into
             code.
         '''
+
+    def add_to_replacement_dict(self) -> Dict[str, Any]:
+        '''Subclasses can over ride this to add new items to the template
+        replacement dict
+
+        Returns:
+            Dict[str, Any]: New items to add to the replacement dict
+        '''
+        return {}
 
     def write_cpp_files(self, ast: ast.AST, output_path: Path) -> ExecutionInfo:
         r"""
@@ -166,6 +181,7 @@ class executor(ABC):
         info['class_decl'] = class_decl_code
         info['book_code'] = book_code.lines_of_query_code()
         info['include_files'] = includes
+        info.update(self.add_to_replacement_dict())
 
         # We use jinja2 templates. Write out everything.
         template_dir = _find_dir(self._template_dir_name)

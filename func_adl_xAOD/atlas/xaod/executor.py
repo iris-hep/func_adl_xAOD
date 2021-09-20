@@ -1,6 +1,6 @@
 import ast
 from func_adl_xAOD.atlas.xaod.event_collections import atlas_event_collection_coder, atlas_xaod_collections, define_default_atlas_types
-from typing import Callable
+from typing import Any, Callable, Dict
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 from func_adl_xAOD.common.math_utils import get_math_methods
 from func_adl_xAOD.atlas.xaod.jets import get_jet_methods
@@ -31,6 +31,21 @@ class atlas_xaod_executor(executor):
 
     def get_visitor_obj(self):
         return atlas_xaod_query_ast_visitor()
+
+    def add_to_replacement_dict(self) -> Dict[str, Any]:
+        d1 = super().add_to_replacement_dict()
+
+        # Combine metadata script blocks
+        script_text = []
+        for md in self._job_option_blocks:
+            for ln in md.script:
+                script_text.append(ln)
+
+        d = {
+            'job_option_additions': script_text
+        }
+        d.update(d1)
+        return d
 
     def build_collection_callback(self, metadata: EventCollectionSpecification) -> Callable[[ast.Call], ast.Call]:
         '''Build the AST analyzer callback for this collection.

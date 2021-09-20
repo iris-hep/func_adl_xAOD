@@ -655,6 +655,23 @@ def test_metadata_collection_bad_experiment():
     assert "backend; only" in str(e.value)
 
 
+def test_metadata_job_options():
+    'Integration test making sure we grab the job options'
+    r = (atlas_xaod_dataset()
+         .MetaData({
+                   'metadata_type': 'add_job_script',
+                   'name': 'Vertex',
+                   'script': [
+                       '# hi there',
+                   ]
+                   })
+         .Select(lambda e: e.EventInfo("EventInfo").runNumber())
+         .Select(lambda e: {'run_number': e})
+         .value())
+
+    assert len(r._job_option_blocks) == 1
+
+
 def test_event_collection_too_many_arg():
     'This is integration testing - making sure the dict to root conversion works'
     with pytest.raises(ValueError) as e:

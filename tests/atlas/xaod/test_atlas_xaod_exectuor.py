@@ -63,3 +63,26 @@ def test_bad_ast_no_call_to_name(tmp_path):
         exe.write_cpp_files(exe.apply_ast_transformations(a), tmp_path)
 
     assert 'func_adl ast' in str(e.value)
+
+
+def test_md_job_options(tmp_path):
+    'Make sure our job options script appears in the right place'
+
+    # Get the ast to play with
+    a = (query_as_ast()
+         .MetaData({
+                   'metadata_type': 'add_job_script',
+                   'name': 'Vertex',
+                   'script': [
+                       '# this is a fork tester',
+                   ]
+                   })
+         .Select('lambda e: e.EventInfo("EventInfo").runNumber()')
+         .value())
+
+    exe = atlas_xaod_executor()
+    exe.write_cpp_files(exe.apply_ast_transformations(a), tmp_path)
+
+    with open(tmp_path / 'ATestRun_eljob.py', 'r') as f:
+        lines = [ln.strip() for ln in f.readlines()]
+        assert '# this is a fork tester' in lines
