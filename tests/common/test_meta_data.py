@@ -11,7 +11,7 @@ from func_adl_xAOD.common.cpp_types import method_type_info
 from func_adl_xAOD.common.event_collections import (
     EventCollectionSpecification, event_collection_coder, event_collection_container)
 from func_adl_xAOD.common.executor import executor
-from func_adl_xAOD.common.meta_data import process_metadata
+from func_adl_xAOD.common.meta_data import JobScriptSpecification, process_metadata
 from tests.utils.base import dataset, dummy_executor  # type: ignore
 
 
@@ -311,6 +311,52 @@ def test_md_function_call_renamed_result():
     spec = specs[0]
     assert isinstance(spec, CPPCodeSpecification)
     assert spec.result == 'result_fork'
+
+
+def test_md_add_config_script():
+    'Check we can properly add some md script'
+    metadata = [
+        {
+            'metadata_type': 'add_job_script',
+            'name': 'script1',
+            'script': [
+                'from AnaAlgorithm.AnaAlgorithmConfig import AnaAlgorithmConfig',
+                "config = AnaAlgorithmConfig( 'CP::SysListLoaderAlg/SysLoaderAlg' )",
+                'config.sigmaRecommended = 1',
+                'job.algsAdd( config )',
+            ],
+        }
+    ]
+    specs = process_metadata(metadata)
+    assert len(specs) == 1
+    spec = specs[0]
+    assert isinstance(spec, JobScriptSpecification)
+    assert spec.name == 'script1'
+    assert spec.depends_on == []
+    assert len(spec.script) == 4
+    assert spec.script[2] == 'config.sigmaRecommended = 1'
+
+
+def test_md_add_config_script_dependencies():
+    'Check we can properly add some md script'
+    metadata = [
+        {
+            'metadata_type': 'add_job_script',
+            'name': 'script1',
+            'script': [
+                'from AnaAlgorithm.AnaAlgorithmConfig import AnaAlgorithmConfig',
+                "config = AnaAlgorithmConfig( 'CP::SysListLoaderAlg/SysLoaderAlg' )",
+                'config.sigmaRecommended = 1',
+                'job.algsAdd( config )',
+            ],
+            'depends_on': ['name1', 'name2'],
+        }
+    ]
+    specs = process_metadata(metadata)
+    assert len(specs) == 1
+    spec = specs[0]
+    assert isinstance(spec, JobScriptSpecification)
+    assert spec.depends_on == ['name1', 'name2']
 
 
 # Some integration tests!
