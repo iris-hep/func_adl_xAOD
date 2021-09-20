@@ -1,4 +1,5 @@
 import ast
+from func_adl_xAOD.common.meta_data import generate_script_block
 from func_adl_xAOD.atlas.xaod.event_collections import atlas_event_collection_coder, atlas_xaod_collections, define_default_atlas_types
 from typing import Any, Callable, Dict
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
@@ -36,13 +37,8 @@ class atlas_xaod_executor(executor):
         d1 = super().add_to_replacement_dict()
 
         # Combine metadata script blocks
-        script_text = []
-        for md in self._job_option_blocks:
-            for ln in md.script:
-                script_text.append(ln)
-
         d = {
-            'job_option_additions': script_text
+            'job_option_additions': generate_script_block(self._job_option_blocks)
         }
         d.update(d1)
         return d

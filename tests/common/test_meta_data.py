@@ -11,7 +11,7 @@ from func_adl_xAOD.common.cpp_types import method_type_info
 from func_adl_xAOD.common.event_collections import (
     EventCollectionSpecification, event_collection_coder, event_collection_container)
 from func_adl_xAOD.common.executor import executor
-from func_adl_xAOD.common.meta_data import JobScriptSpecification, process_metadata
+from func_adl_xAOD.common.meta_data import JobScriptSpecification, generate_script_block, process_metadata
 from tests.utils.base import dataset, dummy_executor  # type: ignore
 
 
@@ -357,6 +357,111 @@ def test_md_add_config_script_dependencies():
     spec = specs[0]
     assert isinstance(spec, JobScriptSpecification)
     assert spec.depends_on == ['name1', 'name2']
+
+
+def test_md_jb_single():
+    'Check we correctly put a single script block into script'
+    blocks = [
+        JobScriptSpecification('block1', ['line1', 'line2'], [])
+    ]
+    script = generate_script_block(blocks)
+
+    assert script == ['line1', 'line2']
+
+
+def test_md_jb_no_dep():
+    'Check that a missing dependency causes an error'
+    blocks = [
+        JobScriptSpecification('block1', ['line1', 'line2'], ['block2'])
+    ]
+
+    with pytest.raises(ValueError) as e:
+        generate_script_block(blocks)
+
+    assert 'block2' in str(e)
+
+
+def test_md_jb_dep():
+    blocks = [
+        JobScriptSpecification('block1', ['line1', 'line2'], ['block2']),
+        JobScriptSpecification('block2', ['line3', 'line4'], [])
+    ]
+
+    script = generate_script_block(blocks)
+
+    assert script == ['line3', 'line4', 'line1', 'line2']
+
+
+def test_md_jb_duplicate():
+    blocks = [
+        JobScriptSpecification('block2', ['line3', 'line4'], []),
+        JobScriptSpecification('block2', ['line3', 'line4'], []),
+    ]
+
+    script = generate_script_block(blocks)
+
+    assert script == ['line3', 'line4']
+
+
+def test_md_jb_dup_script_dif():
+    blocks = [
+        JobScriptSpecification('block2', ['line3', 'line5'], []),
+        JobScriptSpecification('block2', ['line3', 'line4'], []),
+    ]
+
+    with pytest.raises(ValueError) as e:
+        generate_script_block(blocks)
+
+    assert 'block2' in str(e)
+
+
+def test_md_jb_dup_dep_dif():
+    blocks = [
+        JobScriptSpecification('block2', ['line3', 'line4'], ['block1']),
+        JobScriptSpecification('block2', ['line3', 'line4'], ['block0']),
+        JobScriptSpecification('block2', ['line3', 'line4'], []),
+    ]
+
+    with pytest.raises(ValueError) as e:
+        generate_script_block(blocks)
+
+    assert 'block2' in str(e)
+
+
+def test_md_jb_dep_rev():
+    blocks = [
+        JobScriptSpecification('block2', ['line3', 'line4'], []),
+        JobScriptSpecification('block1', ['line1', 'line2'], ['block2']),
+    ]
+
+    script = generate_script_block(blocks)
+
+    assert script == ['line3', 'line4', 'line1', 'line2']
+
+
+def test_md_jb_double():
+    blocks = [
+        JobScriptSpecification('block2', ['line3', 'line4'], []),
+        JobScriptSpecification('block1', ['line1', 'line2'], ['block2']),
+        JobScriptSpecification('block3', ['line5', 'line6'], ['block2', 'block1']),
+    ]
+
+    script = generate_script_block(blocks)
+
+    assert script == ['line3', 'line4', 'line1', 'line2', 'line5', 'line6']
+
+
+def test_md_jb_dep_circle():
+    blocks = [
+        JobScriptSpecification('block0', ['line-1', 'line0'], []),
+        JobScriptSpecification('block1', ['line1', 'line2'], ['block2']),
+        JobScriptSpecification('block2', ['line3', 'line4'], ['block1'])
+    ]
+
+    with pytest.raises(ValueError) as e:
+        generate_script_block(blocks)
+
+    assert 'circular' in str(e)
 
 
 # Some integration tests!

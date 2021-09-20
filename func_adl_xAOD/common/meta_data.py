@@ -84,3 +84,49 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
             raise ValueError(f'Unknown metadata type ({md_type})')
 
     return cpp_funcs
+
+
+def generate_script_block(blocks: List[JobScriptSpecification]) -> List[str]:
+    '''Returns the script block to insert into the job control.
+
+    * Takes dependencies into account
+    * Gets rid of any duplicates
+
+    Args:
+        blocks (List[JobScriptSpecification]): The list of, unordered, dependency blocks
+
+    Returns:
+        List[str]: The list of insertions to insert.
+    '''
+    script_block = {
+        j.name: j
+        for j in blocks
+    }
+    for j in blocks:
+        if j != script_block[j.name]:
+            raise ValueError(f'Duplicate block name {j.name} used, but blocks are not identical!')
+
+    # Check for all dependencies being there
+    for j in blocks:
+        for d in j.depends_on:
+            if d not in script_block:
+                raise ValueError(f'Dependency {d} not found in script block')
+
+    # Next, start from blocks that have no dependencies and work our way up.
+    seen_blocks = set()
+    script_text = []
+
+    while len(seen_blocks) < len(script_block):
+        emitted = False
+        for _, j in script_block.items():
+            if j.name not in seen_blocks:
+                if set(j.depends_on) <= seen_blocks:
+                    for ln in j.script:
+                        script_text.append(ln)
+                    seen_blocks.add(j.name)
+                    emitted = True
+        if not emitted:
+            remaining_blocks = ', '.join((set(script_block.keys()) - seen_blocks))
+            raise ValueError(f'There seems to be a metadata script block circular dependency ({remaining_blocks})')
+
+    return script_text
