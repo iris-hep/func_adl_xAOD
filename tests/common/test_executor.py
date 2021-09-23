@@ -1,4 +1,5 @@
 import ast
+from func_adl_xAOD.atlas.xaod.query_ast_visitor import atlas_xaod_query_ast_visitor
 from typing import Callable, List
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification, event_collection_coder, event_collection_container
 from func_adl_xAOD.common.cpp_ast import CPPCodeValue
@@ -18,7 +19,7 @@ class do_nothing_executor(executor):
         super().__init__([], 'stuff.sh', 'dude', {})
 
     def get_visitor_obj(self) -> query_ast_visitor:
-        assert False
+        return atlas_xaod_query_ast_visitor()
 
     def build_collection_callback(self, metadata: EventCollectionSpecification) -> Callable[[ast.Call], ast.Call]:
         ecc = dummy_event_collection_coder()

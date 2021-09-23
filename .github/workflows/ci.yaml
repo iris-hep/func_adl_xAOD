@@ -25,9 +25,8 @@ jobs:
         pip install --no-cache-dir -e .[test]
         pip list
     - name: Lint with Flake8
-      if: matrix.python-version == 3.7 && matrix.platform == 'ubuntu-latest'
       run: |
-        flake8 --ignore=E501,W503
+        flake8 --ignore=E501,W503  --exclude=func_adl_xAOD/template
 
   test:
 
@@ -50,10 +49,6 @@ jobs:
         pip install git+https://github.com/iris-hep/ast-language.git@e6470deb68529e1885a4bc46f781e2fe43a6f4c8
         pip install --no-cache-dir -e .[test]
         pip list
-    - name: Lint with Flake8
-      if: matrix.python-version == 3.7 && matrix.platform == 'ubuntu-latest'
-      run: |
-        flake8 --ignore=E501,W503
     - name: Test with pytest
       run: |
         python -m pytest -m "not atlas_xaod_runner and not cms_aod_runner"

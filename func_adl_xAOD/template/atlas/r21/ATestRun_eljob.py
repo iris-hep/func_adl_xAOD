@@ -15,18 +15,20 @@ parser.add_option('-s', '--submission-dir', dest='submission_dir',
 (options, args) = parser.parse_args()
 
 
-# Set up the sample handler object. See comments from the C++ macro
-# for the details about these lines.
+# The sample handler is going to load the files form filelist.txt,
+# in this context, it is an embarrassingly easy use of that object.
 sh = ROOT.SH.SampleHandler()
 sh.setMetaString('nc_tree', 'CollectionTree')
-# ROOT.SH.ScanDir().filePattern( '{{df}}' ).scan( sh, inputFilePath )
 ROOT.SH.readFileList(sh, "ANALYSIS", "filelist.txt")
 sh.printContent()
 
 # Create an EventLoop job.
 job = ROOT.EL.Job()
 job.sampleHandler(sh)
-# job.options().setDouble( ROOT.EL.Job.optMaxEvents, 500 )
+
+{% for i in job_option_additions %}
+{{i}}
+{% endfor %}
 
 # Commented out for now because it really slows things down. Uncomment and change
 # the bank to be Analysis_NOSYS in query.cxx and it will work again.
