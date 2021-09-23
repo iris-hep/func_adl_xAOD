@@ -18,7 +18,7 @@ DeltaRSpec = cpp_ast.CPPCodeSpecification(
 )
 
 
-def DeltaR(eta1, phi1, eta2, phi2):
+def DeltaR(eta1, phi1, eta2, phi2) -> float:
     'Calculate the DeltaR between two eta,phi specified vectors'
     raise NotImplementedError('DeltaR should never be called in python!')
 
