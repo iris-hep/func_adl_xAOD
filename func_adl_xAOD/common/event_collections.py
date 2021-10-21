@@ -1,17 +1,14 @@
 # Collected code to get collections from the event object
 import ast
-from collections import namedtuple
 import copy
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import List
 
 import func_adl_xAOD.common.cpp_ast as cpp_ast
 import func_adl_xAOD.common.cpp_representation as crep
 import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.cpp_vars import unique_name
-
-
-EventCollectionSpecification = namedtuple('EventCollectionSpecification', ['backend_name', 'name', 'include_files', 'container_type'])
 
 
 # Need a type for our type system to reason about the containers.
@@ -31,6 +28,21 @@ class event_collection_container(ABC):
         Returns:
             str: Description
         '''
+
+
+@dataclass
+class EventCollectionSpecification:
+    backend_name: str
+    name: str
+
+    # List of include files (e.g. ['xAODJet/Jet.h'])
+    include_files: List[str]
+
+    # The container information
+    container_type: event_collection_container
+
+    # List of libraries (e.g. ['xAODJet'])
+    libraries: List[str]
 
 
 class event_collection_collection(event_collection_container):
@@ -66,6 +78,7 @@ class event_collection_coder(ABC):
         r = cpp_ast.CPPCodeValue()
         r.args = ['collection_name', ]
         r.include_files += md.include_files
+        r.link_libraries += md.libraries
 
         r.running_code += self.get_running_code(md.container_type)
         r.result = 'result'

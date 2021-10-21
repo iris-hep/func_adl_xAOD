@@ -122,6 +122,9 @@ class LocalFile(EventDataset, ABC):
                 with (local_run_dir / 'ATestRun_eljob.py').open('r') as f:
                     lg.log(level, 'JobOptions Source:')
                     _dump_split_string(f.read(), lambda l: lg.log(level, f'  {l}'))
+                with (local_run_dir / 'package_CMakeLists.txt').open('r') as f:
+                    lg.log(level, 'CMake Source:')
+                    _dump_split_string(f.read(), lambda l: lg.log(level, f'  {l}'))
             if proc.returncode != 0:
                 raise Exception(f"Docker command failed with error {proc.returncode} ({docker_cmd})")
 

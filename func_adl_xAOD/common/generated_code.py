@@ -1,5 +1,5 @@
 # Hold onto the generated code
-from typing import Union
+from typing import List, Union
 
 from func_adl_xAOD.common.statement import block
 from func_adl_xAOD.common.util_scope import gc_scope, gc_scope_top_level
@@ -12,6 +12,7 @@ class generated_code:
         self._class_vars = []
         self._scope_stack = (self._block,)
         self._include_files = []
+        self._link_libraries = []
 
     def declare_class_variable(self, var):
         'Declare a variable as an instance of the query class. var must be a cpp_rep'
@@ -60,6 +61,12 @@ class generated_code:
 
     def include_files(self):
         return self._include_files
+
+    def add_link_library(self, library: str):
+        self._link_libraries += [library]
+
+    def link_libraries(self) -> List[str]:
+        return self._link_libraries
 
     def pop_scope(self):
         self._scope_stack = self._scope_stack[:-1]

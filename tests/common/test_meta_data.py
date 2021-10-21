@@ -108,6 +108,7 @@ def test_md_atlas_collection():
     assert isinstance(s.container_type, atlas_xaod_event_collection_collection)
     assert s.container_type._element_name == 'xAOD::Electron'
     assert s.container_type._type_name == 'xAOD::ElectronContainer'
+    assert s.libraries == []
 
 
 def test_md_atlas_collection_single_obj():
@@ -118,6 +119,7 @@ def test_md_atlas_collection_single_obj():
             'name': 'EventInfo',
             'include_files': ['xAODEventInfo/EventInfo.h'],
             'container_type': 'xAOD::EventInfo',
+            'link_libraries': ['xAODEventInfo'],
             'contains_collection': False,
         }
     ]
@@ -130,6 +132,7 @@ def test_md_atlas_collection_single_obj():
     assert s.include_files == ['xAODEventInfo/EventInfo.h']
     assert isinstance(s.container_type, atlas_xaod_event_collection_container)
     assert s.container_type._type_name == 'xAOD::EventInfo'
+    assert s.libraries == ['xAODEventInfo']
 
 
 def test_md_atlas_collection_no_element():
@@ -487,7 +490,8 @@ dummy_collections = [
     EventCollectionSpecification('dummy',
                                  'info',
                                  ['xAODEventInfo/EventInfo.h'],
-                                 dummy_collection_container()),
+                                 dummy_collection_container(),
+                                 []),
 ]
 
 

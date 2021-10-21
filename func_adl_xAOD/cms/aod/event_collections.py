@@ -29,6 +29,7 @@ cms_aod_collections = [
                                   'DataFormats/TrackReco/interface/HitPattern.h'
                                   ],
                                  cms_aod_event_collection_collection('reco::TrackCollection', 'reco::Track'),
+                                 [],
                                  ),
     EventCollectionSpecification('cms', "TrackMuons",
                                  ['DataFormats/MuonReco/interface/Muon.h',
@@ -41,6 +42,7 @@ cms_aod_collections = [
                                   'DataFormats/TrackReco/interface/HitPattern.h'
                                   ],
                                  cms_aod_event_collection_collection('reco::TrackCollection', 'reco::Track'),
+                                 [],
                                  ),
     EventCollectionSpecification('cms', "Muons",
                                  ['DataFormats/MuonReco/interface/Muon.h',
@@ -50,12 +52,14 @@ cms_aod_collections = [
                                   'DataFormats/MuonReco/interface/MuonPFIsolation.h'
                                   ],
                                  cms_aod_event_collection_collection('reco::MuonCollection', 'reco::Muon'),
+                                 [],
                                  ),
     EventCollectionSpecification('cms', "Vertex",
                                  ["DataFormats/VertexReco/interface/Vertex.h",
                                   "DataFormats/VertexReco/interface/VertexFwd.h"
                                   ],
                                  cms_aod_event_collection_collection('reco::VertexCollection', 'reco::Vertex', is_element_pointer=False),
+                                 [],
                                  ),
     EventCollectionSpecification('cms', "GsfElectrons",
                                  ['DataFormats/EgammaCandidates/interface/GsfElectron.h',
@@ -63,6 +67,7 @@ cms_aod_collections = [
                                   'DataFormats/GsfTrackReco/interface/GsfTrackFwd.h'
                                   ],
                                  cms_aod_event_collection_collection('reco::GsfElectronCollection', 'reco::GsfElectron'),
+                                 [],
                                  ),
 ]
 

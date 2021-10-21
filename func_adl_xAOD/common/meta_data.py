@@ -50,18 +50,20 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
             cpp_funcs.append(spec)
         elif md_type == 'add_atlas_event_collection_info':
             for k in md.keys():
-                if k not in ['metadata_type', 'name', 'include_files', 'container_type', 'element_type', 'contains_collection']:
+                if k not in ['metadata_type', 'name', 'include_files', 'container_type', 'element_type', 'contains_collection', 'link_libraries']:
                     raise ValueError(f'Unexpected key {k} when declaring ATLAS collection metadata')
             if (md['contains_collection'] and 'element_type' not in md) or (not md['contains_collection'] and 'element_type' in md):
                 raise ValueError('In collection metadata, `element_type` must be specified if `contains_collection` is true and not if it is false')
 
             container_type = atlas_xaod_event_collection_collection(md['container_type'], md['element_type']) if md['contains_collection'] \
                 else atlas_xaod_event_collection_container(md['container_type'])
+            link_libraries = [] if 'link_libraries' not in md else md['link_libraries']
             spec = EventCollectionSpecification(
                 'atlas',
                 md['name'],
                 md['include_files'],
-                container_type)
+                container_type,
+                link_libraries)
             cpp_funcs.append(spec)
         elif md_type == 'add_cms_event_collection_info':
             for k in md.keys():
@@ -78,7 +80,8 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
                 'cms',
                 md['name'],
                 md['include_files'],
-                container_type)
+                container_type,
+                [])
             cpp_funcs.append(spec)
         else:
             raise ValueError(f'Unknown metadata type ({md_type})')
