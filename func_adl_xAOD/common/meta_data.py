@@ -61,7 +61,8 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
                 'atlas',
                 md['name'],
                 md['include_files'],
-                container_type)
+                container_type,
+                [])
             cpp_funcs.append(spec)
         elif md_type == 'add_cms_event_collection_info':
             for k in md.keys():
@@ -78,7 +79,8 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
                 'cms',
                 md['name'],
                 md['include_files'],
-                container_type)
+                container_type,
+                [])
             cpp_funcs.append(spec)
         else:
             raise ValueError(f'Unknown metadata type ({md_type})')

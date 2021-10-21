@@ -174,6 +174,7 @@ class executor(ABC):
         qv.emit_book(book_code)
         class_decl_code = qv.class_declaration_code()
         includes = qv.include_files()
+        link_libraries = qv.link_libraries()
 
         # The replacement dict to pass to the template generator can now be filled
         info = {}
@@ -181,6 +182,7 @@ class executor(ABC):
         info['class_decl'] = class_decl_code
         info['book_code'] = book_code.lines_of_query_code()
         info['include_files'] = includes
+        info['link_libraries'] = link_libraries
         info.update(self.add_to_replacement_dict())
 
         # We use jinja2 templates. Write out everything.

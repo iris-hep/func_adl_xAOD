@@ -143,6 +143,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
     def include_files(self):
         return self._gc.include_files()
 
+    def link_libraries(self) -> List[str]:
+        return self._gc.link_libraries()
+
     def emit_query(self, e):
         'Emit the parsed lines'
         self._gc.emit_query_code(e)

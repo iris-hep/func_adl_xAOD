@@ -29,6 +29,22 @@ def test_xaod_executor(tmp_path):
         assert (tmp_path / name).exists()
 
 
+def test_xaod_library_there(tmp_path):
+    'Make sure a required library is in the link list'
+    # Get the ast to play with
+    a = query_as_ast() \
+        .Select('lambda e: e.EventInfo("EventInfo").runNumber()') \
+        .value()
+
+    exe = atlas_xaod_executor()
+    exe.write_cpp_files(exe.apply_ast_transformations(a), tmp_path)
+
+    query = tmp_path / 'package_CMakeLists.txt'
+    assert query.exists()
+
+    assert 'xAODEventInfo' in query.read_text()
+
+
 def test_find_exception():
     'Make sure _find exception is well formed'
     from func_adl_xAOD.common.executor import _find

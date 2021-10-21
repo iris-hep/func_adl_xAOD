@@ -34,8 +34,15 @@ class event_collection_container(ABC):
 class EventCollectionSpecification:
     backend_name: str
     name: str
+
+    # List of include files (e.g. ['xAODJet/Jet.h'])
     include_files: List[str]
+
+    # The container information
     container_type: event_collection_container
+
+    # List of libraries (e.g. ['xAODJet'])
+    libraries: List[str]
 
 
 class event_collection_collection(event_collection_container):
@@ -71,6 +78,7 @@ class event_collection_coder(ABC):
         r = cpp_ast.CPPCodeValue()
         r.args = ['collection_name', ]
         r.include_files += md.include_files
+        r.link_libraries += md.libraries
 
         r.running_code += self.get_running_code(md.container_type)
         r.result = 'result'

@@ -22,11 +22,16 @@ class CPPCodeValue (ast.AST):
     Use the be-fore the wire visit phase of processing to look for a pattern that needs
     to generate AST code, like a method call. Then place this AST in place of the function.
     The back-end will then do the rendering useing the information included below.
+
+    TODO: This should be a dataclass!
     '''
 
     def __init__(self):
         # Files that need to be included at the top of the generated C++ file
         self.include_files = []
+
+        # List of link libraries
+        self.link_libraries = []
 
         # Code that is run once at the start of each "event"
         self.initialization_code = []
@@ -158,9 +163,11 @@ def process_ast_node(visitor, gc, call_node: ast.Call):
 
     gc.declare_variable(result_rep)
 
-    # Include files
+    # Include files and link libraries
     for i in cpp_ast_node.include_files:
         gc.add_include(i)
+    for i in cpp_ast_node.link_libraries:
+        gc.add_link_library(i)
 
     # Build the dictionary for replacement for the object we are calling
     # against, if any.

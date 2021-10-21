@@ -487,7 +487,8 @@ dummy_collections = [
     EventCollectionSpecification('dummy',
                                  'info',
                                  ['xAODEventInfo/EventInfo.h'],
-                                 dummy_collection_container()),
+                                 dummy_collection_container(),
+                                 []),
 ]
 
 
