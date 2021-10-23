@@ -157,6 +157,15 @@ def test_md_job_options():
     assert int(training_df.iloc[0]['JetPt']) != int(training_df.iloc[1]['JetPt'])  # type: ignore
 
 
+def test_event_info_includes():
+    'Make sure event info is pulling in the correct includes'
+    training_df = as_pandas(f_single
+                            .Select(lambda e: e.EventInfo("EventInfo"))
+                            .Select(lambda e: e.runNumber()))
+    print(training_df)
+    assert len(training_df) == 10
+
+
 def test_single_column_output():
     # And a power operator
     training_df = as_pandas(f_single

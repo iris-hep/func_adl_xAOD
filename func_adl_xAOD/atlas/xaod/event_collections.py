@@ -9,7 +9,7 @@ class atlas_xaod_event_collection_container(event_collection_container):
         super().__init__(type_name, is_pointer)
 
     def __str__(self):
-        return f"edm::Handle<{self._type_name}>"
+        return f"const {self._type_name} *"
 
 
 class atlas_xaod_event_collection_collection(event_collection_collection):
