@@ -39,10 +39,23 @@ def test_xaod_library_there(tmp_path):
     exe = atlas_xaod_executor()
     exe.write_cpp_files(exe.apply_ast_transformations(a), tmp_path)
 
-    query = tmp_path / 'package_CMakeLists.txt'
-    assert query.exists()
+    make_list = tmp_path / 'package_CMakeLists.txt'
+    assert make_list.exists()
+    assert 'xAODEventInfo' in make_list.read_text()
 
-    assert 'xAODEventInfo' in query.read_text()
+
+def test_eventinfo_handle_code(tmp_path):
+    'Make sure a required library is in the link list'
+    # Get the ast to play with
+    a = query_as_ast() \
+        .Select('lambda e: e.EventInfo("EventInfo").runNumber()') \
+        .value()
+
+    exe = atlas_xaod_executor()
+    exe.write_cpp_files(exe.apply_ast_transformations(a), tmp_path)
+
+    query = tmp_path / 'query.cxx'
+    assert 'const xAOD::EventInfo *' in query.read_text()
 
 
 def test_find_exception():
@@ -102,3 +115,26 @@ def test_md_job_options(tmp_path):
     with open(tmp_path / 'ATestRun_eljob.py', 'r') as f:
         lines = [ln.strip() for ln in f.readlines()]
         assert '# this is a fork tester' in lines
+
+
+def test_md_replaced_collection(tmp_path):
+    'When we replace a collection, make sure all goes right'
+    # Get the ast to play with
+    a = query_as_ast() \
+        .MetaData({
+            'metadata_type': 'add_atlas_event_collection_info',
+            'name': 'EventInfo',
+            'include_files': ['xAODEventInfo/versions/EventInfo_v1.h'],
+            'container_type': 'xAOD::EventInfo_v1',
+            'contains_collection': False,
+            'link_libraries': ['xAODEventInfo'],
+        }) \
+        .Select('lambda e: e.EventInfo("EventInfo").runNumber()') \
+        .value()
+
+    exe = atlas_xaod_executor()
+    exe.write_cpp_files(exe.apply_ast_transformations(a), tmp_path)
+
+    query = tmp_path / 'query.cxx'
+    assert query.exists()
+    assert 'const xAOD::EventInfo_v1 *' in query.read_text()
