@@ -55,6 +55,9 @@ setup(name="func_adl_xAOD",
               "uproot",
               "awkward"
           ],
+          'local': [
+              'python-on-whales'
+          ]
       },
       classifiers=[
           "Development Status :: 3 - Alpha",
