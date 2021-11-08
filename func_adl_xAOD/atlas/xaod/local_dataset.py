@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 from func_adl import EventDataset
+import python_on_whales
 from func_adl_xAOD.atlas.xaod.executor import atlas_xaod_executor
 from func_adl_xAOD.common.executor import executor
 from func_adl_xAOD.common.result_ttree import cpp_ttree_rep
@@ -80,14 +81,22 @@ class xAODDataset(EventDataset):
             # Build the docker command and run it.
             volumes_to_mount = [
                 (f_spec.output_path, '/scripts', 'ro'),
-                (f_spec.output_path, '/results', 'w'),
+                (f_spec.output_path, '/results', ''),
                 (datafile_dir, '/data/', 'ro'),
             ]
 
-            output = docker.run(
-                self._docker_image, [f'/scripts/{f_spec.main_script}'],
-                volumes=volumes_to_mount,
-            )
+            output: str = ""
+            try:
+                output = docker.run(
+                    self._docker_image, [f'/scripts/{f_spec.main_script}'],
+                    volumes=volumes_to_mount,
+                )
+                self._dump_info(logging.DEBUG, output, local_run_dir)
+
+            except python_on_whales.exceptions.DockerException as e:
+                self._dump_info(logging.ERROR, output, local_run_dir)
+                raise e
+
             # datafile_mount = f'-v {datafile_dir}:/data'
             # docker_cmd = f'docker run --rm -v {f_spec.output_path}:/scripts -v {f_spec.output_path}:/results {datafile_mount} {self._docker_image} /scripts/{f_spec.main_script}'
             # proc = await asyncio.create_subprocess_shell(docker_cmd,
@@ -95,33 +104,31 @@ class xAODDataset(EventDataset):
             #                                              stderr=asyncio.subprocess.PIPE)  # type: ignore
             # p_stdout, p_stderr = await proc.communicate()
 
-            # Inspect the results, dump out extra info, etc.
-            lg = logging.getLogger(__name__)
-
-            level = logging.DEBUG if proc.returncode != 0 else logging.ERROR
-            lg.log(level, f"Result of run: {proc.returncode}")
-            lg.log(level, 'std Output: ')
-            _dump_split_string(p_stdout.decode(), lambda l: lg.log(level, f'  {l}'))
-            lg.log(level, 'std Error: ')
-            _dump_split_string(p_stderr.decode(), lambda l: lg.log(level, f'  {l}'))
-
-            with (local_run_dir / self._source_file_name).open('r') as f:
-                lg.log(level, 'C++ Source Code:')
-                _dump_split_string(f.read(), lambda l: lg.log(level, f'  {l}'))
-            with (local_run_dir / 'ATestRun_eljob.py').open('r') as f:
-                lg.log(level, 'JobOptions Source:')
-                _dump_split_string(f.read(), lambda l: lg.log(level, f'  {l}'))
-            with (local_run_dir / 'package_CMakeLists.txt').open('r') as f:
-                lg.log(level, 'CMake Source:')
-                _dump_split_string(f.read(), lambda l: lg.log(level, f'  {l}'))
-
-            # And throw an error
-            if proc.returncode != 0:
-                raise RuntimeError(f"Failed to execute fun_adl query: ATLAS container failed with code {proc.returncode} ({docker_cmd})")
-
             # Now that we have run, we can pluck out the result.
             assert isinstance(f_spec.result_rep, cpp_ttree_rep), 'Unknown return type'
-            return _extract_result_TTree(f_spec.result_rep, local_run_dir)
+            return [_extract_result_TTree(f_spec.result_rep, local_run_dir)]
+
+    def _dump_info(self, level, running_string: str, local_run_dir: Path):
+        '''Dump the logging info from a docker run.
+
+        Args:
+            level ([type]): The logging level
+            running_string (str): The string message from the run
+        '''
+        lg = logging.getLogger(__name__)
+
+        lg.log(level, 'Docker Output: ')
+        _dump_split_string(running_string, lambda l: lg.log(level, f'  {l}'))
+
+        with (local_run_dir / self._source_file_name).open('r') as f:
+            lg.log(level, 'C++ Source Code:')
+            _dump_split_string(f.read(), lambda l: lg.log(level, f'  {l}'))
+        with (local_run_dir / 'ATestRun_eljob.py').open('r') as f:
+            lg.log(level, 'JobOptions Source:')
+            _dump_split_string(f.read(), lambda l: lg.log(level, f'  {l}'))
+        with (local_run_dir / 'package_CMakeLists.txt').open('r') as f:
+            lg.log(level, 'CMake Source:')
+            _dump_split_string(f.read(), lambda l: lg.log(level, f'  {l}'))
 
 
 def _dump_split_string(s: str, dump: Callable[[str], None]):

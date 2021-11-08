@@ -1,5 +1,6 @@
 from func_adl_xAOD.atlas.xaod import xAODDataset
 from .config import f_location
+import pytest
 
 
 def test_integrated_run():
@@ -10,10 +11,30 @@ def test_integrated_run():
          .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
          .value())
 
-    assert len(r) == 10
+    assert len(r) == 1
 
 
-def test_run():
+@pytest.fixture()
+def docker_mock(mocker):
+    'Mock the docker object'
+    import python_on_whales
+    m = mocker.MagicMock(spec=python_on_whales.docker)
+
+    def parse_arg(*args, **kwargs):
+        v = kwargs['volumes']
+        data_s = [d for d in v if d[1] == '/results']
+        assert len(data_s) == 1
+        data = data_s[0][0]
+        (data / 'ANALYSIS.root').touch()
+
+        return 'this is a\ntest'
+
+    m.run.side_effect = parse_arg
+    mocker.patch('func_adl_xAOD.atlas.xaod.local_dataset.docker', m)
+    return m
+
+
+def test_run(docker_mock):
     '''Test a simple run using docker mock'''
     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
     r = (xAODDataset(f_location)
@@ -21,4 +42,4 @@ def test_run():
          .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
          .value())
 
-    assert len(r) == 10
+    assert len(r) == 1
