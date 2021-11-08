@@ -1,3 +1,5 @@
+from pathlib import Path
+import tempfile
 from func_adl_xAOD.atlas.xaod import xAODDataset
 from .config import f_location
 import pytest
@@ -43,3 +45,59 @@ def test_run(docker_mock):
          .value())
 
     assert len(r) == 1
+
+
+def test_string_file(docker_mock):
+    '''Test a simple run using docker mock'''
+    r = (xAODDataset(str(f_location))
+         .Select(lambda e: e.EventInfo("EventInfo").runNumber())
+         .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
+         .value())
+
+    assert len(r) == 1
+
+
+def test_multiple_files(docker_mock):
+    '''Test a simple run using docker mock'''
+    r = (xAODDataset([f_location, f_location])
+         .Select(lambda e: e.EventInfo("EventInfo").runNumber())
+         .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
+         .value())
+
+    assert len(r) == 1
+
+
+def test_different_directories(docker_mock):
+    '''Test a simple run using docker mock'''
+    with tempfile.TemporaryDirectory() as d:
+        import shutil
+        shutil.copy(f_location, d)
+        file_two = Path(d) / f_location.name
+
+        with pytest.raises(RuntimeError) as e:
+            (xAODDataset([f_location, file_two])
+                .Select(lambda e: e.EventInfo("EventInfo").runNumber())
+                .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
+                .value())
+
+        assert 'same directory' in str(e)
+
+
+def test_bad_file(docker_mock):
+    '''Test a simple run using docker mock'''
+    with pytest.raises(FileNotFoundError):
+        (xAODDataset(Path('/bad/path'))
+            .Select(lambda e: e.EventInfo("EventInfo").runNumber())
+            .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
+            .value())
+
+
+def test_no_file(docker_mock):
+    '''Test a simple run using docker mock'''
+    with pytest.raises(RuntimeError) as e:
+        (xAODDataset([])
+            .Select(lambda e: e.EventInfo("EventInfo").runNumber())
+            .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
+            .value())
+
+    assert 'No files' in str(e)

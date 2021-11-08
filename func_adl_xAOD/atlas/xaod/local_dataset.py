@@ -4,7 +4,8 @@ import logging
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable, List, Optional, Union
+from collections.abc import Iterable
 
 from func_adl import EventDataset
 import python_on_whales
@@ -17,20 +18,34 @@ from python_on_whales import docker
 class xAODDataset(EventDataset):
     '''A dataset running locally
     '''
-    def __init__(self, files: Path):
+    def __init__(self,
+                 files: Union[Path, str, List[Path]],
+                 docker_image='atlas/analysisbase',
+                 docker_tag='21.2.191'):
         '''Run on the given files
 
         Args:
             files (Path): Locally accessible files we are going to run on
+            docker_image (str): The docker image name to run the executable
+            docker_tag (str): The docker tag to use to run the executable
         '''
         super().__init__()
-        self.files = [files]
-        self._docker_image = 'atlas/analysisbase:21.2.191'
+
+        if isinstance(files, str):
+            f_list = [files]
+        else:
+            f_list = files if isinstance(files, Iterable) else [files]
+        self.files = [Path(f) if not isinstance(f, Path) else f for f in f_list]
+
+        if len(self.files) == 0:
+            raise RuntimeError('No files were given to the xAODDataset - need at least one good file')
+
+        self._docker_image = f'{docker_image}:{docker_tag}'
         self._source_file_name = 'query.cxx'
-        # TODO: Protect against files not existing
-        # TODO: Make sure all files come from same directory
-        # TODO: Make sure there is at least one file
-        # TODO: Allow different atlas docker images/tags
+
+        for f in self.files:
+            if not f.exists():
+                raise FileNotFoundError(f'File {f} does not exist')
 
     def get_executor_obj(self) -> executor:
         '''Return the code that will actually generate the C++ we need to execute
@@ -76,7 +91,7 @@ class xAODDataset(EventDataset):
                         datafile_dir = ds_path
                     else:
                         if ds_path != datafile_dir:
-                            raise Exception(f'Data files must be from the same directory. Have seen {ds_path} and {datafile_dir} so far.')
+                            raise RuntimeError(f'Data files must be from the same directory. Have seen {ds_path} and {datafile_dir} so far.')
 
             # Build the docker command and run it.
             volumes_to_mount = [
