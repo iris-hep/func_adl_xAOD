@@ -1,5 +1,4 @@
 import ast
-import asyncio
 import logging
 import shutil
 import tempfile
