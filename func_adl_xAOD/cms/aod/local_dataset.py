@@ -2,17 +2,17 @@ from pathlib import Path
 from typing import List, Union
 
 from func_adl_xAOD.common.local_dataset import LocalDataset
-from func_adl_xAOD.atlas.xaod.executor import atlas_xaod_executor
+from func_adl_xAOD.cms.aod.executor import cms_aod_executor
 from func_adl_xAOD.common.executor import executor
 
 
-class xAODDataset(LocalDataset):
+class CMSRun1AODDataset(LocalDataset):
     '''A dataset running locally
     '''
     def __init__(self,
                  files: Union[Path, str, List[Path]],
-                 docker_image: str = 'atlas/analysisbase',
-                 docker_tag: str = '21.2.191'):
+                 docker_image: str = 'cmsopendata/cmssw_5_3_32',
+                 docker_tag: str = 'conddb_20210705'):
         '''Run on the given files
 
         Args:
@@ -29,4 +29,4 @@ class xAODDataset(LocalDataset):
         Returns:
             executor: Return the executor
         '''
-        return atlas_xaod_executor()
+        return cms_aod_executor()

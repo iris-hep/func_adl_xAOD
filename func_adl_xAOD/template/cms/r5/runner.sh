@@ -84,7 +84,7 @@ if [ $run = 1 ]; then
 
     # Figure out the output file
     if [ $output_method == "cp" ]; then
-        destination=$output_dir
+        destination=$output_dir/ANALYSIS.root
         cmd="cp"
     else
         destination=$1
@@ -102,10 +102,10 @@ if [ $run = 1 ]; then
     # CMS writes the tuples one directory down rather than in the top level.
     # Perhaps there is a more efficient way to solve this?
     if [ $cmd == "cp" ]; then
-        cvt='root -b -l -q /generated/copy_root_tree.C\(\"./$CMS_OUTPUT_FILE\",\"$destination\"\)'
+        cvt='root -b -l -q $DIR/copy_root_tree.C\(\"./$CMS_OUTPUT_FILE\",\"$destination\"\)'
         eval $cvt
     else
-        cvt='root -b -l -q /generated/copy_root_tree.C\(\"./$CMS_OUTPUT_FILE\",\"temp-output.root\"\)'
+        cvt='root -b -l -q $DIR/copy_root_tree.C\(\"./$CMS_OUTPUT_FILE\",\"temp-output.root\"\)'
         eval $cvt
         $cmd ./temp-output.root $destination
     fi

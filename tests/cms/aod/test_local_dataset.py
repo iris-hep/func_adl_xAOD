@@ -1,0 +1,47 @@
+from func_adl_xAOD.cms.aod.local_dataset import CMSRun1AODDataset
+from .config import f_location
+import pytest
+
+
+@pytest.mark.cms_aod_runner
+def test_integrated_run():
+    '''Test a simple run with docker'''
+    # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
+    r = (CMSRun1AODDataset(f_location)
+         .SelectMany('lambda e: e.TrackMuons("globalMuons")')
+         .Select('lambda m: m.pt()')
+         .AsROOTTTree('junk.root', 'my_tree', ['muon_pt'])
+         .value())
+
+    assert len(r) == 1
+
+
+@pytest.fixture()
+def docker_mock(mocker):
+    'Mock the docker object'
+    import python_on_whales
+    m = mocker.MagicMock(spec=python_on_whales.docker)
+
+    def parse_arg(*args, **kwargs):
+        v = kwargs['volumes']
+        data_s = [d for d in v if d[1] == '/results']
+        assert len(data_s) == 1
+        data = data_s[0][0]
+        (data / 'ANALYSIS.root').touch()
+
+        return 'this is a\ntest'
+
+    m.run.side_effect = parse_arg
+    mocker.patch('func_adl_xAOD.common.local_dataset.docker', m)
+    return m
+
+
+def test_run(docker_mock):
+    '''Test a simple run using docker mock'''
+    r = (CMSRun1AODDataset(f_location)
+         .SelectMany('lambda e: e.TrackMuons("globalMuons")')
+         .Select('lambda m: m.pt()')
+         .AsROOTTTree('junk.root', 'my_tree', ['muon_pt'])
+         .value())
+
+    assert len(r) == 1

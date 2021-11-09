@@ -35,7 +35,7 @@ def docker_mock(mocker):
         return 'this is a\ntest'
 
     m.run.side_effect = parse_arg
-    mocker.patch('func_adl_xAOD.atlas.xaod.local_dataset.docker', m)
+    mocker.patch('func_adl_xAOD.common.local_dataset.docker', m)
     return m
 
 
@@ -50,7 +50,7 @@ def docker_mock_fail(mocker):
         raise DockerException(['docker command failed'], 125)
 
     m.run.side_effect = parse_arg
-    mocker.patch('func_adl_xAOD.atlas.xaod.local_dataset.docker', m)
+    mocker.patch('func_adl_xAOD.common.local_dataset.docker', m)
     return m
 
 
@@ -123,7 +123,7 @@ def test_no_file(docker_mock):
 
 def test_docker_error(docker_mock_fail):
     '''Test a simple run using docker mock'''
-    with pytest.raises(DockerException) as e:
+    with pytest.raises(DockerException):
         (xAODDataset([f_location])
             .Select(lambda e: e.EventInfo("EventInfo").runNumber())
             .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
