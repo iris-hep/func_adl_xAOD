@@ -1,15 +1,18 @@
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
-from python_on_whales.exceptions import DockerException
-from func_adl_xAOD.atlas.xaod import xAODDataset
-from .config import f_location
 import pytest
+
+from .config import f_location
+
+python_on_whales = pytest.importorskip("python_on_whales")
 
 
 @pytest.mark.atlas_xaod_runner
 def test_integrated_run():
     '''Test a simple run with docker'''
+    from func_adl_xAOD.atlas.xaod import xAODDataset
+
     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
     r = (xAODDataset(f_location)
          .Select(lambda e: e.EventInfo("EventInfo").runNumber())
@@ -22,7 +25,6 @@ def test_integrated_run():
 @pytest.fixture()
 def docker_mock(mocker):
     'Mock the docker object'
-    import python_on_whales
     m = mocker.MagicMock(spec=python_on_whales.docker)
 
     def parse_arg(*args, **kwargs):
@@ -42,8 +44,8 @@ def docker_mock(mocker):
 @pytest.fixture()
 def docker_mock_fail(mocker):
     'Mock the docker object'
-    import python_on_whales
     m = mocker.MagicMock(spec=python_on_whales.docker)
+    from func_adl_xAOD.atlas.xaod import xAODDataset
 
     def parse_arg(*args, **kwargs):
         from python_on_whales.exceptions import DockerException
@@ -57,6 +59,7 @@ def docker_mock_fail(mocker):
 def test_run(docker_mock):
     '''Test a simple run using docker mock'''
     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
+    from func_adl_xAOD.atlas.xaod import xAODDataset
     r = (xAODDataset(f_location)
          .Select(lambda e: e.EventInfo("EventInfo").runNumber())
          .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
@@ -67,6 +70,7 @@ def test_run(docker_mock):
 
 def test_string_file(docker_mock):
     '''Test a simple run using docker mock'''
+    from func_adl_xAOD.atlas.xaod import xAODDataset
     r = (xAODDataset(str(f_location))
          .Select(lambda e: e.EventInfo("EventInfo").runNumber())
          .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
@@ -77,6 +81,7 @@ def test_string_file(docker_mock):
 
 def test_multiple_files(docker_mock):
     '''Test a simple run using docker mock'''
+    from func_adl_xAOD.atlas.xaod import xAODDataset
     r = (xAODDataset([f_location, f_location])
          .Select(lambda e: e.EventInfo("EventInfo").runNumber())
          .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
@@ -87,6 +92,7 @@ def test_multiple_files(docker_mock):
 
 def test_different_directories(docker_mock):
     '''Test a simple run using docker mock'''
+    from func_adl_xAOD.atlas.xaod import xAODDataset
     with tempfile.TemporaryDirectory() as d:
         import shutil
         shutil.copy(f_location, d)
@@ -103,6 +109,7 @@ def test_different_directories(docker_mock):
 
 def test_bad_file(docker_mock):
     '''Test a simple run using docker mock'''
+    from func_adl_xAOD.atlas.xaod import xAODDataset
     with pytest.raises(FileNotFoundError):
         (xAODDataset(Path('/bad/path'))
             .Select(lambda e: e.EventInfo("EventInfo").runNumber())
@@ -112,6 +119,7 @@ def test_bad_file(docker_mock):
 
 def test_no_file(docker_mock):
     '''Test a simple run using docker mock'''
+    from func_adl_xAOD.atlas.xaod import xAODDataset
     with pytest.raises(RuntimeError) as e:
         (xAODDataset([])
             .Select(lambda e: e.EventInfo("EventInfo").runNumber())
@@ -123,6 +131,8 @@ def test_no_file(docker_mock):
 
 def test_docker_error(docker_mock_fail):
     '''Test a simple run using docker mock'''
+    from func_adl_xAOD.atlas.xaod import xAODDataset
+    from python_on_whales.exceptions import DockerException
     with pytest.raises(DockerException):
         (xAODDataset([f_location])
             .Select(lambda e: e.EventInfo("EventInfo").runNumber())

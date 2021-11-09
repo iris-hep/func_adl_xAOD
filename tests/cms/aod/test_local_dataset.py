@@ -1,12 +1,14 @@
-from func_adl_xAOD.cms.aod.local_dataset import CMSRun1AODDataset
 from .config import f_location
 import pytest
+
+python_on_whales = pytest.importorskip("python_on_whales")
 
 
 @pytest.mark.cms_aod_runner
 def test_integrated_run():
     '''Test a simple run with docker'''
     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
+    from func_adl_xAOD.cms.aod.local_dataset import CMSRun1AODDataset
     r = (CMSRun1AODDataset(f_location)
          .SelectMany('lambda e: e.TrackMuons("globalMuons")')
          .Select('lambda m: m.pt()')
@@ -19,7 +21,6 @@ def test_integrated_run():
 @pytest.fixture()
 def docker_mock(mocker):
     'Mock the docker object'
-    import python_on_whales
     m = mocker.MagicMock(spec=python_on_whales.docker)
 
     def parse_arg(*args, **kwargs):
@@ -38,6 +39,7 @@ def docker_mock(mocker):
 
 def test_run(docker_mock):
     '''Test a simple run using docker mock'''
+    from func_adl_xAOD.cms.aod.local_dataset import CMSRun1AODDataset
     r = (CMSRun1AODDataset(f_location)
          .SelectMany('lambda e: e.TrackMuons("globalMuons")')
          .Select('lambda m: m.pt()')
