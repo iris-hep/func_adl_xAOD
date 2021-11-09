@@ -45,7 +45,6 @@ def docker_mock(mocker):
 def docker_mock_fail(mocker):
     'Mock the docker object'
     m = mocker.MagicMock(spec=python_on_whales.docker)
-    from func_adl_xAOD.atlas.xaod import xAODDataset
 
     def parse_arg(*args, **kwargs):
         from python_on_whales.exceptions import DockerException
