@@ -10,7 +10,7 @@ class CMSRun1AODDataset(LocalDataset):
     '''A dataset running locally
     '''
     def __init__(self,
-                 files: Union[Path, str, List[Path]],
+                 files: Union[Path, str, List[Path], List[str]],
                  docker_image: str = 'cmsopendata/cmssw_5_3_32',
                  docker_tag: str = 'conddb_20210705'):
         '''Run on the given files

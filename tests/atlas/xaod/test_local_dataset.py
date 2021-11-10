@@ -89,6 +89,17 @@ def test_multiple_files(docker_mock):
     assert len(r) == 1
 
 
+def test_multiple_files_str(docker_mock):
+    '''Test a simple run using docker mock'''
+    from func_adl_xAOD.atlas.xaod import xAODDataset
+    r = (xAODDataset([str(f_location), str(f_location)])
+         .Select(lambda e: e.EventInfo("EventInfo").runNumber())
+         .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
+         .value())
+
+    assert len(r) == 1
+
+
 def test_different_directories(docker_mock):
     '''Test a simple run using docker mock'''
     from func_adl_xAOD.atlas.xaod import xAODDataset

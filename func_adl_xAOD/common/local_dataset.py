@@ -18,7 +18,7 @@ class LocalDataset(EventDataset, ABC):
     '''A dataset running locally
     '''
     def __init__(self,
-                 files: Union[Path, str, List[Path]],
+                 files: Union[Path, str, List[Path], List[str]],
                  docker_image: str,
                  docker_tag: str):
         '''Run on the given files

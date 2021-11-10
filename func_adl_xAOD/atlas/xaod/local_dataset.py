@@ -10,7 +10,7 @@ class xAODDataset(LocalDataset):
     '''A dataset running locally
     '''
     def __init__(self,
-                 files: Union[Path, str, List[Path]],
+                 files: Union[Path, str, List[Path], List[str]],
                  docker_image: str = 'atlas/analysisbase',
                  docker_tag: str = '21.2.191'):
         '''Run on the given files
