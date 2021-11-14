@@ -1,14 +1,14 @@
-from abc import ABC, abstractmethod
 import ast
 import logging
 import shutil
 import tempfile
+from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Union
-from collections.abc import Iterable
 
-from func_adl import EventDataset
 import python_on_whales
+from func_adl import EventDataset
 from func_adl_xAOD.common.executor import executor
 from func_adl_xAOD.common.result_ttree import cpp_ttree_rep
 from python_on_whales import docker
@@ -20,13 +20,27 @@ class LocalDataset(EventDataset, ABC):
     def __init__(self,
                  files: Union[Path, str, List[Path], List[str]],
                  docker_image: str,
-                 docker_tag: str):
-        '''Run on the given files
+                 docker_tag: str,
+                 output_directory: Optional[Path] = None):
+        '''Run on the given files locally using a docker image to process them.
+
+        When using `.value()` a list of `Path` objects is returned. All input files
+        are combined into a single file. And the file is always called `ANALYSIS.root`
+
+        NOTE:
+
+        * The caller is responsible for the clean up of any output files that are
+        generated. Use `output_directory` to control where they are written.
+        * If you run multiple instances of these note that the output file is always
+        called the same thing - so collisions are very likely!
 
         Args:
             files (Path): Locally accessible files we are going to run on
             docker_image (str): The docker image name to run the executable
             docker_tag (str): The docker tag to use to run the executable
+            output_directory (Optional[Path], optional): The directory to write the output to.
+                If `None` then will be written to the temp directory. Any directory passed in must
+                already exist. Defaults to `None`.
         '''
         super().__init__()
 
@@ -44,6 +58,14 @@ class LocalDataset(EventDataset, ABC):
         for f in self.files:
             if not f.exists():
                 raise FileNotFoundError(f'File {f} does not exist')
+
+        self._output_directory = output_directory if output_directory is not None \
+            else Path(tempfile.tempdir)  # type: ignore
+
+        # Put everything into the ast so that we can safely be carried over qastle and used in
+        # determining a hash key to see when things change.
+        self.query_ast.args.append(ast.Str(s=f'{self._docker_image}'))  # type: ignore
+        self.query_ast.args.append(ast.List(elts=[ast.Str(s=str(f)) for f in self.files]))  # type: ignore
 
     @abstractmethod
     def get_executor_obj(self) -> executor:
@@ -113,7 +135,7 @@ class LocalDataset(EventDataset, ABC):
 
             # Now that we have run, we can pluck out the result.
             assert isinstance(f_spec.result_rep, cpp_ttree_rep), 'Unknown return type'
-            return [_extract_result_TTree(f_spec.result_rep, local_run_dir)]
+            return [_extract_result_TTree(f_spec.result_rep, local_run_dir, self._output_directory)]
 
     def _dump_info(self, level, running_string: str, local_run_dir: Path, source_file_name: str):
         '''Dump the logging info from a docker run.
@@ -139,7 +161,7 @@ def _dump_split_string(s: str, dump: Callable[[str], None]):
         dump(ll)
 
 
-def _extract_result_TTree(rep: cpp_ttree_rep, run_dir):
+def _extract_result_TTree(rep: cpp_ttree_rep, run_dir, output_dir: Path):
     '''Copy the final file into a place that is "safe", and return that as a path.
 
     The reason for this is that the temp directory we are using is about to be deleted!
@@ -152,6 +174,6 @@ def _extract_result_TTree(rep: cpp_ttree_rep, run_dir):
         Exception: [description]
     '''
     current_path = run_dir / rep.filename
-    new_path = Path('.') / rep.filename
+    new_path = output_dir / rep.filename
     shutil.copy(current_path, new_path)
     return new_path

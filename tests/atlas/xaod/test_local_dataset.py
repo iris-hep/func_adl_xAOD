@@ -20,6 +20,7 @@ def test_integrated_run():
          .value())
 
     assert len(r) == 1
+    assert r[0].exists()
 
 
 @pytest.fixture()
@@ -148,3 +149,15 @@ def test_docker_error(docker_mock_fail):
             .Select(lambda e: e.EventInfo("EventInfo").runNumber())
             .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
             .value())
+
+
+def test_alternate_dir(docker_mock):
+    'Make sure we can send the file to our own directory'
+    with tempfile.TemporaryDirectory() as tmpdir:
+        from func_adl_xAOD.atlas.xaod import xAODDataset
+        r = (xAODDataset(f_location, output_directory=Path(tmpdir))
+             .Select(lambda e: e.EventInfo("EventInfo").runNumber())
+             .AsROOTTTree('junk.root', 'my_tree', ['eventNumber'])
+             .value())
+
+        assert str(r[0]).startswith(str(tmpdir))
