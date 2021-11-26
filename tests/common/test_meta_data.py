@@ -7,7 +7,7 @@ import func_adl_xAOD.common.statement as statement
 import pytest
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
 from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
-from func_adl_xAOD.common.cpp_types import method_type_info
+from func_adl_xAOD.common.cpp_types import collection, method_type_info
 from func_adl_xAOD.common.event_collections import (
     EventCollectionSpecification, event_collection_coder, event_collection_container)
 from func_adl_xAOD.common.executor import executor
@@ -66,6 +66,51 @@ def test_md_method_type_double():
     assert t.is_pointer() is False
 
 
+def test_md_method_type_collection():
+    'Make sure a double can be set'
+    metadata = [
+        {
+            'metadata_type': 'add_method_type_info',
+            'type_string': 'my_namespace::obj',
+            'method_name': 'pT',
+            'return_type_element': 'double',
+            'is_pointer': 'False',
+        }
+    ]
+
+    process_metadata(metadata)
+
+    t = method_type_info('my_namespace::obj', 'pT')
+    assert t is not None
+    assert isinstance(t, collection)
+    assert t.type == 'std::vector<double>'
+    assert t.element_type() == 'double'
+    assert t.is_pointer() is False
+
+
+def test_md_method_type_custom_collection():
+    'Make sure a double can be set'
+    metadata = [
+        {
+            'metadata_type': 'add_method_type_info',
+            'type_string': 'my_namespace::obj',
+            'method_name': 'pT',
+            'return_type_element': 'double',
+            'return_type_collection': 'MyCustomCollection',
+            'is_pointer': 'False',
+        }
+    ]
+
+    process_metadata(metadata)
+
+    t = method_type_info('my_namespace::obj', 'pT')
+    assert t is not None
+    assert isinstance(t, collection)
+    assert t.type == 'MyCustomCollection'
+    assert t.element_type() == 'double'
+    assert t.is_pointer() is False
+
+
 def test_md_method_type_object_pointer():
     'Make sure a double can be set'
     metadata = [
@@ -84,6 +129,24 @@ def test_md_method_type_object_pointer():
     assert t is not None
     assert t.type == 'my_namespace::vertex'
     assert t.is_pointer() is True
+
+
+def test_with_method_call_with_type(caplog):
+    'Call a function that is "ok" and has type info declared in metadata'
+
+    (my_dataset()
+        .MetaData({
+            'metadata_type': 'add_method_type_info',
+            'type_string': 'my_namespace::obj',
+            'method_name': 'pT',
+            'return_type': 'int',
+            'is_pointer': 'False',
+        })
+        .Select(lambda e: e.info('fork').pT())
+        .value()
+     )
+
+    assert 'pT' not in caplog.text
 
 
 def test_md_atlas_collection():
@@ -572,21 +635,3 @@ def test_no_type_info_warning(caplog):
      )
 
     assert 'pT' in caplog.text
-
-
-def test_with_type(caplog):
-    'Call a function that is "ok" and has type info declared in metadata'
-
-    (my_dataset()
-        .MetaData({
-            'metadata_type': 'add_method_type_info',
-            'type_string': 'my_namespace::obj',
-            'method_name': 'pT',
-            'return_type': 'int',
-            'is_pointer': 'False',
-        })
-        .Select(lambda e: e.info('fork').pT())
-        .value()
-     )
-
-    assert 'pT' not in caplog.text
