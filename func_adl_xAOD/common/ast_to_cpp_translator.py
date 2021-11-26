@@ -172,7 +172,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         if rep is None:
             FuncADLNodeVisitor.visit(self, node)
 
-    def get_rep(self, node: ast.AST, retain_scope: bool = False) -> Union[crep.cpp_rep_base]:
+    def get_rep(self, node: ast.AST, retain_scope: bool = False) -> crep.cpp_rep_base:
         r'''Return the rep for the node. If it isn't set yet, then run our visit on it.
 
         node - The ast node to generate a representation for.
@@ -967,14 +967,14 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         assert len(args) == 2
         source = args[0]
-        selection = cast(ast.Lambda, args[1])
+        selection = args[1]
+        assert isinstance(selection, ast.Lambda)
 
         # Make sure we are in a loop
         seq = self.as_sequence(source)
 
         # Simulate this as a "call"
-        selection = lambda_unwrap(selection)
-        c = ast.Call(func=selection, args=[seq.sequence_value().as_ast()])
+        c = ast.Call(func=lambda_unwrap(selection), args=[seq.sequence_value().as_ast()])
         new_sequence_value = cast(crep.cpp_value, self.get_rep(c))
 
         # We need to build a new sequence.
@@ -996,12 +996,11 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # Make sure the source is around. We have to do this because code generation in this
         # framework is lazy. And if the `selection` function does not use the source, and
         # looking at that source might generate a loop, that loop won't be generated! Ops!
-        _ = self.as_sequence(source)
+        seq = self.as_sequence(source)
 
         # We need to "call" the source with the function. So build up a new
         # call, and then visit it.
-
-        c = ast.Call(func=lambda_unwrap(selection), args=[source])
+        c = ast.Call(func=lambda_unwrap(selection), args=[seq.sequence_value().as_ast()])
 
         # Get the collection, and then generate the loop over it.
         # It could be that this comes back from something that is already iterating (like a Select statement),
