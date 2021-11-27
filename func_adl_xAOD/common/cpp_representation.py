@@ -184,7 +184,7 @@ class cpp_collection(cpp_value):
     Represents a special kind of value - a collection (vector<float>).
     '''
 
-    def __init__(self, cpp_expression: str, scope: gc_scope, collection_type: ctyp.collection):
+    def __init__(self, cpp_expression: str, scope: Union[gc_scope, gc_scope_top_level], collection_type: ctyp.collection):
         r'''
         Initialize a C++ value that can be turned into a sequence if requested.
 

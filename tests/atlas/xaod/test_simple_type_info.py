@@ -22,3 +22,13 @@ def test_can_call_prodVtx():
     atlas_xaod_dataset("file://root.root") \
         .Select("lambda e: e.TruthParticles('TruthParticles').Select(lambda t: t.prodVtx().x()).Sum()") \
         .value()
+
+
+def test_collection_return():
+    'Make sure we can set and deal with a returned collection properly'
+    ctyp.add_method_type_info("xAOD::TruthParticle", "vertexes", ctyp.collection('double', is_pointer=False))
+    (atlas_xaod_dataset("file://root.root")
+     .SelectMany(lambda e: e.TruthParticles('TruthParticles'))
+     .SelectMany(lambda t: t.vertexes())
+     .value()
+     )

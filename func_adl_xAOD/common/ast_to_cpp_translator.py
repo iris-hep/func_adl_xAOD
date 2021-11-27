@@ -339,7 +339,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             return r
 
         # If it isn't a sequence or a collection, then something has gone wrong.
-        raise Exception(f"Unable to generate a sequence from the given AST. Either there is an internal error, or you are trying to manipulate a '{type(rep).__name__}' as a sequence (ast is: {ast.dump(generation_ast)})")
+        raise Exception(f"Unable to generate a sequence from the given AST. Either there is an internal error, or you are trying to manipulate a {str(rep)} ('{type(rep).__name__}') as a sequence (ast is: {ast.dump(generation_ast)})")
 
     def visit_Call_Lambda(self, call_node):
         'Call to a lambda function. We propagate the arguments through the function'
@@ -573,8 +573,13 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         c_stub = calling_against.as_cpp() + ("->" if calling_against.is_pointer() else ".")
         result_type = determine_type_mf(calling_against.cpp_type(), function_name)
 
+        # Support returned collections or values depending on the result type.
         args = call_node.args
-        crep.set_rep(call_node, crep.cpp_value(c_stub + function_name + f"({','.join(self.get_rep(arg).as_cpp() for arg in args)})", calling_against.scope(), result_type))  # type: ignore
+        v_name = f"{c_stub}{function_name}({','.join(self.get_rep(arg).as_cpp() for arg in args)})"  # type: ignore
+        if isinstance(result_type, ctyp.collection):
+            crep.set_rep(call_node, crep.cpp_collection(v_name, calling_against.scope(), result_type))
+        else:
+            crep.set_rep(call_node, crep.cpp_value(v_name, calling_against.scope(), result_type))
 
     def visit_function_ast(self, call_node):
         'Drop-in replacement for a function'
