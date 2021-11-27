@@ -122,11 +122,17 @@ class LocalDataset(EventDataset, ABC):
 
             output: str = ""
             try:
-                output = docker.run(
+                output_generator = docker.run(
                     self._docker_image, [f'/scripts/{f_spec.main_script}'],
                     volumes=volumes_to_mount,
                     remove=True,
+                    stream=True,
                 )
+                for stream_type, stream_content in output_generator:
+                    if stream_type == 'stdout':
+                        output += f'{stream_content.decode()}'
+                    else:
+                        output += f'(stderr) {stream_content.decode()}'
                 self._dump_info(logging.DEBUG, output, local_run_dir, f_spec.main_script)
 
             except python_on_whales.exceptions.DockerException as e:

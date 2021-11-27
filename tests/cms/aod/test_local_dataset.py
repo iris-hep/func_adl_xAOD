@@ -30,7 +30,7 @@ def docker_mock(mocker):
         data = data_s[0][0]
         (data / 'ANALYSIS.root').touch()
 
-        return 'this is a\ntest'
+        return (('stdout', b'text'), ('stderr', b'text'))
 
     m.run.side_effect = parse_arg
     mocker.patch('func_adl_xAOD.common.local_dataset.docker', m)
