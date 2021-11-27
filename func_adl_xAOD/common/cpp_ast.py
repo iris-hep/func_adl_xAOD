@@ -8,6 +8,7 @@ from typing import Callable, Dict, Optional, cast
 import func_adl_xAOD.common.statement as statements
 from func_adl_xAOD.common.cpp_representation import cpp_value, cpp_variable
 from func_adl_xAOD.common.cpp_vars import unique_name
+import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.util_scope import gc_scope
 
 # The list of methods and the re-write functions for them. Each rewrite function
@@ -62,6 +63,7 @@ class CPPCodeValue (ast.AST):
 
 
 # Info used to build a code spec
+# TODO: Convert to a dataclass
 CPPCodeSpecification = namedtuple('CPPCodeSpecification', ['name', 'include_files', 'arguments', 'code', 'result', 'cpp_return_type'])
 
 
@@ -98,7 +100,7 @@ def build_CPPCodeValue(spec: CPPCodeSpecification, call_node: ast.Call) -> ast.C
     # The code is three steps
     r.running_code += spec.code
     r.result = spec.result
-    r.result_rep = lambda scope: cpp_variable(unique_name(spec.name), scope=scope, cpp_type=spec.cpp_return_type)
+    r.result_rep = lambda scope: cpp_variable(unique_name(spec.name), scope=scope, cpp_type=ctyp.terminal(spec.cpp_return_type))
 
     call_node.func = r  # type: ignore
     return call_node

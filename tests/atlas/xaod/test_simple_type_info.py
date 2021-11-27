@@ -26,7 +26,7 @@ def test_can_call_prodVtx():
 
 def test_collection_return():
     'Make sure we can set and deal with a returned collection properly'
-    ctyp.add_method_type_info("xAOD::TruthParticle", "vertexes", ctyp.collection('double', is_pointer=False))
+    ctyp.add_method_type_info("xAOD::TruthParticle", "vertexes", ctyp.collection(ctyp.terminal('double'), is_pointer=False))
     (atlas_xaod_dataset("file://root.root")
      .SelectMany(lambda e: e.TruthParticles('TruthParticles'))
      .SelectMany(lambda t: t.vertexes())

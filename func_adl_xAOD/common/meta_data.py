@@ -30,7 +30,7 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
         if md_type == 'add_method_type_info':
             is_pointer = md['is_pointer'].upper() == 'TRUE'
             term = terminal(md['return_type'], is_pointer=is_pointer) if 'return_type' in md \
-                else collection(md['return_type_element'], is_pointer=is_pointer, array_type=md['return_type_collection'] if 'return_type_collection' in md else None)
+                else collection(terminal(md['return_type_element']), is_pointer=is_pointer, array_type=md['return_type_collection'] if 'return_type_collection' in md else None)
             add_method_type_info(md['type_string'], md['method_name'], term)
         elif md_type == 'add_job_script':
             spec = JobScriptSpecification(

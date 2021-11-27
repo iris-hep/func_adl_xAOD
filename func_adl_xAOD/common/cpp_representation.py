@@ -116,6 +116,7 @@ class cpp_value(cpp_rep_base):
         cpp_rep_base.__init__(self)
         self._scope = scope
         self._expression = cpp_expression
+        assert not isinstance(cpp_type, str)
         self._cpp_type = cpp_type
 
     def __str__(self) -> str:

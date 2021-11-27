@@ -7,7 +7,7 @@ import func_adl_xAOD.common.statement as statement
 import pytest
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
 from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
-from func_adl_xAOD.common.cpp_types import collection, method_type_info
+from func_adl_xAOD.common.cpp_types import collection, method_type_info, terminal
 from func_adl_xAOD.common.event_collections import (
     EventCollectionSpecification, event_collection_coder, event_collection_container)
 from func_adl_xAOD.common.executor import executor
@@ -84,7 +84,8 @@ def test_md_method_type_collection():
     assert t is not None
     assert isinstance(t, collection)
     assert t.type == 'std::vector<double>'
-    assert t.element_type() == 'double'
+    assert isinstance(t.element_type(), terminal)
+    assert str(t.element_type()) == 'double'
     assert t.is_pointer() is False
 
 
@@ -107,7 +108,7 @@ def test_md_method_type_custom_collection():
     assert t is not None
     assert isinstance(t, collection)
     assert t.type == 'MyCustomCollection'
-    assert t.element_type() == 'double'
+    assert str(t.element_type()) == 'double'
     assert t.is_pointer() is False
 
 

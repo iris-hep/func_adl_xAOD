@@ -67,6 +67,7 @@ functions_to_replace = {}
 
 
 # The named tuple that stores the replacement info.
+# TODO: change to a typed data class
 cpp_function = namedtuple('cpp_function', ['cpp_name', 'include_files', 'cpp_return_type'])
 
 # CMATH functions - the catalog was pulled from

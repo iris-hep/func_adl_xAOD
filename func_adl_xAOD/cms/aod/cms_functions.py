@@ -1,6 +1,8 @@
 import ast
 from typing import Callable, Dict
+
 import func_adl_xAOD.common.cpp_ast as cpp_ast
+import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.cpp_representation import cpp_variable
 from func_adl_xAOD.common.cpp_vars import unique_name
 
@@ -25,7 +27,7 @@ def isNonnullAst(call_node):
     # The code is three steps
     r.running_code += ['auto result = (cms_object).isNonnull();']
     r.result = 'result'
-    r.result_rep = lambda scope: cpp_variable(unique_name('is_non_null'), scope=scope, cpp_type='bool')
+    r.result_rep = lambda scope: cpp_variable(unique_name('is_non_null'), scope=scope, cpp_type=ctyp.terminal('bool'))
 
     call_node.func = r
     return call_node

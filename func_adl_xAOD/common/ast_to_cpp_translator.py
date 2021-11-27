@@ -588,7 +588,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         arg_reps = [self.get_rep_value(a) for a in call_node.args]
 
         # Code up a call
-        r = crep.cpp_value('{0}({1})'.format(cpp_func.cpp_name, ','.join(a.as_cpp() for a in arg_reps)), self._gc.current_scope(), cpp_type=cpp_func.cpp_return_type)
+        r = crep.cpp_value(f'{cpp_func.cpp_name}({",".join(a.as_cpp() for a in arg_reps)})',
+                           self._gc.current_scope(),
+                           cpp_type=ctyp.terminal(cpp_func.cpp_return_type))
 
         # Include files and return the resulting expression
         for i in cpp_func.include_files:
@@ -781,7 +783,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         '''
 
         # The result of this test
-        result = crep.cpp_variable(unique_name('bool_op'), self._gc.current_scope(), cpp_type='bool')
+        result = crep.cpp_variable(unique_name('bool_op'), self._gc.current_scope(), cpp_type=ctyp.terminal('bool'))
         self._gc.declare_variable(result)
 
         # How we check and short-circuit depends on if we are doing and or or.
