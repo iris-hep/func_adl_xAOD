@@ -135,7 +135,7 @@ def run_docker(info: ExecutorInfo, code_dir: str, files: List[str],
                compile_only: bool = False, run_only: bool = False,
                add_position_argument_at_start: Optional[str] = None,
                extra_flag: Optional[str] = None,
-               output_dir: Optional[str] = None, mount_output: bool = True) -> Union[TemporaryDirectory]:
+               output_dir: Optional[str] = None, mount_output: bool = True) -> TemporaryDirectory:
     'Run the docker command'
 
     # Unravel the file path. How we do this depends on how we are doing this work.
