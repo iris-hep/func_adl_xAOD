@@ -59,6 +59,27 @@ Template functions don't make sense yet in python.
 - Do not use `math.sin` in a call. However `sin` is just fine. If you do, you'll get an exception during resolution that it doesn't know how to translate `math`.
 - for things like `sum`, `min`, `max`, etc., use the `Sum`, `Min`, `Max` LINQ predicates.
 
+### Metadata
+
+It is possible to inject metadata into the `qastle` query to alter the behavior of the C++ code production. Each sub-section below has a different type of metadata. In order to invoke this, use the `Metadata` call, which takes as input stream and outputs the same stream, but the argument is a dictionary which contains the metadata.
+
+#### Method Return Type
+
+If you have a method that returns a non-standard type, use this metadata type to specify to the backend the return type. There are two different forms for this metadata - one if a single item is returned, and another if a collection of items are returned.
+
+For a single item:
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | "add_method_type_info" |
+| type_string | The object the method applies to, fully qualified, C++ | "xAOD::Jet" |
+| method_name | Name of the method | "pT" |
+| return_type | Type returned, C++, fully qualified | "float" |
+| is_pointer | Is the return type a pointer or the object directly (`my_obj*` vs `my_obj`) | "True" or "False" |
+
+For a collection:
+
+
 ### Output Formats
 
 The `xAOD` code only renders the `func_adl` expression as a ROOT file. The ROOT file contains a simple `TTree` in its root directory.
