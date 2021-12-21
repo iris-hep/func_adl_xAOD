@@ -71,13 +71,29 @@ For a single item:
 
 | Key | Description | Example |
 | ------------ | ------------ | --------------|
-| metadata_type | The metadata type | "add_method_type_info" |
-| type_string | The object the method applies to, fully qualified, C++ | "xAOD::Jet" |
-| method_name | Name of the method | "pT" |
-| return_type | Type returned, C++, fully qualified | "float" |
-| is_pointer | Is the return type a pointer or the object directly (`my_obj*` vs `my_obj`) | "True" or "False" |
+| metadata_type | The metadata type | `"add_method_type_info"` |
+| type_string | The object the method applies to, fully qualified, C++ | `"xAOD::Jet"` |
+| method_name | Name of the method | `"pT"` |
+| return_type | Type returned, C++, fully qualified | `"float"` |
+| is_pointer | Is the return type a pointer or the object directly (`my_obj*` vs `my_obj`) | `"True"` or `"False"` |
 
 For a collection:
+
+#### Include Files
+
+Any include files listed will be added to the top of the `query.cpp` file that is generated. While ordering is maintained within a single `Metadata` query here, it is not maintained between different `Metadata` calls.
+
+All includes are done with straight quotes:
+
+```C++
+#include "file1.hpp"
+#include "file2.hpp"
+```
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"include_files"` |
+| files | List of files to include. | `["file1.hpp", "file2.hpp"]` |
 
 ### Output Formats
 
