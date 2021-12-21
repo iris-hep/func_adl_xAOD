@@ -12,16 +12,21 @@ class JobScriptSpecification:
     depends_on: List[str]
 
 
-def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification]]:
+@dataclass
+class IncludeFileList:
+    files: List[str]
+
+
+def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification, IncludeFileList]]:
     '''Process a list of metadata, in order.
 
     Args:
         md (List[Dict[str, str]]): The metadata to process
 
     Returns:
-        List[CPPCodeSpecification]: Any C++ functions that were defined in the metadata
+        List[X]: Metadata we've found
     '''
-    cpp_funcs: List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification]] = []
+    cpp_funcs: List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification, IncludeFileList]] = []
     for md in md_list:
         md_type = md.get('metadata_type')
         if md_type is None:
@@ -32,6 +37,9 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
             term = terminal(md['return_type'], is_pointer=is_pointer) if 'return_type' in md \
                 else collection(terminal(md['return_type_element'], is_pointer=True), is_pointer=is_pointer, array_type=md['return_type_collection'] if 'return_type_collection' in md else None)
             add_method_type_info(md['type_string'], md['method_name'], term)
+        elif md_type == 'include_files':
+            spec = IncludeFileList(md['files'])
+            cpp_funcs.append(spec)
         elif md_type == 'add_job_script':
             spec = JobScriptSpecification(
                 name=md['name'],

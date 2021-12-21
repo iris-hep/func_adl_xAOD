@@ -11,7 +11,7 @@ from func_adl_xAOD.common.cpp_types import collection, method_type_info, termina
 from func_adl_xAOD.common.event_collections import (
     EventCollectionSpecification, event_collection_coder, event_collection_container)
 from func_adl_xAOD.common.executor import executor
-from func_adl_xAOD.common.meta_data import JobScriptSpecification, generate_script_block, process_metadata
+from func_adl_xAOD.common.meta_data import IncludeFileList, JobScriptSpecification, generate_script_block, process_metadata
 from tests.utils.base import dataset, dummy_executor  # type: ignore
 
 
@@ -148,6 +148,23 @@ def test_with_method_call_with_type(caplog):
      )
 
     assert 'pT' not in caplog.text
+
+
+def test_md_include_files():
+    'Add some include files'
+    metadata = [
+        {
+            'metadata_type': 'include_files',
+            'files': ['file1.h', 'file2.h'],
+        }
+    ]
+
+    result = process_metadata(metadata)
+
+    assert len(result) == 1
+    s = result[0]
+    assert isinstance(s, IncludeFileList)
+    assert s.files == ['file1.h', 'file2.h']
 
 
 def test_md_atlas_collection():
