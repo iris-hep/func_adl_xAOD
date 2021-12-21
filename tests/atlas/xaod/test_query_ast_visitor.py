@@ -133,12 +133,12 @@ def test_as_root_as_tuple():
 def test_subscript():
     q = atlas_xaod_query_ast_visitor()
     our_a = ast.Name(id='a')
-    our_a.rep = crep.cpp_collection('jets', gc_scope_top_level(), ctyp.collection('int'))  # type: ignore
+    our_a.rep = crep.cpp_collection('jets', gc_scope_top_level(), ctyp.collection(ctyp.terminal('int')))  # type: ignore
     node = ast_parse_with_replacement('a[10]', {'a': our_a}).body[0].value  # type: ignore
     as_root = q.get_rep(node)
 
     assert isinstance(as_root, crep.cpp_value)
-    assert as_root.cpp_type() == 'int'
+    assert str(as_root.cpp_type()) == 'int'
     assert as_root.as_cpp() == 'jets.at(10)'
 
 

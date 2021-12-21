@@ -116,15 +116,11 @@ class LocalFile(EventDataset, ABC):
             if dump_cpp or proc.returncode != 0:
                 level = logging.INFO if proc.returncode == 0 else logging.ERROR
                 lg = logging.getLogger(__name__)
-                with (local_run_dir / self._source_file_name).open('r') as f:
-                    lg.log(level, 'C++ Source Code:')
-                    _dump_split_string(f.read(), lambda l: lg.log(level, f'  {l}'))
-                with (local_run_dir / 'ATestRun_eljob.py').open('r') as f:
-                    lg.log(level, 'JobOptions Source:')
-                    _dump_split_string(f.read(), lambda l: lg.log(level, f'  {l}'))
-                with (local_run_dir / 'package_CMakeLists.txt').open('r') as f:
-                    lg.log(level, 'CMake Source:')
-                    _dump_split_string(f.read(), lambda l: lg.log(level, f'  {l}'))
+                for file in local_run_dir.glob('*'):
+                    if file.is_file() and (file.suffix != '.root'):
+                        lg.log(level, f'{file.name}:')
+                        with file.open('r') as f:
+                            _dump_split_string(f.read(), lambda l: lg.log(level, f'  {l}'))
             if proc.returncode != 0:
                 raise Exception(f"Docker command failed with error {proc.returncode} ({docker_cmd})")
 

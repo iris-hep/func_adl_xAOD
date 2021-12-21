@@ -92,3 +92,17 @@ In general, the `master` branch should pass all tests all the time. Releases are
 Publishing to PyPi:
 
 - Automated by declaring a new release (or pre-release) in github's web interface
+
+### Running Locally
+
+Designed for running locally, it is possible to setup and use the `xAOD` backend if you have `docker` installed on your local machine. To use this you first need to install the local flavor of this package:
+
+```bash
+pip install func_adl_xAOD[local]
+```
+
+You can then use the `xAODDataset` object or the `CMSRun1AODDataset` object to execute `qastle` running on a docker image for ATLAS or CMS Run 1 AOD, locally.
+
+- Specify the local path to files you want to run on in the arguments to the constructor
+- Files are run serially, and in a blocking way
+- This code is designed for development and testing work, and is not designed for large-scale production running on local files (not that that couldn't be done).

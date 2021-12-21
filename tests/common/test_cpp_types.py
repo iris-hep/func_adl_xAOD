@@ -25,3 +25,8 @@ def test_terminal_type():
 def test_collection():
     c = ctyp.collection('double', False)
     assert c.type == 'std::vector<double>'
+
+
+def test_collection_with_arr_type():
+    c = ctyp.collection('double', False, 'VectorOfFloats')
+    assert c.type == 'VectorOfFloats'

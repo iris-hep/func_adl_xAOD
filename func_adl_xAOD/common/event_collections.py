@@ -13,6 +13,7 @@ from func_adl_xAOD.common.cpp_vars import unique_name
 
 # Need a type for our type system to reason about the containers.
 class event_collection_container(ABC):
+    # TODO: This should inherit from ctyp.collection!
     def __init__(self, type_name, is_pointer):
         self._type_name = type_name
         self._is_pointer = is_pointer

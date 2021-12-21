@@ -45,14 +45,19 @@ class terminal:
 class collection (terminal):
     'Represents a collection/list/vector of the same type'
 
-    def __init__(self, t, is_pointer=False):
+    def __init__(self, t, is_pointer: bool = False, array_type: Optional[str] = None):
         '''
         Initialize a collection type.
 
-        t:      The type of each element in the collection
+        t:          The type of each element in the collection
+        is_pointer: True if this is a pointer. Defaults to False.
+        array_type: The type of the array. Defaults to None, in which case
+                    vector<t> is used.
         '''
-        array_type = f"std::vector<{t}>"
-        terminal.__init__(self, array_type, is_pointer)
+        if array_type is None:
+            array_type = f"std::vector<{t}>"
+        super().__init__(array_type, is_pointer)
+
         self._element_type = t
 
     def element_type(self):

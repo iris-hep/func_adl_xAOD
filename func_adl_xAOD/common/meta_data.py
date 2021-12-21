@@ -1,8 +1,6 @@
-from func_adl_xAOD.cms.aod.event_collections import cms_aod_event_collection_collection
-from func_adl_xAOD.atlas.xaod.event_collections import atlas_xaod_event_collection_collection, atlas_xaod_event_collection_container
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
-from func_adl_xAOD.common.cpp_types import add_method_type_info, terminal
+from func_adl_xAOD.common.cpp_types import add_method_type_info, collection, terminal
 from typing import Any, Dict, List, Union
 from dataclasses import dataclass
 
@@ -30,7 +28,10 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
             raise ValueError(f'Metadata is missing `metadata_type` info ({md})')
 
         if md_type == 'add_method_type_info':
-            add_method_type_info(md['type_string'], md['method_name'], terminal(md['return_type'], is_pointer=md['is_pointer'].upper() == 'TRUE'))
+            is_pointer = md['is_pointer'].upper() == 'TRUE'
+            term = terminal(md['return_type'], is_pointer=is_pointer) if 'return_type' in md \
+                else collection(terminal(md['return_type_element'], is_pointer=True), is_pointer=is_pointer, array_type=md['return_type_collection'] if 'return_type_collection' in md else None)
+            add_method_type_info(md['type_string'], md['method_name'], term)
         elif md_type == 'add_job_script':
             spec = JobScriptSpecification(
                 name=md['name'],
@@ -55,6 +56,7 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
             if (md['contains_collection'] and 'element_type' not in md) or (not md['contains_collection'] and 'element_type' in md):
                 raise ValueError('In collection metadata, `element_type` must be specified if `contains_collection` is true and not if it is false')
 
+            from func_adl_xAOD.atlas.xaod.event_collections import atlas_xaod_event_collection_collection, atlas_xaod_event_collection_container
             container_type = atlas_xaod_event_collection_collection(md['container_type'], md['element_type']) if md['contains_collection'] \
                 else atlas_xaod_event_collection_container(md['container_type'])
             link_libraries = [] if 'link_libraries' not in md else md['link_libraries']
@@ -72,6 +74,7 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
             if (md['contains_collection'] and 'element_type' not in md) or (not md['contains_collection'] and 'element_type' in md):
                 raise ValueError('In collection metadata, `element_type` must be specified if `contains_collection` is true and not if it is false')
 
+            from func_adl_xAOD.cms.aod.event_collections import cms_aod_event_collection_collection
             container_type = cms_aod_event_collection_collection(md['container_type'], md['element_type'])
             # container_type = cms_aod_event_collection_collection(md['container_type'], md['element_type']) if md['contains_collection'] \
             #     else cms_aod_event_collection_container(md['container_type'])
