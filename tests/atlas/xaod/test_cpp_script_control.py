@@ -6,7 +6,7 @@ import tempfile
 from collections import namedtuple
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional
 
 import pytest
 from func_adl import EventDataset

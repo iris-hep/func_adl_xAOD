@@ -79,7 +79,6 @@ For a single item:
 
 For a collection:
 
-
 ### Output Formats
 
 The `xAOD` code only renders the `func_adl` expression as a ROOT file. The ROOT file contains a simple `TTree` in its root directory.
