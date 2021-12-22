@@ -96,3 +96,16 @@ def test_metadata_collection():
     call_obj = new_a1.args[1].body.func.value.func  # type: ignore
     assert isinstance(call_obj, CPPCodeValue)
     assert "dude" in "-".join(call_obj.running_code)
+
+
+def test_include_files():
+    'Make sure include files are properly dealt with'
+
+    a1 = parse_statement('Select(MetaData(ds, {'
+                         '"metadata_type": "include_files",'
+                         '"files": ["xAODEventInfo/EventInfo.h"],'
+                         '}), lambda e: e.crazy("fork").pT())')
+
+    exe = do_nothing_executor()
+    _ = exe.apply_ast_transformations(a1)
+    assert exe.include_files == ["xAODEventInfo/EventInfo.h"]
