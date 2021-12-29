@@ -1,5 +1,5 @@
 import func_adl_xAOD.common.cpp_types as ctyp
-from func_adl_xAOD.common.utils import most_accurate_type, parse_type
+from func_adl_xAOD.common.utils import most_accurate_type
 
 
 def test_accurate_type_single_int():
@@ -33,43 +33,3 @@ def test_accurate_type_float_and_double():
     t2 = ctyp.terminal('float', False)
     r = most_accurate_type([t1, t2])
     assert r._type == 'double'
-
-
-def test_parse_type_int():
-    t = parse_type('int')
-    assert t.name == 'int'
-    assert t.pointer_depth == 0
-
-
-def test_parse_type_int_sp():
-    t = parse_type(' int  ')
-    assert t.name == 'int'
-    assert t.pointer_depth == 0
-
-
-def test_parse_type_int_ptr():
-    t = parse_type('int*')
-    assert t.name == 'int'
-    assert t.pointer_depth == 1
-
-
-def test_parse_type_int_ptr_sp():
-    t = parse_type('int  *')
-    assert t.name == 'int'
-    assert t.pointer_depth == 1
-
-
-def test_parse_type_int_2ptr_sp():
-    t = parse_type('int  *  *')
-    assert t.name == 'int'
-    assert t.pointer_depth == 2
-
-
-def test_parse_type_str():
-    t = parse_type('string')
-    assert str(t) == 'string'
-
-
-def test_parse_type_str_ptr():
-    t = parse_type('string *')
-    assert str(t) == 'string*'

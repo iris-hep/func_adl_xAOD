@@ -1,7 +1,7 @@
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
 from func_adl_xAOD.common.cpp_types import add_method_type_info, collection, terminal
-from func_adl_xAOD.common.utils import CPPParsedTypeInfo, parse_type
+from func_adl_xAOD.common.cpp_types import CPPParsedTypeInfo, parse_type
 from typing import Any, Dict, List, Union
 from dataclasses import dataclass
 
@@ -37,11 +37,11 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
             if 'return_type' in md:
                 # Single return type
                 type_info = parse_type(md['return_type'])
-                term = terminal(type_info.name, is_pointer=type_info.pointer_depth > 0)
+                term = terminal(type_info.name, p_depth=type_info.pointer_depth)
             else:
                 type_info_element = parse_type(md['return_type_element'])
                 type_info_collection = parse_type(md['return_type_collection']) if 'return_type_collection' in md else CPPParsedTypeInfo(f'std::vector<{type_info_element}>', 0)
-                term = collection(terminal(type_info_element.name, is_pointer=True), is_pointer=type_info_collection.pointer_depth > 0, array_type=type_info_collection.name)
+                term = collection(terminal(type_info_element.name, p_depth=1), array_type=type_info_collection)
             add_method_type_info(md['type_string'], md['method_name'], term)
         elif md_type == 'include_files':
             spec = IncludeFileList(md['files'])

@@ -1,5 +1,4 @@
 from typing import Dict, List
-from dataclasses import dataclass
 
 import func_adl_xAOD.common.cpp_types as ctyp
 
@@ -22,38 +21,3 @@ def most_accurate_type(type_list: List[ctyp.terminal]) -> ctyp.terminal:
 
     ordered = sorted(type_list, key=lambda t: _type_priority[t.type], reverse=True)
     return ordered[0]
-
-
-@dataclass
-class CPPParsedTypeInfo:
-    '''
-    A parsed type, with the type and whether it's a pointer.
-    '''
-    # The type name (`int`, `vector<float`, etc.)
-    name: str
-
-    # Pointer, and how many (2 for `int**`, 0 for `int`, etc.)
-    pointer_depth: int
-
-    def __str__(self):
-        return self.name + '*' * self.pointer_depth
-
-def parse_type(t_name: str) -> CPPParsedTypeInfo:
-    '''Convert a type name string into info for a type
-
-    Args:
-        t_name (str): The type name (`float`, `float*`)
-
-    Returns:
-        CPPParsedTypeInfo: Parsed info from the type
-    '''
-    ptr_depth = 0
-    while True:
-        t_name = t_name.strip()
-        if t_name.endswith('*'):
-            ptr_depth += 1
-            t_name = t_name[:-1]
-        else:
-            break
-
-    return CPPParsedTypeInfo(t_name, ptr_depth)

@@ -76,17 +76,17 @@ def define_default_cms_types():
     'Define the default cms types'
     ctyp.add_method_type_info("reco::Track", "hitPattern", ctyp.terminal('reco::HitPattern'))
 
-    ctyp.add_method_type_info("reco::Muon", "globalTrack", ctyp.terminal('reco::Track', is_pointer=True))
+    ctyp.add_method_type_info("reco::Muon", "globalTrack", ctyp.terminal('reco::Track', p_depth=1))
     ctyp.add_method_type_info("reco::Muon", "hitPattern", ctyp.terminal('reco::HitPattern'))
     ctyp.add_method_type_info("reco::Muon", "isPFIsolationValid", ctyp.terminal('bool'))
     ctyp.add_method_type_info("reco::Muon", "isPFMuon", ctyp.terminal('bool'))
     ctyp.add_method_type_info("reco::Muon", "pfIsolationR04", ctyp.terminal('reco::MuonPFIsolation'))
 
-    ctyp.add_method_type_info("reco::GsfElectron", "gsfTrack", ctyp.terminal('reco::GsfTrack', is_pointer=True))
+    ctyp.add_method_type_info("reco::GsfElectron", "gsfTrack", ctyp.terminal('reco::GsfTrack', p_depth=1))
     ctyp.add_method_type_info("reco::GsfElectron", "isEB", ctyp.terminal('bool'))
     ctyp.add_method_type_info("reco::GsfElectron", "isEE", ctyp.terminal('bool'))
     ctyp.add_method_type_info("reco::GsfElectron", "passingPflowPreselection", ctyp.terminal('bool'))
-    ctyp.add_method_type_info("reco::GsfElectron", "superCluster", ctyp.terminal('reco::SuperClusterRef', is_pointer=True))
+    ctyp.add_method_type_info("reco::GsfElectron", "superCluster", ctyp.terminal('reco::SuperClusterRef', p_depth=1))
     ctyp.add_method_type_info("reco::GsfElectron", "pfIsolationVariables", ctyp.terminal('reco::GsfElectron::PflowIsolationVariables'))
 
     ctyp.add_method_type_info("reco::GsfTrack", "trackerExpectedHitsInner", ctyp.terminal('reco::HitPattern'))  # reco::HitPattern is the expected return type

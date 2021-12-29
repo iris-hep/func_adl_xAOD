@@ -53,7 +53,7 @@ class event_collection_collection(event_collection_container):
         self._is_element_pointer = is_element_pointer
 
     def element_type(self):
-        return ctyp.terminal(self._element_name, is_pointer=self._is_element_pointer)
+        return ctyp.terminal(self._element_name, p_depth=1 if self._is_element_pointer else 0)
 
     def dereference(self):
         'Return a new version of us that is not a pointer'

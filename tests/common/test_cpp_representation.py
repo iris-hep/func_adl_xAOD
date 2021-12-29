@@ -8,7 +8,7 @@ def test_expression_pointer_decl():
     e2 = crep.cpp_value("dude", top_level_scope(), ctyp.terminal("int"))
     assert not e2.is_pointer()
 
-    e3 = crep.cpp_value("dude", top_level_scope(), ctyp.terminal("int", is_pointer=True))
+    e3 = crep.cpp_value("dude", top_level_scope(), ctyp.terminal("int", p_depth=1))
     assert e3.is_pointer()
 
 
@@ -62,7 +62,9 @@ def test_variable_type__with_initial_update():
     v.update_type(ctyp.terminal('float', False))
 
     assert v.cpp_type().type == 'float'
-    assert v.initial_value().cpp_type().type == 'float'
+    iv = v.initial_value()
+    assert iv is not None
+    assert iv.cpp_type().type == 'float'
 
 
 def test_sequence_type():

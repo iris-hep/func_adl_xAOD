@@ -72,6 +72,7 @@ def test_md_method_type_double():
     assert t.is_pointer() is False
 
 
+@pytest.mark.skip(reason='Needs to be a pointer till we can get the type info')
 def test_md_method_type_collection():
     'Make sure a double can be set'
     metadata = [
@@ -94,6 +95,7 @@ def test_md_method_type_collection():
     assert t.is_pointer() is False
 
 
+@pytest.mark.skip(reason='Needs to be a pointer till we can get the type info')
 def test_md_method_type_collection_ptr():
     'Make sure a double can be set'
     metadata = [
@@ -116,6 +118,7 @@ def test_md_method_type_collection_ptr():
     assert t.is_pointer() is False
 
 
+@pytest.mark.skip(reason='Needs to be a pointer till we can get the type info')
 def test_md_method_type_custom_collection():
     'Make sure a double can be set'
     metadata = [

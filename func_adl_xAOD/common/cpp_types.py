@@ -1,66 +1,114 @@
-# Simple type system to help reason about types as they go through the system.
+from __future__ import annotations
+from typing import Optional, Union
+from dataclasses import dataclass
 
 
-from typing import Optional
+@dataclass
+class CPPParsedTypeInfo:
+    '''
+    A parsed type, with the type and whether it's a pointer.
+    '''
+    # The type name (`int`, `vector<float`, etc.)
+    name: str
+
+    # Pointer, and how many (2 for `int**`, 0 for `int`, etc.)
+    pointer_depth: int
+
+    def __str__(self):
+        return self.name + '*' * self.pointer_depth
+
+
+def parse_type(t_name: str) -> CPPParsedTypeInfo:
+    '''Convert a type name string into info for a type
+
+    Args:
+        t_name (str): The type name (`float`, `float*`)
+
+    Returns:
+        CPPParsedTypeInfo: Parsed info from the type
+    '''
+    ptr_depth = 0
+    while True:
+        t_name = t_name.strip()
+        if t_name.endswith('*'):
+            ptr_depth += 1
+            t_name = t_name[:-1]
+        else:
+            break
+
+    return CPPParsedTypeInfo(t_name, ptr_depth)
 
 
 class terminal:
     'Represents something we cannot see inside, like float, or int, or bool'
 
-    def __init__(self, t: str, is_pointer: bool = False):
+    def __init__(self, t: Union[str, CPPParsedTypeInfo], p_depth: int = 0):
         '''Create a terminal type - a type that we do not need to see inside
 
+        * int
+        * float
+        * MyOwnStruct
+
+        Use `p_depth` to represent how indirect to get down to the type (int* is 1, for
+        example).)
+
         Args:
-            t (str): The name of the type (integer, double, xAOD::Jet, etc.)
-            is_pointer (bool, optional): True if this is a pointer. Defaults to False.
+            t (str|CPPParsedTypeInfo): The type to represent
+            p_depth (int): How many levels of indirection to get to the type
         '''
-        self._type = t
-        self._is_pointer = is_pointer
+        if isinstance(t, CPPParsedTypeInfo):
+            self._type = t.name
+            self._p_depth = t.pointer_depth
+        else:
+            self._type = t
+            self._p_depth = p_depth
 
     def __str__(self):
-        return str(self.type)
+        return str(self.type) + '*' * self._p_depth
 
     def is_pointer(self):
-        return self._is_pointer
+        return self._p_depth > 0
+
+    @property
+    def p_depth(self) -> int:
+        'Return how many levels of indirection to get to the type'
+        return self._p_depth
 
     def default_value(self):
         raise NotImplementedError()
-        # if self._type == "double":
-        #     return "0.0"
-        # elif self._type == "float":
-        #     return "0.0"
-        # elif self._type == "int":
-        #     return "0"
-        # else:
-        #     raise Exception(f"Do not know a default value for the type '{self._type}'.")
 
     @property
     def type(self) -> str:
         return self._type
 
     def get_dereferenced_type(self):
-        return terminal(self._type, is_pointer=False) if self._is_pointer else self
+        return terminal(self._type, self.p_depth - 1) if self.p_depth > 0 else self
 
 
 class collection (terminal):
     'Represents a collection/list/vector of the same type'
 
-    def __init__(self, t, is_pointer: bool = False, array_type: Optional[str] = None):
-        '''
-        Initialize a collection type.
+    def __init__(self, element_type: terminal, array_type: Optional[Union[str, CPPParsedTypeInfo]] = None, p_depth: int = 0):
+        '''Create a collection type, like `vector<float>`.
 
-        t:          The type of each element in the collection
-        is_pointer: True if this is a pointer. Defaults to False.
-        array_type: The type of the array. Defaults to None, in which case
-                    vector<t> is used.
+        Args:
+            element_type (terminal): The element type, like a `terminal` of `float`.
+            array_type (Optional[Union[str, CPPParsedTypeInfo]], optional): The type of the array. Defaults to None. Everything
+                    is lifted from `array_type` if it is a `CPPParsedTypeInfo`.
+            p_depth (int, optional): If the array type is a pointer or not. Defaults to 0. Ignored if `array_type` is `CPPParsedTypeInfo`.
         '''
         if array_type is None:
-            array_type = f"std::vector<{t}>"
-        super().__init__(array_type, is_pointer)
+            super().__init__(f"std::vector<{element_type}>", p_depth=p_depth)
+        elif isinstance(array_type, CPPParsedTypeInfo):
+            super().__init__(array_type)
+        else:
+            super().__init__(array_type, p_depth=p_depth)
 
-        self._element_type = t
+        # And the element type we are representing
+        self._element_type = element_type
 
-    def element_type(self):
+    def element_type(self) -> terminal:
+        'The type of element that this collection holds'
         return self._element_type
 
 
