@@ -150,3 +150,5 @@ import logging
 logging.basicConfig()
 logging.getLogger("func_adl_xAOD.common.local_dataset").setLevel(level=logging.DEBUG)
 ```
+
+* In general, the first two lines are a good thing to have in your notebooks, etc. It allows you to see where warning messages are coming from and might help when things are going sideways.
