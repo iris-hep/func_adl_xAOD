@@ -113,7 +113,7 @@ def determine_type_mf(parent_type, function_name):
         raise xAODTranslationError(f'Unable to call method {function_name} on type {str(parent_type)}.')
 
     # Ok - we give up. Return a double.
-    logging.getLogger(__name__).warning(f"Warning: assuming that the method '{str(s_parent_type)}.{function_name}(...)' has return type 'double'. Use cpp_types.add_method_type_info to suppress (or correct) this warning.")
+    logging.getLogger(__name__).warning(f"Warning: assuming that the method '{str(s_parent_type)}::{function_name}(...)' has return type 'double'. Use cpp_types.add_method_type_info to suppress (or correct) this warning.")
     return ctyp.terminal('double')
 
 
