@@ -67,17 +67,24 @@ It is possible to inject metadata into the `qastle` query to alter the behavior 
 
 If you have a method that returns a non-standard type, use this metadata type to specify to the backend the return type. There are two different forms for this metadata - one if a single item is returned, and another if a collection of items are returned.
 
-For a single item:
+For a _single item_:
 
 | Key | Description | Example |
 | ------------ | ------------ | --------------|
 | metadata_type | The metadata type | `"add_method_type_info"` |
 | type_string | The object the method applies to, fully qualified, C++ | `"xAOD::Jet"` |
 | method_name | Name of the method | `"pT"` |
-| return_type | Type returned, C++, fully qualified | `"float"` |
-| is_pointer | Is the return type a pointer or the object directly (`my_obj*` vs `my_obj`) | `"True"` or `"False"` |
+| return_type | Type returned, C++, fully qualified | `"float"`, `"float*"`, `"float**"` |
 
-For a collection:
+For a _collection_:
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"add_method_type_info"` |
+| type_string | The object the method applies to, fully qualified, C++ | `"xAOD::Jet"` |
+| method_name | Name of the method | `"jetWeights"` |
+| return_type_element | The type of the collection element | `"float"` |
+| return_type_collection | The type of the collection | `vector<float>`, `vector<float>*` |
 
 #### Include Files
 
@@ -151,4 +158,4 @@ logging.basicConfig()
 logging.getLogger("func_adl_xAOD.common.local_dataset").setLevel(level=logging.DEBUG)
 ```
 
-* In general, the first two lines are a good thing to have in your notebooks, etc. It allows you to see where warning messages are coming from and might help when things are going sideways.
+- In general, the first two lines are a good thing to have in your notebooks, etc. It allows you to see where warning messages are coming from and might help when things are going sideways.

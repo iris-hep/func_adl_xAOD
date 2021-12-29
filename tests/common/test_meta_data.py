@@ -1,17 +1,25 @@
 import ast
-from func_adl_xAOD.cms.aod.event_collections import cms_aod_event_collection_collection
-from func_adl_xAOD.atlas.xaod.event_collections import atlas_xaod_event_collection_collection, atlas_xaod_event_collection_container
 from typing import Callable, List
 
 import func_adl_xAOD.common.statement as statement
 import pytest
+from func_adl_xAOD.atlas.xaod.event_collections import (
+    atlas_xaod_event_collection_collection,
+    atlas_xaod_event_collection_container)
+from func_adl_xAOD.cms.aod.event_collections import \
+    cms_aod_event_collection_collection
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
 from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
-from func_adl_xAOD.common.cpp_types import collection, method_type_info, terminal
+from func_adl_xAOD.common.cpp_types import (collection, method_type_info,
+                                            terminal)
 from func_adl_xAOD.common.event_collections import (
-    EventCollectionSpecification, event_collection_coder, event_collection_container)
+    EventCollectionSpecification, event_collection_coder,
+    event_collection_container)
 from func_adl_xAOD.common.executor import executor
-from func_adl_xAOD.common.meta_data import IncludeFileList, JobScriptSpecification, generate_script_block, process_metadata
+from func_adl_xAOD.common.meta_data import (IncludeFileList,
+                                            JobScriptSpecification,
+                                            generate_script_block,
+                                            process_metadata)
 from tests.utils.base import dataset, dummy_executor  # type: ignore
 
 
@@ -36,7 +44,6 @@ def test_bad_meta_data():
             'type_string': 'my_namespace::obj',
             'method_name': 'pT',
             'return_type': 'int',
-            'is_pointer': 'False',
         }
     ]
 
@@ -54,7 +61,6 @@ def test_md_method_type_double():
             'type_string': 'my_namespace::obj',
             'method_name': 'pT',
             'return_type': 'double',
-            'is_pointer': 'False',
         }
     ]
 
@@ -74,7 +80,6 @@ def test_md_method_type_collection():
             'type_string': 'my_namespace::obj',
             'method_name': 'pT',
             'return_type_element': 'double',
-            'is_pointer': 'False',
         }
     ]
 
@@ -89,6 +94,28 @@ def test_md_method_type_collection():
     assert t.is_pointer() is False
 
 
+def test_md_method_type_collection_ptr():
+    'Make sure a double can be set'
+    metadata = [
+        {
+            'metadata_type': 'add_method_type_info',
+            'type_string': 'my_namespace::obj',
+            'method_name': 'pT',
+            'return_type_element': 'double*',
+        }
+    ]
+
+    process_metadata(metadata)
+
+    t = method_type_info('my_namespace::obj', 'pT')
+    assert t is not None
+    assert isinstance(t, collection)
+    assert t.type == 'std::vector<double*>'
+    assert isinstance(t.element_type(), terminal)
+    assert str(t.element_type()) == 'double'
+    assert t.is_pointer() is False
+
+
 def test_md_method_type_custom_collection():
     'Make sure a double can be set'
     metadata = [
@@ -98,7 +125,6 @@ def test_md_method_type_custom_collection():
             'method_name': 'pT',
             'return_type_element': 'double',
             'return_type_collection': 'MyCustomCollection',
-            'is_pointer': 'False',
         }
     ]
 
@@ -119,8 +145,7 @@ def test_md_method_type_object_pointer():
             'metadata_type': 'add_method_type_info',
             'type_string': 'my_namespace::obj',
             'method_name': 'vertex',
-            'return_type': 'my_namespace::vertex',
-            'is_pointer': 'True',
+            'return_type': 'my_namespace::vertex*',
         }
     ]
 
@@ -141,7 +166,6 @@ def test_with_method_call_with_type(caplog):
             'type_string': 'my_namespace::obj',
             'method_name': 'pT',
             'return_type': 'int',
-            'is_pointer': 'False',
         })
         .Select(lambda e: e.info('fork').pT())
         .value()
