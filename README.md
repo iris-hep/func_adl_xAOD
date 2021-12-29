@@ -142,3 +142,11 @@ You can then use the `xAODDataset` object or the `CMSRun1AODDataset` object to e
 - Specify the local path to files you want to run on in the arguments to the constructor
 - Files are run serially, and in a blocking way
 - This code is designed for development and testing work, and is not designed for large-scale production running on local files (not that that couldn't be done).
+
+When something odd happens and you really want to look at the C++ output, you can do this by including the following code somewhere before the `xAOD` backend is executed. This will turn on logging that will dump the output from the run and will also dump the C++ header and source files that were used to execute the query.
+
+```python
+import logging
+logging.basicConfig()
+logging.getLogger("func_adl_xAOD.common.local_dataset").setLevel(level=logging.DEBUG)
+```
