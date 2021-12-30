@@ -1,4 +1,5 @@
 import func_adl_xAOD.common.cpp_types as ctyp
+import pytest
 
 
 def test_int():
@@ -7,10 +8,24 @@ def test_int():
     assert not t_int.is_a_pointer
 
 
+def test_int_deref():
+    t_int = ctyp.terminal('int')
+    with pytest.raises(RuntimeError) as e:
+        t_int.get_dereferenced_type()
+
+    assert "dereference type int" in str(e.value)
+
+
 def test_int_pointer():
     t_int = ctyp.terminal('int', p_depth=1)
     assert t_int.p_depth == 1
     assert t_int.is_a_pointer
+
+
+def test_int_pointer_deref():
+    t_int = ctyp.terminal('int', p_depth=1)
+    t = t_int.get_dereferenced_type()
+    assert str(t) == 'int'
 
 
 def test_no_method_type_found():
