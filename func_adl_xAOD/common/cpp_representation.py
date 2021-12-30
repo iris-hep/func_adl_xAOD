@@ -284,7 +284,7 @@ class cpp_sequence(cpp_rep_base):
 
     def cpp_type(self) -> ctyp.terminal:
         if self._type is None:
-            self._type = ctyp.collection(self._sequence.cpp_type().type)
+            self._type = ctyp.collection(self._sequence.cpp_type())
         return self._type
 
     def as_cpp(self):
