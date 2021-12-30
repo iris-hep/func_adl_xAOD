@@ -41,7 +41,7 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
             else:
                 type_info_element = parse_type(md['return_type_element'])
                 type_info_collection = parse_type(md['return_type_collection']) if 'return_type_collection' in md else CPPParsedTypeInfo(f'std::vector<{type_info_element}>', 0)
-                term = collection(terminal(type_info_element.name, p_depth=1), array_type=type_info_collection)
+                term = collection(terminal(type_info_element), array_type=type_info_collection)
             add_method_type_info(md['type_string'], md['method_name'], term)
         elif md_type == 'include_files':
             spec = IncludeFileList(md['files'])

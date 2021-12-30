@@ -72,7 +72,6 @@ def test_md_method_type_double():
     assert not t.is_a_pointer
 
 
-@pytest.mark.skip(reason='Needs to be a pointer till we can get the type info')
 def test_md_method_type_collection():
     'Make sure a double can be set'
     metadata = [
@@ -95,8 +94,7 @@ def test_md_method_type_collection():
     assert not t.is_a_pointer
 
 
-@pytest.mark.skip(reason='Needs to be a pointer till we can get the type info')
-def test_md_method_type_collection_ptr():
+def test_md_method_type_collection_item_ptr():
     'Make sure a double can be set'
     metadata = [
         {
@@ -114,11 +112,11 @@ def test_md_method_type_collection_ptr():
     assert isinstance(t, collection)
     assert t.type == 'std::vector<double*>'
     assert isinstance(t.element_type, terminal)
-    assert str(t.element_type) == 'double'
+    assert str(t.element_type) == 'double*'
+    assert t.element_type.p_depth == 1
     assert not t.is_a_pointer
 
 
-@pytest.mark.skip(reason='Needs to be a pointer till we can get the type info')
 def test_md_method_type_custom_collection():
     'Make sure a double can be set'
     metadata = [
@@ -139,6 +137,26 @@ def test_md_method_type_custom_collection():
     assert t.type == 'MyCustomCollection'
     assert str(t.element_type) == 'double'
     assert not t.is_a_pointer
+
+
+def test_md_method_type_collection_ptr():
+    'Make sure a double can be set'
+    metadata = [
+        {
+            'metadata_type': 'add_method_type_info',
+            'type_string': 'my_namespace::obj',
+            'method_name': 'pT',
+            'return_type_element': 'double',
+            'return_type_collection': 'vector<double>*',
+        }
+    ]
+
+    process_metadata(metadata)
+
+    t = method_type_info('my_namespace::obj', 'pT')
+    assert t is not None
+    assert isinstance(t, collection)
+    assert t.is_a_pointer
 
 
 def test_md_method_type_object_pointer():
