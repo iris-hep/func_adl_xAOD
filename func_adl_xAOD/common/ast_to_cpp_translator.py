@@ -127,7 +127,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
     Drive the conversion to C++ from the top level query
     """
 
-    def __init__(self, prefix, is_loop_var_a_ref):
+    def __init__(self, prefix, is_loop_var_a_ref: bool):
         r'''
         Initialize the visitor.
         '''
@@ -288,16 +288,23 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         'Look up the in our local dict. This takes care of function arguments, etc.'
         return self._arg_stack.lookup_name(id)
 
-    def make_sequence_from_collection(self, rep):
+    def make_sequence_from_collection(self, rep: crep.cpp_collection) -> crep.cpp_sequence:
         '''
         Take a collection and produce a sequence. Eventually this should likely be some sort of
         plug-in architecture. But for now, we will just assume everything looks like a vector. When
         it comes time for a new type, this is where it should go.
         '''
-        element_type = rep.cpp_type().element_type
-        element_type = element_type.get_dereferenced_type() if self._is_loop_var_a_ref else element_type
+        cpp_type = rep.cpp_type()
+        assert isinstance(cpp_type, ctyp.collection)
+        if self._is_loop_var_a_ref and rep.cpp_type().is_pointer():
+            element_type = cpp_type.element_type.get_dereferenced_type()
+        else:
+            element_type = cpp_type.element_type
         iterator_value = crep.cpp_value(unique_name("i_obj"), None, element_type)  # type: ignore
-        l_statement = statement.loop(iterator_value, crep.dereference_var(rep), is_loop_var_a_ref=self._is_loop_var_a_ref)  # type: ignore
+
+        collection = crep.dereference_var(rep)
+
+        l_statement = statement.loop(iterator_value, collection, is_loop_var_a_ref=self._is_loop_var_a_ref)
         self._gc.add_statement(l_statement)
         iterator_value.reset_scope(self._gc.current_scope())
 

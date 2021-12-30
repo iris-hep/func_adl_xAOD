@@ -1,6 +1,8 @@
 from __future__ import annotations
-from typing import Optional, Union
+
+import copy
 from dataclasses import dataclass
+from typing import Optional, Union
 
 
 @dataclass
@@ -86,7 +88,10 @@ class terminal:
         if self._p_depth == 0:
             raise RuntimeError(f'Cannot dereference type {self}')
 
-        return terminal(self._type, self.p_depth - 1)
+        # Do deep copy because this needs to work in subclasses.
+        new_t = copy.copy(self)
+        new_t._p_depth -= 1
+        return new_t
 
 
 class collection (terminal):

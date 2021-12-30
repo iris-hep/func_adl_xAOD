@@ -114,3 +114,33 @@ def test_deref_simple_no_ptr():
     assert d.cpp_type().type == 'int'
     assert d.cpp_type().p_depth == 0
     assert d.as_cpp() == 'a'
+
+
+def test_deref_collection():
+    tc = gc_scope_top_level()
+
+    c_type = ctyp.collection(ctyp.terminal(ctyp.parse_type('int')), ctyp.parse_type('vector<int>'))
+    c = crep.cpp_collection('my_var', tc, c_type)
+
+    d = crep.dereference_var(c)
+
+    assert isinstance(d, crep.cpp_collection)
+    cpp_type = d.cpp_type()
+    assert isinstance(cpp_type, ctyp.collection)
+    assert str(cpp_type) == 'vector<int>'
+    assert str(cpp_type.element_type) == 'int'
+
+
+def test_deref_collection_ptr():
+    tc = gc_scope_top_level()
+
+    c_type = ctyp.collection(ctyp.terminal(ctyp.parse_type('int')), ctyp.parse_type('vector<int>*'))
+    c = crep.cpp_collection('my_var', tc, c_type)
+
+    d = crep.dereference_var(c)
+
+    assert isinstance(d, crep.cpp_collection)
+    cpp_type = d.cpp_type()
+    assert isinstance(cpp_type, ctyp.collection)
+    assert str(cpp_type) == 'vector<int>'
+    assert str(cpp_type.element_type) == 'int'

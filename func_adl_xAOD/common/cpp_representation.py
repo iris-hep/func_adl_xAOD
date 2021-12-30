@@ -50,30 +50,10 @@ from __future__ import annotations
 # Others follow a similar line of reasoning.
 import ast
 import copy
-from typing import Optional, Union, cast
+from typing import Optional, TypeVar, Union, cast
 
 import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.util_scope import gc_scope, gc_scope_top_level
-
-
-def dereference_var(v: cpp_value) -> cpp_value:
-    '''
-    If this is a pointer, return the object with the proper type (and a * to dereference it). Otherwise
-    just return the object itself.
-
-    NOTE: It might just return the object itself, not dereferencing it!
-    '''
-    if not v.cpp_type().is_pointer():
-        return v
-
-    # We will go under the covers and "fix" this.
-    new_v = copy.copy(v)
-    new_v._expression = "*" + new_v._expression
-
-    # There is only one type we current support here.
-    # Eventually this is going to get us into trouble.
-    new_v._cpp_type = new_v.cpp_type().get_dereferenced_type()
-    return new_v
 
 
 class dummy_ast(ast.AST):
@@ -307,3 +287,27 @@ def get_rep(node: ast.AST) -> cpp_rep_base:
     Get the representation of a node.
     '''
     return node.rep  # type: ignore
+
+
+# Allow dereference type for anything that is a value of some sort
+DT = TypeVar('DT', bound=cpp_value)
+
+
+def dereference_var(v: DT) -> DT:
+    '''
+    If this is a pointer, return the object with the proper type (and a * to dereference it). Otherwise
+    just return the object itself.
+
+    NOTE: It might just return the object itself, not dereferencing it!
+    '''
+    if not v.cpp_type().is_pointer():
+        return v
+
+    # We will go under the covers and "fix" this.
+    new_v = copy.copy(v)
+    new_v._expression = "*" + new_v._expression
+
+    # There is only one type we current support here.
+    # Eventually this is going to get us into trouble.
+    new_v._cpp_type = new_v.cpp_type().get_dereferenced_type()
+    return new_v
