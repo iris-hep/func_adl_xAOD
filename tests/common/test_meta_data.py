@@ -69,7 +69,7 @@ def test_md_method_type_double():
     t = method_type_info('my_namespace::obj', 'pT')
     assert t is not None
     assert t.type == 'double'
-    assert t.is_pointer() is False
+    assert not t.is_a_pointer
 
 
 @pytest.mark.skip(reason='Needs to be a pointer till we can get the type info')
@@ -92,7 +92,7 @@ def test_md_method_type_collection():
     assert t.type == 'std::vector<double>'
     assert isinstance(t.element_type, terminal)
     assert str(t.element_type) == 'double'
-    assert t.is_pointer() is False
+    assert not t.is_a_pointer
 
 
 @pytest.mark.skip(reason='Needs to be a pointer till we can get the type info')
@@ -115,7 +115,7 @@ def test_md_method_type_collection_ptr():
     assert t.type == 'std::vector<double*>'
     assert isinstance(t.element_type, terminal)
     assert str(t.element_type) == 'double'
-    assert t.is_pointer() is False
+    assert not t.is_a_pointer
 
 
 @pytest.mark.skip(reason='Needs to be a pointer till we can get the type info')
@@ -138,7 +138,7 @@ def test_md_method_type_custom_collection():
     assert isinstance(t, collection)
     assert t.type == 'MyCustomCollection'
     assert str(t.element_type) == 'double'
-    assert t.is_pointer() is False
+    assert not t.is_a_pointer
 
 
 def test_md_method_type_object_pointer():
@@ -157,7 +157,7 @@ def test_md_method_type_object_pointer():
     t = method_type_info('my_namespace::obj', 'vertex')
     assert t is not None
     assert t.type == 'my_namespace::vertex'
-    assert t.is_pointer() is True
+    assert t.is_a_pointer
 
 
 def test_with_method_call_with_type(caplog):

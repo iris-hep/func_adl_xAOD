@@ -39,7 +39,6 @@ def test_metadata_method():
                          '"type_string": "my_namespace::obj", '
                          '"method_name": "pT", '
                          '"return_type": "int", '
-                         '"is_pointer": "False", '
                          '}), lambda e: e + 1)')
     a2 = parse_statement('Select(ds, lambda e: e + 1)')
 
@@ -50,7 +49,7 @@ def test_metadata_method():
     t = method_type_info('my_namespace::obj', 'pT')
     assert t is not None
     assert t.type == 'int'
-    assert t.is_pointer() is False
+    assert not t.is_a_pointer
 
 
 def test_metadata_cpp_code():

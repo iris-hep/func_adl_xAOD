@@ -3,12 +3,14 @@ import func_adl_xAOD.common.cpp_types as ctyp
 
 def test_int():
     t_int = ctyp.terminal('int')
-    assert t_int.is_pointer() is False
+    assert t_int.p_depth == 0
+    assert not t_int.is_a_pointer
 
 
 def test_int_pointer():
     t_int = ctyp.terminal('int', p_depth=1)
-    assert t_int.is_pointer() is True
+    assert t_int.p_depth == 1
+    assert t_int.is_a_pointer
 
 
 def test_no_method_type_found():
@@ -29,14 +31,14 @@ def test_terminal_from_parse():
     t = ctyp.terminal(ctyp.parse_type('double'))
 
     assert t.type == 'double'
-    assert t.is_pointer() is False
+    assert t.is_a_pointer is False
 
 
 def test_terminal_from_parse_ptr():
     t = ctyp.terminal(ctyp.parse_type('double*'))
 
     assert t.type == 'double'
-    assert t.is_pointer() is True
+    assert t.p_depth == 1
 
 
 def test_collection():

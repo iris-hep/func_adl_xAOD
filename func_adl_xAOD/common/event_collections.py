@@ -11,7 +11,6 @@ from func_adl_xAOD.common.cpp_vars import unique_name
 
 
 class event_collection_container(ctyp.terminal, ABC):
-    # TODO: is_pointer should not be here
     def __init__(self, type_name: Union[str, ctyp.CPPParsedTypeInfo], p_depth: int):
         super().__init__(type_name, p_depth=p_depth)
 

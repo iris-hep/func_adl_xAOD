@@ -296,12 +296,13 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         '''
         cpp_type = rep.cpp_type()
         assert isinstance(cpp_type, ctyp.collection)
-        if self._is_loop_var_a_ref and rep.cpp_type().is_pointer():
+        if self._is_loop_var_a_ref and rep.cpp_type().is_a_pointer:
             element_type = cpp_type.element_type.get_dereferenced_type()
         else:
             element_type = cpp_type.element_type
         iterator_value = crep.cpp_value(unique_name("i_obj"), None, element_type)  # type: ignore
 
+        # It could be this should deref until p_depth is 0
         collection = crep.dereference_var(rep)
 
         l_statement = statement.loop(iterator_value, collection, is_loop_var_a_ref=self._is_loop_var_a_ref)
@@ -570,11 +571,11 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         function_name = call_node.func.attr  # type: ignore
         if not isinstance(calling_against, crep.cpp_value):
             # We didn't use get_rep_value above because now we can make a better error message.
-            raise Exception("Do not know how to call '{0}' on '{1}'".format(function_name, type(calling_against).__name__))
+            raise ValueError("Do not know how to call '{0}' on '{1}'".format(function_name, type(calling_against).__name__))
 
         # We support member calls that directly translate only. Here, for example, this is only for
         # obj.pt() or similar. The translation is direct.
-        c_stub = calling_against.as_cpp() + ("->" if calling_against.is_pointer() else ".")
+        c_stub = crep.base_type_member_access(calling_against)
         result_type = determine_type_mf(calling_against.cpp_type(), function_name)
 
         # Support returned collections or values depending on the result type.
@@ -635,7 +636,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         if not isinstance(obj, crep.cpp_value):
             raise Exception("Do not know how to get member '{0}' of '{1}'".format(variable, type(obj).__name__))
         result_type = determine_type_mf(obj.cpp_type(), variable)
-        crep.set_rep(node, crep.cpp_value(f"{obj.as_cpp()}{'->' if obj.is_pointer() else '.'}{variable}", self._gc.current_scope(), result_type))
+        crep.set_rep(node, crep.cpp_value(f"{crep.base_type_member_access(obj)}{variable}", self._gc.current_scope(), result_type))
 
     def visit_Name(self, name_node: ast.Name):
         'Visiting a name - which should represent something'
@@ -650,7 +651,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             raise Exception("Do not know how to take the index of type '{0}'".format(v.cpp_type()))  # type: ignore
 
         index = self.get_rep(node.slice)
-        crep.set_rep(node, crep.cpp_value(f"{v.as_cpp()}{'->' if v.is_pointer() else '.'}at({index.as_cpp()})", self._gc.current_scope(), cpp_type=v.get_element_type()))  # type: ignore
+        crep.set_rep(node, crep.cpp_value(f"{crep.base_type_member_access(v)}at({index.as_cpp()})", self._gc.current_scope(), cpp_type=v.get_element_type()))  # type: ignore
 
     def visit_Index(self, node):
         'We can only do single items, we cannot do slices yet'

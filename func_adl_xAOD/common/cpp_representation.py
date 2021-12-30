@@ -104,11 +104,12 @@ class cpp_value(cpp_rep_base):
     def __str__(self) -> str:
         return f'{str(self._cpp_type)} value (expression {self._expression})'
 
-    def is_pointer(self) -> bool:
-        'Return true if this type is a pointer'
-        return self.cpp_type().is_pointer()
+    @property
+    def p_depth(self) -> int:
+        'Return the depth of the pointer'
+        return self.cpp_type().p_depth
 
-    def as_cpp(self):
+    def as_cpp(self) -> str:
         return self._expression
 
     def reset_scope(self, scope: gc_scope):
@@ -131,7 +132,7 @@ class cpp_value(cpp_rep_base):
             raise RuntimeError(f'Internal Error: Variable {self._expression} does not have an assigned type, but needs one.')
         return self._cpp_type
 
-    def copy_with_new_scope(self, scope):
+    def copy_with_new_scope(self, scope) -> cpp_value:
         'Make a new version, with just the scope changed'
         new_v = copy.copy(self)
         new_v._scope = scope
@@ -300,7 +301,7 @@ def dereference_var(v: DT) -> DT:
 
     NOTE: It might just return the object itself, not dereferencing it!
     '''
-    if not v.cpp_type().is_pointer():
+    if not v.cpp_type().is_a_pointer:
         return v
 
     # We will go under the covers and "fix" this.
@@ -311,3 +312,21 @@ def dereference_var(v: DT) -> DT:
     # Eventually this is going to get us into trouble.
     new_v._cpp_type = new_v.cpp_type().get_dereferenced_type()
     return new_v
+
+
+def base_type_member_access(v: cpp_value) -> str:
+    '''
+    Turn a C++ object into a base reference suitable for
+    a member access.
+
+    obj f => f.
+    obj *f => f->
+    obj **f => (*f)->
+    '''
+    result = v.as_cpp()
+    for _ in range(1, v.cpp_type().p_depth):
+        result = f'(*{result})'
+    if v.cpp_type().p_depth > 0:
+        return f'{result}->'
+    else:
+        return f'{result}.'

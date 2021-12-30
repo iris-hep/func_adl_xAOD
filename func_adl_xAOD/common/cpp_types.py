@@ -68,7 +68,9 @@ class terminal:
     def __str__(self):
         return str(self.type) + '*' * self._p_depth
 
-    def is_pointer(self):
+    @property
+    def is_a_pointer(self) -> bool:
+        'Returns true if this terminal is a pointer'
         return self._p_depth > 0
 
     @property
