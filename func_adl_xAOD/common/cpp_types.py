@@ -112,6 +112,7 @@ class collection (terminal):
         self._element_type = element_type
 
     # TODO: Turn into a property
+    @property
     def element_type(self) -> terminal:
         'The type of element that this collection holds'
         return self._element_type

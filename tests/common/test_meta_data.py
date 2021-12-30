@@ -90,8 +90,8 @@ def test_md_method_type_collection():
     assert t is not None
     assert isinstance(t, collection)
     assert t.type == 'std::vector<double>'
-    assert isinstance(t.element_type(), terminal)
-    assert str(t.element_type()) == 'double'
+    assert isinstance(t.element_type, terminal)
+    assert str(t.element_type) == 'double'
     assert t.is_pointer() is False
 
 
@@ -113,8 +113,8 @@ def test_md_method_type_collection_ptr():
     assert t is not None
     assert isinstance(t, collection)
     assert t.type == 'std::vector<double*>'
-    assert isinstance(t.element_type(), terminal)
-    assert str(t.element_type()) == 'double'
+    assert isinstance(t.element_type, terminal)
+    assert str(t.element_type) == 'double'
     assert t.is_pointer() is False
 
 
@@ -137,7 +137,7 @@ def test_md_method_type_custom_collection():
     assert t is not None
     assert isinstance(t, collection)
     assert t.type == 'MyCustomCollection'
-    assert str(t.element_type()) == 'double'
+    assert str(t.element_type) == 'double'
     assert t.is_pointer() is False
 
 
@@ -214,7 +214,7 @@ def test_md_atlas_collection():
     assert s.name == 'TruthParticles'
     assert s.include_files == ['file1.h', 'file2.h']
     assert isinstance(s.container_type, atlas_xaod_event_collection_collection)
-    assert s.container_type.element_type().type == 'xAOD::Electron'
+    assert s.container_type.element_type.type == 'xAOD::Electron'
     assert s.container_type.type == 'xAOD::ElectronContainer'
     assert s.libraries == []
 
@@ -314,7 +314,7 @@ def test_md_cms_collection():
     assert s.name == 'Vertex'
     assert s.include_files == ['DataFormats/VertexReco/interface/Vertex.h']
     assert isinstance(s.container_type, cms_aod_event_collection_collection)
-    assert s.container_type.element_type().type == 'reco::Vertex'
+    assert s.container_type.element_type.type == 'reco::Vertex'
     assert s.container_type.type == 'reco::VertexCollection'
 
 

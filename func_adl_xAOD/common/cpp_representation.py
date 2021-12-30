@@ -199,7 +199,7 @@ class cpp_collection(cpp_value):
 
     def get_element_type(self):
         'Return the type of the element of the sequence'
-        return cast(ctyp.collection, self.cpp_type()).element_type()
+        return cast(ctyp.collection, self.cpp_type()).element_type
 
 
 class cpp_tuple(cpp_rep_base):
