@@ -25,7 +25,7 @@ class event_collection_container(ctyp.terminal, ABC):
         '''
 
 
-class event_collection_collection(ctyp.collection, ABC):
+class event_collection_collection_container(ctyp.collection, ABC):
     def __init__(self, type_name, element_name, is_type_pointer, is_element_pointer):
         super().__init__(
             ctyp.terminal(element_name, p_depth=1 if is_element_pointer else 0),
@@ -51,7 +51,7 @@ class EventCollectionSpecification:
     include_files: List[str]
 
     # The container information
-    container_type: Union[event_collection_container, event_collection_collection]
+    container_type: Union[event_collection_container, event_collection_collection_container]
 
     # List of libraries (e.g. ['xAODJet'])
     libraries: List[str]
@@ -79,7 +79,7 @@ class event_collection_coder(ABC):
         r.running_code += self.get_running_code(md.container_type)
         r.result = 'result'
 
-        if issubclass(type(md.container_type), event_collection_collection):
+        if issubclass(type(md.container_type), event_collection_collection_container):
             r.result_rep = lambda scope: crep.cpp_collection(unique_name(md.name.lower()), scope=scope, collection_type=md.container_type)  # type: ignore
         else:
             r.result_rep = lambda scope: crep.cpp_variable(unique_name(md.name.lower()), scope=scope, cpp_type=md.container_type)
@@ -90,7 +90,7 @@ class event_collection_coder(ABC):
         return call_node
 
     @abstractmethod
-    def get_running_code(self, container_type: Union[event_collection_container, event_collection_collection]) -> List[str]:
+    def get_running_code(self, container_type: Union[event_collection_container, event_collection_collection_container]) -> List[str]:
         '''Return the code that will extract the collection from the event object
 
         Args:

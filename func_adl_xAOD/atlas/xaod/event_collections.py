@@ -1,7 +1,7 @@
 import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.event_collections import (
     EventCollectionSpecification, event_collection_coder,
-    event_collection_collection, event_collection_container)
+    event_collection_collection_container, event_collection_container)
 
 
 class atlas_xaod_event_collection_container(event_collection_container):
@@ -12,7 +12,7 @@ class atlas_xaod_event_collection_container(event_collection_container):
         return f"const {self.type} *"
 
 
-class atlas_xaod_event_collection_collection(event_collection_collection):
+class atlas_xaod_event_collection_collection(event_collection_collection_container):
     def __init__(self, type_name, element_name, is_type_pointer=True, is_element_pointer=True):
         super().__init__(type_name, element_name, is_type_pointer, is_element_pointer)
 
