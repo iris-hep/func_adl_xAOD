@@ -11,7 +11,7 @@ from func_adl_xAOD.common.event_collections import (
 class cms_aod_event_collection_collection(event_collection_collection_container):
     def __init__(self, type_name: Union[str, ctyp.CPPParsedTypeInfo],
                  element_name: Union[str, ctyp.CPPParsedTypeInfo],
-                 p_depth_type: int = 1, p_depth_element: int = 1):
+                 p_depth_type: int = 1, p_depth_element: int = 0):
         super().__init__(type_name, element_name, p_depth_element=p_depth_element, p_depth_type=p_depth_type)
 
     def __str__(self):

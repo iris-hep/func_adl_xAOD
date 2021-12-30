@@ -644,7 +644,7 @@ class dummy_ttree_fill(statement.ttree_fill):
 
 class dummy_query_ast_visitor(query_ast_visitor):
     def __init__(self):
-        super().__init__('dummy', False)
+        super().__init__('dummy')
 
     def create_book_ttree_obj(self, tree_name: str, leaves: list) -> statement.book_ttree:
         return dummy_book_ttree()

@@ -127,7 +127,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
     Drive the conversion to C++ from the top level query
     """
 
-    def __init__(self, prefix, is_loop_var_a_ref: bool):
+    def __init__(self, prefix):
         r'''
         Initialize the visitor.
         '''
@@ -135,7 +135,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         self._gc = generated_code()
         self._arg_stack = argument_stack()
         self._prefix = prefix
-        self._is_loop_var_a_ref = is_loop_var_a_ref
 
     def include_files(self):
         return self._gc.include_files()
@@ -296,16 +295,13 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         '''
         cpp_type = rep.cpp_type()
         assert isinstance(cpp_type, ctyp.collection)
-        if self._is_loop_var_a_ref and rep.cpp_type().is_a_pointer:
-            element_type = cpp_type.element_type.get_dereferenced_type()
-        else:
-            element_type = cpp_type.element_type
+        element_type = cpp_type.element_type
         iterator_value = crep.cpp_value(unique_name("i_obj"), None, element_type)  # type: ignore
 
         # It could be this should deref until p_depth is 0
         collection = crep.dereference_var(rep)
 
-        l_statement = statement.loop(iterator_value, collection, is_loop_var_a_ref=self._is_loop_var_a_ref)
+        l_statement = statement.loop(iterator_value, collection)
         self._gc.add_statement(l_statement)
         iterator_value.reset_scope(self._gc.current_scope())
 

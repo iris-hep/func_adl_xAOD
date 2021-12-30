@@ -68,8 +68,7 @@ class loop(block):
     'A for loop'
 
     def __init__(self, loop_var_rep: crep.cpp_value,
-                 collection_rep: crep.cpp_collection,
-                 is_loop_var_a_pntr=False, is_loop_var_a_ref=False):
+                 collection_rep: crep.cpp_collection):
         '''
         Create a new implicit for loop statement. A new var is created, and the scope is set to
         be the one down from here.
@@ -77,15 +76,10 @@ class loop(block):
         block.__init__(self)
         self._collection = collection_rep
         self._loop_variable = loop_var_rep
-        self._is_loop_var_a_pointer = is_loop_var_a_pntr
-        self._is_loop_var_a_reference = is_loop_var_a_ref
 
     def emit(self, e):
         'Emit a for loop enclosed by a block of code'
-        e.add_line("for (auto {0}{1} : {2})".format(
-            '*' if self._is_loop_var_a_pointer
-            else ('&' if self._is_loop_var_a_reference else ''),
-            self._loop_variable.as_cpp(), self._collection.as_cpp()))
+        e.add_line(f"for (auto &&{self._loop_variable.as_cpp()} : {self._collection.as_cpp()})")
         block.emit(self, e)
 
 
