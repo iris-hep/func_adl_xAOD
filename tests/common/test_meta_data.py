@@ -214,8 +214,8 @@ def test_md_atlas_collection():
     assert s.name == 'TruthParticles'
     assert s.include_files == ['file1.h', 'file2.h']
     assert isinstance(s.container_type, atlas_xaod_event_collection_collection)
-    assert s.container_type._element_name == 'xAOD::Electron'
-    assert s.container_type._type_name == 'xAOD::ElectronContainer'
+    assert s.container_type.element_type().type == 'xAOD::Electron'
+    assert s.container_type.type == 'xAOD::ElectronContainer'
     assert s.libraries == []
 
 
@@ -239,7 +239,7 @@ def test_md_atlas_collection_single_obj():
     assert s.name == 'EventInfo'
     assert s.include_files == ['xAODEventInfo/EventInfo.h']
     assert isinstance(s.container_type, atlas_xaod_event_collection_container)
-    assert s.container_type._type_name == 'xAOD::EventInfo'
+    assert s.container_type.type == 'xAOD::EventInfo'
     assert s.libraries == ['xAODEventInfo']
 
 
@@ -314,8 +314,8 @@ def test_md_cms_collection():
     assert s.name == 'Vertex'
     assert s.include_files == ['DataFormats/VertexReco/interface/Vertex.h']
     assert isinstance(s.container_type, cms_aod_event_collection_collection)
-    assert s.container_type._element_name == 'reco::Vertex'
-    assert s.container_type._type_name == 'reco::VertexCollection'
+    assert s.container_type.element_type().type == 'reco::Vertex'
+    assert s.container_type.type == 'reco::VertexCollection'
 
 
 def test_md_cms_collection_extra():

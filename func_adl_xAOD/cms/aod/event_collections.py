@@ -17,7 +17,7 @@ class cms_aod_event_collection_collection(event_collection_collection):
         super().__init__(type_name, element_name, is_type_pointer, is_element_pointer)
 
     def __str__(self):
-        return f"edm::Handle<{self._type_name}>"
+        return f"edm::Handle<{self.type}>"
 
 
 # all the collections types that are available. This is required because C++

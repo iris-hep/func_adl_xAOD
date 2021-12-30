@@ -86,3 +86,31 @@ def test_sequence_type_2():
     seq_array = crep.cpp_sequence(seq, i_value, tc)
 
     assert seq_array.sequence_value().cpp_type().type == 'std::vector<int>'
+
+
+def test_deref_simple_ptr():
+    tc = gc_scope_top_level()
+    expr = "a"
+    c_type = ctyp.terminal('int', 1)
+
+    v = crep.cpp_variable(expr, tc, c_type)
+
+    d = crep.dereference_var(v)
+
+    assert d.cpp_type().type == 'int'
+    assert d.cpp_type().p_depth == 0
+    assert d.as_cpp() == '*a'
+
+
+def test_deref_simple_no_ptr():
+    tc = gc_scope_top_level()
+    expr = "a"
+    c_type = ctyp.terminal('int', 0)
+
+    v = crep.cpp_variable(expr, tc, c_type)
+
+    d = crep.dereference_var(v)
+
+    assert d.cpp_type().type == 'int'
+    assert d.cpp_type().p_depth == 0
+    assert d.as_cpp() == 'a'

@@ -1,6 +1,3 @@
-# Code to translate from a reduced AST into C++ code. This is done by traversing the
-# Python AST code.
-
 import ast
 import logging
 from abc import ABC, abstractmethod

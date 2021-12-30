@@ -1,9 +1,8 @@
 # Collected code to get collections from the event object
 import ast
-import copy
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List
+from typing import List, Union
 
 import func_adl_xAOD.common.cpp_ast as cpp_ast
 import func_adl_xAOD.common.cpp_representation as crep
@@ -11,15 +10,27 @@ import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.cpp_vars import unique_name
 
 
-# Need a type for our type system to reason about the containers.
-class event_collection_container(ABC):
-    # TODO: This should inherit from ctyp.collection!
+class event_collection_container(ctyp.terminal, ABC):
+    # TODO: is_pointer should not be here
     def __init__(self, type_name, is_pointer):
-        self._type_name = type_name
-        self._is_pointer = is_pointer
+        super().__init__(type_name, p_depth=1 if is_pointer else 0)
 
-    def is_pointer(self):
-        return self._is_pointer
+    @abstractmethod
+    def __str__(self) -> str:
+        '''Return the string representation of this event collection.
+        Helpful for identifying it in ast dumps
+
+        Returns:
+            str: Description
+        '''
+
+
+class event_collection_collection(ctyp.collection, ABC):
+    def __init__(self, type_name, element_name, is_type_pointer, is_element_pointer):
+        super().__init__(
+            ctyp.terminal(element_name, p_depth=1 if is_element_pointer else 0),
+            array_type=type_name, p_depth=1 if is_type_pointer else 0
+        )
 
     @abstractmethod
     def __str__(self) -> str:
@@ -40,26 +51,10 @@ class EventCollectionSpecification:
     include_files: List[str]
 
     # The container information
-    container_type: event_collection_container
+    container_type: Union[event_collection_container, event_collection_collection]
 
     # List of libraries (e.g. ['xAODJet'])
     libraries: List[str]
-
-
-class event_collection_collection(event_collection_container):
-    def __init__(self, type_name, element_name, is_type_pointer, is_element_pointer):
-        event_collection_container.__init__(self, type_name, is_type_pointer)
-        self._element_name = element_name
-        self._is_element_pointer = is_element_pointer
-
-    def element_type(self):
-        return ctyp.terminal(self._element_name, p_depth=1 if self._is_element_pointer else 0)
-
-    def dereference(self):
-        'Return a new version of us that is not a pointer'
-        new_us = copy.copy(self)
-        new_us._is_pointer = False
-        return new_us
 
 
 class event_collection_coder(ABC):
@@ -95,7 +90,7 @@ class event_collection_coder(ABC):
         return call_node
 
     @abstractmethod
-    def get_running_code(self, container_type: event_collection_container) -> List[str]:
+    def get_running_code(self, container_type: Union[event_collection_container, event_collection_collection]) -> List[str]:
         '''Return the code that will extract the collection from the event object
 
         Args:

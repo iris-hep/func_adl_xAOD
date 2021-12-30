@@ -56,10 +56,12 @@ import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.util_scope import gc_scope, gc_scope_top_level
 
 
-def dereference_var(v: cpp_value):
+def dereference_var(v: cpp_value) -> cpp_value:
     '''
     If this is a pointer, return the object with the proper type (and a * to dereference it). Otherwise
     just return the object itself.
+
+    NOTE: It might just return the object itself, not dereferencing it!
     '''
     if not v.cpp_type().is_pointer():
         return v
@@ -70,7 +72,7 @@ def dereference_var(v: cpp_value):
 
     # There is only one type we current support here.
     # Eventually this is going to get us into trouble.
-    new_v._cpp_type = new_v._cpp_type.dereference()  # type: ignore
+    new_v._cpp_type = new_v.cpp_type().get_dereferenced_type()
     return new_v
 
 

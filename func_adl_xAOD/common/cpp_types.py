@@ -81,8 +81,12 @@ class terminal:
     def type(self) -> str:
         return self._type
 
-    def get_dereferenced_type(self):
-        return terminal(self._type, self.p_depth - 1) if self.p_depth > 0 else self
+    def get_dereferenced_type(self) -> terminal:
+        'Type after dereferencing it once. Will throw if this type cannot be dereferenced'
+        if self._p_depth == 0:
+            raise RuntimeError(f'Cannot dereference type {self}')
+
+        return terminal(self._type, self.p_depth - 1)
 
 
 class collection (terminal):
@@ -107,6 +111,7 @@ class collection (terminal):
         # And the element type we are representing
         self._element_type = element_type
 
+    # TODO: Turn into a property
     def element_type(self) -> terminal:
         'The type of element that this collection holds'
         return self._element_type
