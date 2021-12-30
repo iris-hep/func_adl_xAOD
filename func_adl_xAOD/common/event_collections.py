@@ -12,8 +12,8 @@ from func_adl_xAOD.common.cpp_vars import unique_name
 
 class event_collection_container(ctyp.terminal, ABC):
     # TODO: is_pointer should not be here
-    def __init__(self, type_name, is_pointer):
-        super().__init__(type_name, p_depth=1 if is_pointer else 0)
+    def __init__(self, type_name: Union[str, ctyp.CPPParsedTypeInfo], p_depth: int):
+        super().__init__(type_name, p_depth=p_depth)
 
     @abstractmethod
     def __str__(self) -> str:
@@ -26,10 +26,12 @@ class event_collection_container(ctyp.terminal, ABC):
 
 
 class event_collection_collection_container(ctyp.collection, ABC):
-    def __init__(self, type_name, element_name, is_type_pointer, is_element_pointer):
+    def __init__(self, type_name: Union[str, ctyp.CPPParsedTypeInfo],
+                 element_name: Union[str, ctyp.CPPParsedTypeInfo],
+                 p_depth_type: int, p_depth_element: int):
         super().__init__(
-            ctyp.terminal(element_name, p_depth=1 if is_element_pointer else 0),
-            array_type=type_name, p_depth=1 if is_type_pointer else 0
+            ctyp.terminal(element_name, p_depth=p_depth_element),
+            array_type=type_name, p_depth=p_depth_type
         )
 
     @abstractmethod

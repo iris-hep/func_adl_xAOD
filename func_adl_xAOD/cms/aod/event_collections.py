@@ -1,20 +1,18 @@
+from typing import Union
 import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.event_collections import (
     EventCollectionSpecification, event_collection_coder, event_collection_collection_container, event_collection_container)
 
 
-# class cms_aod_event_collection_container(event_collection_container):
-#     'There is nothing turned on here - till we have a real use case.'
-#     def __init__(self, type_name, is_pointer=True):
-#         super().__init__(type_name, is_pointer)
-
-#     def __str__(self):
-#         return f"edm::Handle<{self._type_name}>"
+# There is no use for a CMS single item collection - everything they have
+# has multiple items in it. Copy from the ATLAS example to get this working correctly.
 
 
 class cms_aod_event_collection_collection(event_collection_collection_container):
-    def __init__(self, type_name, element_name, is_type_pointer=True, is_element_pointer=True):
-        super().__init__(type_name, element_name, is_type_pointer, is_element_pointer)
+    def __init__(self, type_name: Union[str, ctyp.CPPParsedTypeInfo],
+                 element_name: Union[str, ctyp.CPPParsedTypeInfo],
+                 p_depth_type: int = 1, p_depth_element: int = 1):
+        super().__init__(type_name, element_name, p_depth_element=p_depth_element, p_depth_type=p_depth_type)
 
     def __str__(self):
         return f"edm::Handle<{self.type}>"
@@ -58,7 +56,7 @@ cms_aod_collections = [
                                  ["DataFormats/VertexReco/interface/Vertex.h",
                                   "DataFormats/VertexReco/interface/VertexFwd.h"
                                   ],
-                                 cms_aod_event_collection_collection('reco::VertexCollection', 'reco::Vertex', is_element_pointer=False),
+                                 cms_aod_event_collection_collection('reco::VertexCollection', 'reco::Vertex', p_depth_element=0),
                                  [],
                                  ),
     EventCollectionSpecification('cms', "GsfElectrons",
