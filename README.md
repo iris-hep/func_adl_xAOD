@@ -86,6 +86,33 @@ For a _collection_:
 | return_type_element | The type of the collection element | `"float"` |
 | return_type_collection | The type of the collection | `vector<float>`, `vector<float>*` |
 
+#### Event Level Collections
+
+CMS and ATLAS store their basic reconstruction objects as collections (e.g. jets, etc.). You can define new collections on the fly with the following metadata
+
+For _atlas_:
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"add_atlas_event_collection_info"` |
+| name | The name of the collection (used to access it from the dataset object) | `"TruthParticles"` |
+| include_files| List of include files to use when accessing collection | `['file1.h', 'file2.h']` |
+| container_type | The container object that is filled | "'xAOD::ElectronContainer'" |
+| element_type | The element in the container. In atlas this is a pointer. | `"xAOD::Electron"` |
+| contains_collection | Some items are singletons (like `EventInfo`) | `True` or `False` |
+
+For _cms_:
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"add_cms_event_collection_info"` |
+| name | The name of the collection (used to access it from the dataset object) | `"Vertex"` |
+| include_files| List of include files to use when accessing collection | `['DataFormats/VertexReco/interface/Vertex.h']` |
+| container_type | The container object that is filled | "'reco::VertexCollection'" |
+| element_type | The element in the container. In atlas this is a pointer. | `"reco::Vertex"` |
+| contains_collection | Some items are singletons (like `EventInfo`) | `True` or `False` |
+| element_pointer | Indicates if the element type is a pointer | `True` or `False` |
+
 #### Include Files
 
 Any include files listed will be added to the top of the `query.cpp` file that is generated. While ordering is maintained within a single `Metadata` query here, it is not maintained between different `Metadata` calls.
