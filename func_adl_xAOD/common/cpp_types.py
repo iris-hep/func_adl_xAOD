@@ -16,6 +16,9 @@ class CPPParsedTypeInfo:
     # Pointer, and how many (2 for `int**`, 0 for `int`, etc.)
     pointer_depth: int
 
+    # True if this is a const variable
+    is_const: bool = False
+
     def __str__(self):
         return self.name + '*' * self.pointer_depth
 
@@ -38,13 +41,19 @@ def parse_type(t_name: str) -> CPPParsedTypeInfo:
         else:
             break
 
-    return CPPParsedTypeInfo(t_name, ptr_depth)
+    if t_name.startswith('const '):
+        is_const = True
+        t_name = t_name[6:]
+    else:
+        is_const = False
+
+    return CPPParsedTypeInfo(t_name, ptr_depth, is_const)
 
 
 class terminal:
     'Represents something we cannot see inside, like float, or int, or bool'
 
-    def __init__(self, t: Union[str, CPPParsedTypeInfo], p_depth: int = 0):
+    def __init__(self, t: Union[str, CPPParsedTypeInfo], p_depth: int = 0, is_const: bool = False):
         '''Create a terminal type - a type that we do not need to see inside
 
         * int
@@ -57,16 +66,20 @@ class terminal:
         Args:
             t (str|CPPParsedTypeInfo): The type to represent
             p_depth (int): How many levels of indirection to get to the type
+            is_const (bool): Whether this is a const type
         '''
         if isinstance(t, CPPParsedTypeInfo):
             self._type = t.name
             self._p_depth = t.pointer_depth
+            self._is_const = t.is_const
         else:
             self._type = t
             self._p_depth = p_depth
+            self._is_const = is_const
 
     def __str__(self):
-        return str(self.type) + '*' * self._p_depth
+        c_str = "const " if self.is_const else ""
+        return f"{c_str}{self.type}{'*' * self._p_depth}"
 
     @property
     def is_a_pointer(self) -> bool:
@@ -77,6 +90,11 @@ class terminal:
     def p_depth(self) -> int:
         'Return how many levels of indirection to get to the type'
         return self._p_depth
+
+    @property
+    def is_const(self) -> bool:
+        'Returns true if this terminal is a const type'
+        return self._is_const
 
     def default_value(self):
         raise NotImplementedError()
@@ -158,7 +176,7 @@ def add_method_type_info(type_string: str, method_name: str, t: terminal, deref_
     g_method_type_dict[type_string][method_name] = MethodInvokeInfo(t, deref_depth)
 
 
-def method_type_info(type_string, method_name) -> Optional[MethodInvokeInfo]:
+def method_type_info(type_string: str, method_name: str) -> Optional[MethodInvokeInfo]:
     '''
     Return the type of the method's return value
     '''

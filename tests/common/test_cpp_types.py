@@ -42,6 +42,14 @@ def test_method_type_found():
 def test_terminal_type():
     t = ctyp.terminal('double', False)
     assert t.type == 'double'
+    assert str(t) == 'double'
+    assert not t.is_const
+
+
+def test_terminal_type_const():
+    t = ctyp.terminal('double', False, True)
+    assert t.is_const
+    assert str(t) == 'const double'
 
 
 def test_terminal_from_parse():
@@ -80,6 +88,14 @@ def test_parse_type_int():
     t = ctyp.parse_type('int')
     assert t.name == 'int'
     assert t.pointer_depth == 0
+    assert not t.is_const
+
+
+def test_parse_type_const_int():
+    t = ctyp.parse_type('const int')
+    assert t.name == 'int'
+    assert t.pointer_depth == 0
+    assert t.is_const
 
 
 def test_parse_type_int_sp():
