@@ -159,3 +159,8 @@ def test_member_access_obj_ptr():
 def test_member_access_obj_ptr_ptr():
     cv = crep.cpp_value('f', gc_scope_top_level(), ctyp.terminal(ctyp.parse_type('obj**')))
     assert crep.base_type_member_access(cv) == '(*f)->'
+
+
+def test_member_access_obj_depth_1():
+    cv = crep.cpp_value('f', gc_scope_top_level(), ctyp.terminal(ctyp.parse_type('obj')))
+    assert crep.base_type_member_access(cv, 2) == '(*f)->'

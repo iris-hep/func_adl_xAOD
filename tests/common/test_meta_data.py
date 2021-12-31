@@ -68,8 +68,30 @@ def test_md_method_type_double():
 
     t = method_type_info('my_namespace::obj', 'pT')
     assert t is not None
-    assert t.type == 'double'
-    assert not t.is_a_pointer
+    assert t.r_type.type == 'double'
+    assert not t.r_type.is_a_pointer
+    assert t.deref_depth == 0
+
+
+def test_md_method_type_double_deref():
+    'Make sure a double can be set'
+    metadata = [
+        {
+            'metadata_type': 'add_method_type_info',
+            'type_string': 'my_namespace::obj',
+            'method_name': 'pT',
+            'return_type': 'double',
+            'deref_count': 2,
+        }
+    ]
+
+    process_metadata(metadata)
+
+    t = method_type_info('my_namespace::obj', 'pT')
+    assert t is not None
+    assert t.r_type.type == 'double'
+    assert not t.r_type.is_a_pointer
+    assert t.deref_depth == 2
 
 
 def test_md_method_type_collection():
@@ -87,11 +109,11 @@ def test_md_method_type_collection():
 
     t = method_type_info('my_namespace::obj', 'pT')
     assert t is not None
-    assert isinstance(t, collection)
-    assert t.type == 'std::vector<double>'
-    assert isinstance(t.element_type, terminal)
-    assert str(t.element_type) == 'double'
-    assert not t.is_a_pointer
+    assert isinstance(t.r_type, collection)
+    assert t.r_type.type == 'std::vector<double>'
+    assert isinstance(t.r_type.element_type, terminal)
+    assert str(t.r_type.element_type) == 'double'
+    assert not t.r_type.is_a_pointer
 
 
 def test_md_method_type_collection_item_ptr():
@@ -109,12 +131,12 @@ def test_md_method_type_collection_item_ptr():
 
     t = method_type_info('my_namespace::obj', 'pT')
     assert t is not None
-    assert isinstance(t, collection)
-    assert t.type == 'std::vector<double*>'
-    assert isinstance(t.element_type, terminal)
-    assert str(t.element_type) == 'double*'
-    assert t.element_type.p_depth == 1
-    assert not t.is_a_pointer
+    assert isinstance(t.r_type, collection)
+    assert t.r_type.type == 'std::vector<double*>'
+    assert isinstance(t.r_type.element_type, terminal)
+    assert str(t.r_type.element_type) == 'double*'
+    assert t.r_type.element_type.p_depth == 1
+    assert not t.r_type.is_a_pointer
 
 
 def test_md_method_type_custom_collection():
@@ -133,10 +155,10 @@ def test_md_method_type_custom_collection():
 
     t = method_type_info('my_namespace::obj', 'pT')
     assert t is not None
-    assert isinstance(t, collection)
-    assert t.type == 'MyCustomCollection'
-    assert str(t.element_type) == 'double'
-    assert not t.is_a_pointer
+    assert isinstance(t.r_type, collection)
+    assert t.r_type.type == 'MyCustomCollection'
+    assert str(t.r_type.element_type) == 'double'
+    assert not t.r_type.is_a_pointer
 
 
 def test_md_method_type_collection_ptr():
@@ -155,8 +177,8 @@ def test_md_method_type_collection_ptr():
 
     t = method_type_info('my_namespace::obj', 'pT')
     assert t is not None
-    assert isinstance(t, collection)
-    assert t.is_a_pointer
+    assert isinstance(t.r_type, collection)
+    assert t.r_type.is_a_pointer
 
 
 def test_md_method_type_object_pointer():
@@ -174,8 +196,8 @@ def test_md_method_type_object_pointer():
 
     t = method_type_info('my_namespace::obj', 'vertex')
     assert t is not None
-    assert t.type == 'my_namespace::vertex'
-    assert t.is_a_pointer
+    assert t.r_type.type == 'my_namespace::vertex'
+    assert t.r_type.is_a_pointer
 
 
 def test_with_method_call_with_type(caplog):

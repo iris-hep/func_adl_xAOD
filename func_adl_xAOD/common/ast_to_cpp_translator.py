@@ -86,7 +86,7 @@ def get_ttree_type(rep):
         return rep.cpp_type()
 
 
-def determine_type_mf(parent_type: ctyp.terminal, function_name):
+def determine_type_mf(parent_type: ctyp.terminal, function_name: str) -> ctyp.MethodInvokeInfo:
     '''
     Determine the return type of the member function. Do our best to make
     an intelligent case when we can.
@@ -111,7 +111,7 @@ def determine_type_mf(parent_type: ctyp.terminal, function_name):
 
     # Ok - we give up. Return a double.
     logging.getLogger(__name__).warning(f"Warning: assuming that the method '{str(t_parent)}::{function_name}(...)' has return type 'double'. Use cpp_types.add_method_type_info to suppress (or correct) this warning.")
-    return ctyp.terminal('double')
+    return ctyp.MethodInvokeInfo(ctyp.terminal('double'), 0)
 
 
 def _extract_column_names(names_ast: ast.AST) -> List[str]:
@@ -571,16 +571,16 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # We support member calls that directly translate only. Here, for example, this is only for
         # obj.pt() or similar. The translation is direct.
-        c_stub = crep.base_type_member_access(calling_against)
-        result_type = determine_type_mf(calling_against.cpp_type(), function_name)
+        m_info = determine_type_mf(calling_against.cpp_type(), function_name)
+        c_stub = crep.base_type_member_access(calling_against, m_info.deref_depth)
 
         # Support returned collections or values depending on the result type.
         args = call_node.args
         v_name = f"{c_stub}{function_name}({','.join(self.get_rep(arg).as_cpp() for arg in args)})"  # type: ignore
-        if isinstance(result_type, ctyp.collection):
-            crep.set_rep(call_node, crep.cpp_collection(v_name, calling_against.scope(), result_type))
+        if isinstance(m_info.r_type, ctyp.collection):
+            crep.set_rep(call_node, crep.cpp_collection(v_name, calling_against.scope(), m_info.r_type))
         else:
-            crep.set_rep(call_node, crep.cpp_value(v_name, calling_against.scope(), result_type))
+            crep.set_rep(call_node, crep.cpp_value(v_name, calling_against.scope(), m_info.r_type))
 
     def visit_function_ast(self, call_node):
         'Drop-in replacement for a function'
@@ -631,8 +631,8 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         variable = node.attr
         if not isinstance(obj, crep.cpp_value):
             raise Exception("Do not know how to get member '{0}' of '{1}'".format(variable, type(obj).__name__))
-        result_type = determine_type_mf(obj.cpp_type(), variable)
-        crep.set_rep(node, crep.cpp_value(f"{crep.base_type_member_access(obj)}{variable}", self._gc.current_scope(), result_type))
+        m_info = determine_type_mf(obj.cpp_type(), variable)
+        crep.set_rep(node, crep.cpp_value(f"{crep.base_type_member_access(obj, m_info.deref_depth)}{variable}", self._gc.current_scope(), m_info.r_type))
 
     def visit_Name(self, name_node: ast.Name):
         'Visiting a name - which should represent something'

@@ -34,7 +34,9 @@ def test_no_method_type_found():
 
 def test_method_type_found():
     ctyp.add_method_type_info("bogus", "pt", ctyp.terminal('double'))
-    assert 'double' == str(ctyp.method_type_info("bogus", "pt"))
+    r = ctyp.method_type_info("bogus", "pt")
+    assert r is not None
+    assert 'double' == str(r.r_type)
 
 
 def test_terminal_type():

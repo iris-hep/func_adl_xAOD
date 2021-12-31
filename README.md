@@ -75,6 +75,9 @@ For a _single item_:
 | type_string | The object the method applies to, fully qualified, C++ | `"xAOD::Jet"` |
 | method_name | Name of the method | `"pT"` |
 | return_type | Type returned, C++, fully qualified | `"float"`, `"float*"`, `"float**"` |
+| deref_count | Number of times to dereference object before invoking this method (optional) | 2 |
+
+Note: `deref_count` is used when an object can "hide" hold onto other objects by dereferencing them (e.g. by overriding the operator `operator*`). If it is zero (as it mostly is since `operator*` isn't often overridden), then it can be omitted.
 
 For a _collection_:
 
@@ -85,6 +88,7 @@ For a _collection_:
 | method_name | Name of the method | `"jetWeights"` |
 | return_type_element | The type of the collection element | `"float"` |
 | return_type_collection | The type of the collection | `vector<float>`, `vector<float>*` |
+| deref_count | Number of times to dereference object before invoking this method (optional) | 2 |
 
 #### Event Level Collections
 

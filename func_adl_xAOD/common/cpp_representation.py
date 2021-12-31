@@ -314,7 +314,7 @@ def dereference_var(v: DT) -> DT:
     return new_v
 
 
-def base_type_member_access(v: cpp_value) -> str:
+def base_type_member_access(v: cpp_value, extra_deref: int = 0) -> str:
     '''
     Turn a C++ object into a base reference suitable for
     a member access.
@@ -322,11 +322,15 @@ def base_type_member_access(v: cpp_value) -> str:
     obj f => f.
     obj *f => f->
     obj **f => (*f)->
+
+    v:            The object to access.
+    extra_deref:  The number of extra dereferences to apply.
     '''
     result = v.as_cpp()
-    for _ in range(1, v.cpp_type().p_depth):
+    depth = extra_deref + v.cpp_type().p_depth
+    for _ in range(1, depth):
         result = f'(*{result})'
-    if v.cpp_type().p_depth > 0:
+    if depth > 0:
         return f'{result}->'
     else:
         return f'{result}.'

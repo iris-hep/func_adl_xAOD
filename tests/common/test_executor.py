@@ -48,8 +48,8 @@ def test_metadata_method():
 
     t = method_type_info('my_namespace::obj', 'pT')
     assert t is not None
-    assert t.type == 'int'
-    assert not t.is_a_pointer
+    assert t.r_type.type == 'int'
+    assert not t.r_type.is_a_pointer
 
 
 def test_metadata_cpp_code():

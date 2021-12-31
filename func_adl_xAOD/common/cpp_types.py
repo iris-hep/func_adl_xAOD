@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 
 
 @dataclass
@@ -129,10 +129,23 @@ class collection (terminal):
 # Manage types
 
 
-g_method_type_dict = {}
+@dataclass
+class MethodInvokeInfo:
+    'Method invocation info'
+
+    # The return type
+    r_type: terminal
+
+    # Number of dereferences to apply to the calling object. Normally zero.
+    # 0: obj.method()
+    # 1: obj->method(), etc.
+    deref_depth: int
 
 
-def add_method_type_info(type_string: str, method_name: str, t: terminal):
+g_method_type_dict: Dict[str, Dict[str, MethodInvokeInfo]] = {}
+
+
+def add_method_type_info(type_string: str, method_name: str, t: terminal, deref_depth: int = 0):
     '''
     Define a return type for a method
 
@@ -142,10 +155,10 @@ def add_method_type_info(type_string: str, method_name: str, t: terminal):
     '''
     if type_string not in g_method_type_dict:
         g_method_type_dict[type_string] = {}
-    g_method_type_dict[type_string][method_name] = t
+    g_method_type_dict[type_string][method_name] = MethodInvokeInfo(t, deref_depth)
 
 
-def method_type_info(type_string, method_name) -> Optional[terminal]:
+def method_type_info(type_string, method_name) -> Optional[MethodInvokeInfo]:
     '''
     Return the type of the method's return value
     '''
