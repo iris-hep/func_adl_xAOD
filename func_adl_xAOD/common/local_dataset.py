@@ -133,17 +133,17 @@ class LocalDataset(EventDataset, ABC):
                         output += f'{stream_content.decode()}'
                     else:
                         output += f'(stderr) {stream_content.decode()}'
-                self._dump_info(logging.DEBUG, output, local_run_dir, f_spec.main_script)
+                self._dump_info(logging.DEBUG, output, local_run_dir, f_spec.main_script, self._docker_image)
 
             except python_on_whales.exceptions.DockerException as e:
-                self._dump_info(logging.ERROR, output, local_run_dir, f_spec.main_script)
+                self._dump_info(logging.ERROR, output, local_run_dir, f_spec.main_script, self._docker_image)
                 raise e
 
             # Now that we have run, we can pluck out the result.
             assert isinstance(f_spec.result_rep, cpp_ttree_rep), 'Unknown return type'
             return [_extract_result_TTree(f_spec.result_rep, local_run_dir, self._output_directory)]
 
-    def _dump_info(self, level, running_string: str, local_run_dir: Path, source_file_name: str):
+    def _dump_info(self, level, running_string: str, local_run_dir: Path, source_file_name: str, docker_image: str):
         '''Dump the logging info from a docker run.
 
         Args:
@@ -152,6 +152,7 @@ class LocalDataset(EventDataset, ABC):
         '''
         lg = logging.getLogger(__name__)
 
+        lg.log(level, f'Docker image and tag: {docker_image}')
         lg.log(level, 'Docker Output: ')
         _dump_split_string(running_string, lambda l: lg.log(level, f'  {l}'))
 
