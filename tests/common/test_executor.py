@@ -39,7 +39,6 @@ def test_metadata_method():
                          '"type_string": "my_namespace::obj", '
                          '"method_name": "pT", '
                          '"return_type": "int", '
-                         '"is_pointer": "False", '
                          '}), lambda e: e + 1)')
     a2 = parse_statement('Select(ds, lambda e: e + 1)')
 
@@ -49,8 +48,8 @@ def test_metadata_method():
 
     t = method_type_info('my_namespace::obj', 'pT')
     assert t is not None
-    assert t.type == 'int'
-    assert t.is_pointer() is False
+    assert t.r_type.type == 'int'
+    assert not t.r_type.is_a_pointer
 
 
 def test_metadata_cpp_code():
@@ -96,3 +95,16 @@ def test_metadata_collection():
     call_obj = new_a1.args[1].body.func.value.func  # type: ignore
     assert isinstance(call_obj, CPPCodeValue)
     assert "dude" in "-".join(call_obj.running_code)
+
+
+def test_include_files():
+    'Make sure include files are properly dealt with'
+
+    a1 = parse_statement('Select(MetaData(ds, {'
+                         '"metadata_type": "include_files",'
+                         '"files": ["xAODEventInfo/EventInfo.h"],'
+                         '}), lambda e: e.crazy("fork").pT())')
+
+    exe = do_nothing_executor()
+    _ = exe.apply_ast_transformations(a1)
+    assert exe.include_files == ["xAODEventInfo/EventInfo.h"]

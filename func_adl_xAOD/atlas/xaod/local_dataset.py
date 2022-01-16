@@ -12,7 +12,7 @@ class xAODDataset(LocalDataset):
     def __init__(self,
                  files: Union[Path, str, List[Path], List[str]],
                  docker_image: str = 'atlas/analysisbase',
-                 docker_tag: str = '21.2.191',
+                 docker_tag: str = '21.2.197',
                  output_directory: Optional[Path] = None):
         '''Run on the given files
 
@@ -20,6 +20,9 @@ class xAODDataset(LocalDataset):
             files (Path): Locally accessible files we are going to run on
             docker_image (str): The docker image name to run the executable
             docker_tag (str): The docker tag to use to run the executable
+
+        Note:
+            * (R21 Release Notes)[https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/AnalysisBaseReleaseNotes21_2]
         '''
         super().__init__(files, docker_image, docker_tag, output_directory)
 

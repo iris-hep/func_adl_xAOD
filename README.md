@@ -59,6 +59,80 @@ Template functions don't make sense yet in python.
 - Do not use `math.sin` in a call. However `sin` is just fine. If you do, you'll get an exception during resolution that it doesn't know how to translate `math`.
 - for things like `sum`, `min`, `max`, etc., use the `Sum`, `Min`, `Max` LINQ predicates.
 
+### Metadata
+
+It is possible to inject metadata into the `qastle` query to alter the behavior of the C++ code production. Each sub-section below has a different type of metadata. In order to invoke this, use the `Metadata` call, which takes as input stream and outputs the same stream, but the argument is a dictionary which contains the metadata.
+
+#### Method Return Type
+
+If you have a method that returns a non-standard type, use this metadata type to specify to the backend the return type. There are two different forms for this metadata - one if a single item is returned, and another if a collection of items are returned.
+
+For a _single item_:
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"add_method_type_info"` |
+| type_string | The object the method applies to, fully qualified, C++ | `"xAOD::Jet"` |
+| method_name | Name of the method | `"pT"` |
+| return_type | Type returned, C++, fully qualified | `"float"`, `"float*"`, `"float**"` |
+| deref_count | Number of times to dereference object before invoking this method (optional) | 2 |
+
+Note: `deref_count` is used when an object can "hide" hold onto other objects by dereferencing them (e.g. by overriding the operator `operator*`). If it is zero (as it mostly is since `operator*` isn't often overridden), then it can be omitted.
+
+For a _collection_:
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"add_method_type_info"` |
+| type_string | The object the method applies to, fully qualified, C++ | `"xAOD::Jet"` |
+| method_name | Name of the method | `"jetWeights"` |
+| return_type_element | The type of the collection element | `"float"` |
+| return_type_collection | The type of the collection | `vector<float>`, `vector<float>*` |
+| deref_count | Number of times to dereference object before invoking this method (optional) | 2 |
+
+#### Event Level Collections
+
+CMS and ATLAS store their basic reconstruction objects as collections (e.g. jets, etc.). You can define new collections on the fly with the following metadata
+
+For _atlas_:
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"add_atlas_event_collection_info"` |
+| name | The name of the collection (used to access it from the dataset object) | `"TruthParticles"` |
+| include_files| List of include files to use when accessing collection | `['file1.h', 'file2.h']` |
+| container_type | The container object that is filled | "'xAOD::ElectronContainer'" |
+| element_type | The element in the container. In atlas this is a pointer. | `"xAOD::Electron"` |
+| contains_collection | Some items are singletons (like `EventInfo`) | `True` or `False` |
+
+For _cms_:
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"add_cms_event_collection_info"` |
+| name | The name of the collection (used to access it from the dataset object) | `"Vertex"` |
+| include_files| List of include files to use when accessing collection | `['DataFormats/VertexReco/interface/Vertex.h']` |
+| container_type | The container object that is filled | "'reco::VertexCollection'" |
+| element_type | The element in the container. In atlas this is a pointer. | `"reco::Vertex"` |
+| contains_collection | Some items are singletons (like `EventInfo`) | `True` or `False` |
+| element_pointer | Indicates if the element type is a pointer | `True` or `False` |
+
+#### Include Files
+
+Any include files listed will be added to the top of the `query.cpp` file that is generated. While ordering is maintained within a single `Metadata` query here, it is not maintained between different `Metadata` calls.
+
+All includes are done with straight quotes:
+
+```C++
+#include "file1.hpp"
+#include "file2.hpp"
+```
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"include_files"` |
+| files | List of files to include. | `["file1.hpp", "file2.hpp"]` |
+
 ### Output Formats
 
 The `xAOD` code only renders the `func_adl` expression as a ROOT file. The ROOT file contains a simple `TTree` in its root directory.
@@ -106,3 +180,13 @@ You can then use the `xAODDataset` object or the `CMSRun1AODDataset` object to e
 - Specify the local path to files you want to run on in the arguments to the constructor
 - Files are run serially, and in a blocking way
 - This code is designed for development and testing work, and is not designed for large-scale production running on local files (not that that couldn't be done).
+
+When something odd happens and you really want to look at the C++ output, you can do this by including the following code somewhere before the `xAOD` backend is executed. This will turn on logging that will dump the output from the run and will also dump the C++ header and source files that were used to execute the query.
+
+```python
+import logging
+logging.basicConfig()
+logging.getLogger("func_adl_xAOD.common.local_dataset").setLevel(level=logging.DEBUG)
+```
+
+- In general, the first two lines are a good thing to have in your notebooks, etc. It allows you to see where warning messages are coming from and might help when things are going sideways.

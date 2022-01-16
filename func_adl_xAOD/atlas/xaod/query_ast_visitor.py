@@ -35,8 +35,7 @@ class atlas_xaod_query_ast_visitor(query_ast_visitor):
 
     def __init__(self):
         prefix = 'atlas_xaod'
-        is_loop_var_a_ref = False
-        super().__init__(prefix, is_loop_var_a_ref)
+        super().__init__(prefix)
 
     def create_book_ttree_obj(self, tree_name: str, leaves: list) -> book_ttree:
         return book_xaod_ttree(tree_name, leaves)

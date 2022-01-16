@@ -672,6 +672,105 @@ def test_metadata_job_options():
     assert len(r._job_option_blocks) == 1
 
 
+def test_metadata_returned_type():
+    # The following statement should be a straight sequence, not an array.
+    r = (atlas_xaod_dataset()
+         .MetaData({
+                   'metadata_type': 'add_method_type_info',
+                   'type_string': 'xAOD::Jet',
+                   'method_name': 'pt',
+                   'return_type': 'double',
+                   })
+         .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+         .Select(lambda j: j.pt() * 2)
+         .value()
+         )
+    # Check to see if there mention of push_back anywhere.
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    value_ref = find_line_numbers_with('->pt()*2', lines)
+    assert len(value_ref) == 1
+
+
+def test_metadata_returned_type_deref():
+    # The following statement should be a straight sequence, not an array.
+    r = (atlas_xaod_dataset()
+         .MetaData({
+                   'metadata_type': 'add_method_type_info',
+                   'type_string': 'xAOD::Jet',
+                   'method_name': 'pt',
+                   'return_type': 'double',
+                   'deref_count': 1,
+                   })
+         .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+         .Select(lambda j: j.pt() * 2)
+         .value()
+         )
+    # Check to see if there mention of push_back anywhere.
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    value_ref = find_line_numbers_with('->pt()*2', lines)
+    assert len(value_ref) == 1
+    ref_line = lines[value_ref[0]]
+    assert '(*i_obj' in ref_line
+
+
+def test_metadata_returned_collection():
+    # The following statement should be a straight sequence, not an array.
+    r = (atlas_xaod_dataset()
+         .MetaData({
+                   'metadata_type': 'add_method_type_info',
+                   'type_string': 'xAOD::Jet',
+                   'method_name': 'pt',
+                   'return_type_element': 'myobj',
+                   })
+         .MetaData({
+                   'metadata_type': 'add_method_type_info',
+                   'type_string': 'myobj',
+                   'method_name': 'value',
+                   'return_type': 'double',
+                   })
+         .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+         .SelectMany(lambda j: j.pt())
+         .Select(lambda pt: pt.value() * 2)
+         .value()
+         )
+    # Check to see if there mention of push_back anywhere.
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    value_ref = find_line_numbers_with('.value()*2', lines)
+    assert len(value_ref) == 1
+
+
+def test_metadata_returned_collection_double_ptr():
+    # The following statement should be a straight sequence, not an array.
+    r = (atlas_xaod_dataset()
+         .MetaData({
+                   'metadata_type': 'add_method_type_info',
+                   'type_string': 'xAOD::Jet',
+                   'method_name': 'pt',
+                   'return_type_element': 'myobj**',
+                   })
+         .MetaData({
+                   'metadata_type': 'add_method_type_info',
+                   'type_string': 'myobj',
+                   'method_name': 'value',
+                   'return_type': 'double',
+                   })
+         .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+         .SelectMany(lambda j: j.pt())
+         .Select(lambda pt: pt.value() * 2)
+         .value()
+         )
+    # Check to see if there mention of push_back anywhere.
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    value_ref = find_line_numbers_with(')->value()*2', lines)
+    assert len(value_ref) == 1
+    deref = find_line_numbers_with('(*', lines)
+    assert len(deref) == 1
+
+
 def test_event_collection_too_many_arg():
     'This is integration testing - making sure the dict to root conversion works'
     with pytest.raises(ValueError) as e:

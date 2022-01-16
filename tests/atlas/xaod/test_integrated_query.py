@@ -92,8 +92,6 @@ def test_simple_dict_output():
 def test_md_job_options():
     '''Run object corrections as we go
     Based on the following code:
-
-
     '''
     training_df = as_pandas(f_single
                             .MetaData({

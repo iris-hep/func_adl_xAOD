@@ -1,6 +1,3 @@
-# Code to translate from a reduced AST into C++ code. This is done by traversing the
-# Python AST code.
-
 import ast
 import logging
 from abc import ABC, abstractmethod
@@ -89,7 +86,7 @@ def get_ttree_type(rep):
         return rep.cpp_type()
 
 
-def determine_type_mf(parent_type, function_name):
+def determine_type_mf(parent_type: ctyp.terminal, function_name: str) -> ctyp.MethodInvokeInfo:
     '''
     Determine the return type of the member function. Do our best to make
     an intelligent case when we can.
@@ -102,19 +99,19 @@ def determine_type_mf(parent_type, function_name):
         raise RuntimeError("Internal Error: Trying to call member function for a type we do not know!")
     # If we are doing one of the normal "terminals", then we can just bomb. This should not happen!
 
-    rtn_type = ctyp.method_type_info(str(parent_type), function_name)
+    t_parent = parent_type.type
+    rtn_type = ctyp.method_type_info(t_parent, function_name)
     if rtn_type is not None:
         return rtn_type
 
     # We didn't know it. Lets make a guess, and error out if we are clearly making a mistake.
     base_types = ['double', 'float', 'int']
-    s_parent_type = str(parent_type)
-    if s_parent_type in base_types:
+    if t_parent in base_types:
         raise xAODTranslationError(f'Unable to call method {function_name} on type {str(parent_type)}.')
 
     # Ok - we give up. Return a double.
-    logging.getLogger(__name__).warning(f"Warning: assuming that the method '{str(s_parent_type)}.{function_name}(...)' has return type 'double'. Use cpp_types.add_method_type_info to suppress (or correct) this warning.")
-    return ctyp.terminal('double')
+    logging.getLogger(__name__).warning(f"Warning: assuming that the method '{str(t_parent)}::{function_name}(...)' has return type 'double'. Use cpp_types.add_method_type_info to suppress (or correct) this warning.")
+    return ctyp.MethodInvokeInfo(ctyp.terminal('double'), 0)
 
 
 def _extract_column_names(names_ast: ast.AST) -> List[str]:
@@ -130,7 +127,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
     Drive the conversion to C++ from the top level query
     """
 
-    def __init__(self, prefix, is_loop_var_a_ref):
+    def __init__(self, prefix):
         r'''
         Initialize the visitor.
         '''
@@ -138,7 +135,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         self._gc = generated_code()
         self._arg_stack = argument_stack()
         self._prefix = prefix
-        self._is_loop_var_a_ref = is_loop_var_a_ref
 
     def include_files(self):
         return self._gc.include_files()
@@ -291,16 +287,21 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         'Look up the in our local dict. This takes care of function arguments, etc.'
         return self._arg_stack.lookup_name(id)
 
-    def make_sequence_from_collection(self, rep):
+    def make_sequence_from_collection(self, rep: crep.cpp_collection) -> crep.cpp_sequence:
         '''
         Take a collection and produce a sequence. Eventually this should likely be some sort of
         plug-in architecture. But for now, we will just assume everything looks like a vector. When
         it comes time for a new type, this is where it should go.
         '''
-        element_type = rep.cpp_type().element_type()
-        element_type = element_type.get_dereferenced_type() if self._is_loop_var_a_ref else element_type
+        cpp_type = rep.cpp_type()
+        assert isinstance(cpp_type, ctyp.collection)
+        element_type = cpp_type.element_type
         iterator_value = crep.cpp_value(unique_name("i_obj"), None, element_type)  # type: ignore
-        l_statement = statement.loop(iterator_value, crep.dereference_var(rep), is_loop_var_a_ref=self._is_loop_var_a_ref)  # type: ignore
+
+        # It could be this should deref until p_depth is 0
+        collection = crep.dereference_var(rep)
+
+        l_statement = statement.loop(iterator_value, collection)
         self._gc.add_statement(l_statement)
         iterator_value.reset_scope(self._gc.current_scope())
 
@@ -566,20 +567,20 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         function_name = call_node.func.attr  # type: ignore
         if not isinstance(calling_against, crep.cpp_value):
             # We didn't use get_rep_value above because now we can make a better error message.
-            raise Exception("Do not know how to call '{0}' on '{1}'".format(function_name, type(calling_against).__name__))
+            raise ValueError("Do not know how to call '{0}' on '{1}'".format(function_name, type(calling_against).__name__))
 
         # We support member calls that directly translate only. Here, for example, this is only for
         # obj.pt() or similar. The translation is direct.
-        c_stub = calling_against.as_cpp() + ("->" if calling_against.is_pointer() else ".")
-        result_type = determine_type_mf(calling_against.cpp_type(), function_name)
+        m_info = determine_type_mf(calling_against.cpp_type(), function_name)
+        c_stub = crep.base_type_member_access(calling_against, m_info.deref_depth)
 
         # Support returned collections or values depending on the result type.
         args = call_node.args
         v_name = f"{c_stub}{function_name}({','.join(self.get_rep(arg).as_cpp() for arg in args)})"  # type: ignore
-        if isinstance(result_type, ctyp.collection):
-            crep.set_rep(call_node, crep.cpp_collection(v_name, calling_against.scope(), result_type))
+        if isinstance(m_info.r_type, ctyp.collection):
+            crep.set_rep(call_node, crep.cpp_collection(v_name, calling_against.scope(), m_info.r_type))
         else:
-            crep.set_rep(call_node, crep.cpp_value(v_name, calling_against.scope(), result_type))
+            crep.set_rep(call_node, crep.cpp_value(v_name, calling_against.scope(), m_info.r_type))
 
     def visit_function_ast(self, call_node):
         'Drop-in replacement for a function'
@@ -630,8 +631,8 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         variable = node.attr
         if not isinstance(obj, crep.cpp_value):
             raise Exception("Do not know how to get member '{0}' of '{1}'".format(variable, type(obj).__name__))
-        result_type = determine_type_mf(obj.cpp_type(), variable)
-        crep.set_rep(node, crep.cpp_value(f"{obj.as_cpp()}{'->' if obj.is_pointer() else '.'}{variable}", self._gc.current_scope(), result_type))
+        m_info = determine_type_mf(obj.cpp_type(), variable)
+        crep.set_rep(node, crep.cpp_value(f"{crep.base_type_member_access(obj, m_info.deref_depth)}{variable}", self._gc.current_scope(), m_info.r_type))
 
     def visit_Name(self, name_node: ast.Name):
         'Visiting a name - which should represent something'
@@ -646,7 +647,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             raise Exception("Do not know how to take the index of type '{0}'".format(v.cpp_type()))  # type: ignore
 
         index = self.get_rep(node.slice)
-        crep.set_rep(node, crep.cpp_value(f"{v.as_cpp()}{'->' if v.is_pointer() else '.'}at({index.as_cpp()})", self._gc.current_scope(), cpp_type=v.get_element_type()))  # type: ignore
+        crep.set_rep(node, crep.cpp_value(f"{crep.base_type_member_access(v)}at({index.as_cpp()})", self._gc.current_scope(), cpp_type=v.get_element_type()))  # type: ignore
 
     def visit_Index(self, node):
         'We can only do single items, we cannot do slices yet'

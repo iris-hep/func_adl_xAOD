@@ -1,23 +1,26 @@
+from typing import Union
 import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.event_collections import (
     EventCollectionSpecification, event_collection_coder,
-    event_collection_collection, event_collection_container)
+    event_collection_collection_container, event_collection_container)
 
 
 class atlas_xaod_event_collection_container(event_collection_container):
-    def __init__(self, type_name, is_pointer=True):
-        super().__init__(type_name, is_pointer)
+    def __init__(self, type_name: Union[str, ctyp.CPPParsedTypeInfo], p_depth: int = 1):
+        super().__init__(type_name, p_depth=p_depth)
 
     def __str__(self):
-        return f"const {self._type_name} *"
+        return f"const {self.type} *"
 
 
-class atlas_xaod_event_collection_collection(event_collection_collection):
-    def __init__(self, type_name, element_name, is_type_pointer=True, is_element_pointer=True):
-        super().__init__(type_name, element_name, is_type_pointer, is_element_pointer)
+class atlas_xaod_event_collection_collection(event_collection_collection_container):
+    def __init__(self, type_name: Union[str, ctyp.CPPParsedTypeInfo],
+                 element_name: Union[str, ctyp.CPPParsedTypeInfo],
+                 p_depth_type: int = 1, p_depth_element: int = 1):
+        super().__init__(type_name, element_name, p_depth_element=p_depth_element, p_depth_type=p_depth_type)
 
     def __str__(self):
-        return f"const {self._type_name}*"
+        return f"const {self.type}*"
 
 
 # all the collections types that are available. This is required because C++
@@ -63,10 +66,10 @@ atlas_xaod_collections = [
 
 def define_default_atlas_types():
     'Define the default atlas types'
-    ctyp.add_method_type_info("xAOD::TruthParticle", "prodVtx", ctyp.terminal('xAODTruth::TruthVertex', is_pointer=True))
-    ctyp.add_method_type_info("xAOD::TruthParticle", "decayVtx", ctyp.terminal('xAODTruth::TruthVertex', is_pointer=True))
-    ctyp.add_method_type_info("xAOD::TruthParticle", "parent", ctyp.terminal('xAOD::TruthParticle', is_pointer=True))
-    ctyp.add_method_type_info("xAOD::TruthParticle", "child", ctyp.terminal('xAOD::TruthParticle', is_pointer=True))
+    ctyp.add_method_type_info("xAOD::TruthParticle", "prodVtx", ctyp.terminal('xAODTruth::TruthVertex', p_depth=1))
+    ctyp.add_method_type_info("xAOD::TruthParticle", "decayVtx", ctyp.terminal('xAODTruth::TruthVertex', p_depth=1))
+    ctyp.add_method_type_info("xAOD::TruthParticle", "parent", ctyp.terminal('xAOD::TruthParticle', p_depth=1))
+    ctyp.add_method_type_info("xAOD::TruthParticle", "child", ctyp.terminal('xAOD::TruthParticle', p_depth=1))
 
 
 class atlas_event_collection_coder(event_collection_coder):

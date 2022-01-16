@@ -1,6 +1,7 @@
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
 from func_adl_xAOD.common.cpp_types import add_method_type_info, collection, terminal
+from func_adl_xAOD.common.cpp_types import CPPParsedTypeInfo, parse_type
 from typing import Any, Dict, List, Union
 from dataclasses import dataclass
 
@@ -12,26 +13,42 @@ class JobScriptSpecification:
     depends_on: List[str]
 
 
-def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification]]:
+@dataclass
+class IncludeFileList:
+    files: List[str]
+
+
+def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification, IncludeFileList]]:
     '''Process a list of metadata, in order.
 
     Args:
         md (List[Dict[str, str]]): The metadata to process
 
     Returns:
-        List[CPPCodeSpecification]: Any C++ functions that were defined in the metadata
+        List[X]: Metadata we've found
     '''
-    cpp_funcs: List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification]] = []
+    cpp_funcs: List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification, IncludeFileList]] = []
     for md in md_list:
         md_type = md.get('metadata_type')
         if md_type is None:
             raise ValueError(f'Metadata is missing `metadata_type` info ({md})')
 
         if md_type == 'add_method_type_info':
-            is_pointer = md['is_pointer'].upper() == 'TRUE'
-            term = terminal(md['return_type'], is_pointer=is_pointer) if 'return_type' in md \
-                else collection(terminal(md['return_type_element'], is_pointer=True), is_pointer=is_pointer, array_type=md['return_type_collection'] if 'return_type_collection' in md else None)
-            add_method_type_info(md['type_string'], md['method_name'], term)
+            if 'return_type' in md:
+                # Single return type
+                type_info = parse_type(md['return_type'])
+                term = terminal(type_info.name, p_depth=type_info.pointer_depth)
+            else:
+                type_info_element = parse_type(md['return_type_element'])
+                type_info_collection = parse_type(md['return_type_collection']) if 'return_type_collection' in md else CPPParsedTypeInfo(f'std::vector<{type_info_element}>', 0)
+                term = collection(terminal(type_info_element), array_type=type_info_collection)
+            d_count = 0
+            if 'deref_count' in md:
+                d_count = int(md['deref_count'])
+            add_method_type_info(md['type_string'], md['method_name'], term, d_count)
+        elif md_type == 'include_files':
+            spec = IncludeFileList(md['files'])
+            cpp_funcs.append(spec)
         elif md_type == 'add_job_script':
             spec = JobScriptSpecification(
                 name=md['name'],

@@ -50,28 +50,10 @@ from __future__ import annotations
 # Others follow a similar line of reasoning.
 import ast
 import copy
-from typing import Optional, Union, cast
+from typing import Optional, TypeVar, Union, cast
 
 import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.util_scope import gc_scope, gc_scope_top_level
-
-
-def dereference_var(v: cpp_value):
-    '''
-    If this is a pointer, return the object with the proper type (and a * to dereference it). Otherwise
-    just return the object itself.
-    '''
-    if not v.cpp_type().is_pointer():
-        return v
-
-    # We will go under the covers and "fix" this.
-    new_v = copy.copy(v)
-    new_v._expression = "*" + new_v._expression
-
-    # There is only one type we current support here.
-    # Eventually this is going to get us into trouble.
-    new_v._cpp_type = new_v._cpp_type.dereference()  # type: ignore
-    return new_v
 
 
 class dummy_ast(ast.AST):
@@ -122,11 +104,12 @@ class cpp_value(cpp_rep_base):
     def __str__(self) -> str:
         return f'{str(self._cpp_type)} value (expression {self._expression})'
 
-    def is_pointer(self) -> bool:
-        'Return true if this type is a pointer'
-        return self.cpp_type().is_pointer()
+    @property
+    def p_depth(self) -> int:
+        'Return the depth of the pointer'
+        return self.cpp_type().p_depth
 
-    def as_cpp(self):
+    def as_cpp(self) -> str:
         return self._expression
 
     def reset_scope(self, scope: gc_scope):
@@ -149,7 +132,7 @@ class cpp_value(cpp_rep_base):
             raise RuntimeError(f'Internal Error: Variable {self._expression} does not have an assigned type, but needs one.')
         return self._cpp_type
 
-    def copy_with_new_scope(self, scope):
+    def copy_with_new_scope(self, scope) -> cpp_value:
         'Make a new version, with just the scope changed'
         new_v = copy.copy(self)
         new_v._scope = scope
@@ -197,7 +180,7 @@ class cpp_collection(cpp_value):
 
     def get_element_type(self):
         'Return the type of the element of the sequence'
-        return cast(ctyp.collection, self.cpp_type()).element_type()
+        return cast(ctyp.collection, self.cpp_type()).element_type
 
 
 class cpp_tuple(cpp_rep_base):
@@ -282,7 +265,7 @@ class cpp_sequence(cpp_rep_base):
 
     def cpp_type(self) -> ctyp.terminal:
         if self._type is None:
-            self._type = ctyp.collection(self._sequence.cpp_type().type)
+            self._type = ctyp.collection(self._sequence.cpp_type())
         return self._type
 
     def as_cpp(self):
@@ -305,3 +288,49 @@ def get_rep(node: ast.AST) -> cpp_rep_base:
     Get the representation of a node.
     '''
     return node.rep  # type: ignore
+
+
+# Allow dereference type for anything that is a value of some sort
+DT = TypeVar('DT', bound=cpp_value)
+
+
+def dereference_var(v: DT) -> DT:
+    '''
+    If this is a pointer, return the object with the proper type (and a * to dereference it). Otherwise
+    just return the object itself.
+
+    NOTE: It might just return the object itself, not dereferencing it!
+    '''
+    if not v.cpp_type().is_a_pointer:
+        return v
+
+    # We will go under the covers and "fix" this.
+    new_v = copy.copy(v)
+    new_v._expression = "*" + new_v._expression
+
+    # There is only one type we current support here.
+    # Eventually this is going to get us into trouble.
+    new_v._cpp_type = new_v.cpp_type().get_dereferenced_type()
+    return new_v
+
+
+def base_type_member_access(v: cpp_value, extra_deref: int = 0) -> str:
+    '''
+    Turn a C++ object into a base reference suitable for
+    a member access.
+
+    obj f => f.
+    obj *f => f->
+    obj **f => (*f)->
+
+    v:            The object to access.
+    extra_deref:  The number of extra dereferences to apply.
+    '''
+    result = v.as_cpp()
+    depth = extra_deref + v.cpp_type().p_depth
+    for _ in range(1, depth):
+        result = f'(*{result})'
+    if depth > 0:
+        return f'{result}->'
+    else:
+        return f'{result}.'

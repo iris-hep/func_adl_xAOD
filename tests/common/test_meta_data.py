@@ -1,17 +1,25 @@
 import ast
-from func_adl_xAOD.cms.aod.event_collections import cms_aod_event_collection_collection
-from func_adl_xAOD.atlas.xaod.event_collections import atlas_xaod_event_collection_collection, atlas_xaod_event_collection_container
 from typing import Callable, List
 
 import func_adl_xAOD.common.statement as statement
 import pytest
+from func_adl_xAOD.atlas.xaod.event_collections import (
+    atlas_xaod_event_collection_collection,
+    atlas_xaod_event_collection_container)
+from func_adl_xAOD.cms.aod.event_collections import \
+    cms_aod_event_collection_collection
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
 from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
-from func_adl_xAOD.common.cpp_types import collection, method_type_info, terminal
+from func_adl_xAOD.common.cpp_types import (collection, method_type_info,
+                                            terminal)
 from func_adl_xAOD.common.event_collections import (
-    EventCollectionSpecification, event_collection_coder, event_collection_container)
+    EventCollectionSpecification, event_collection_coder,
+    event_collection_container)
 from func_adl_xAOD.common.executor import executor
-from func_adl_xAOD.common.meta_data import JobScriptSpecification, generate_script_block, process_metadata
+from func_adl_xAOD.common.meta_data import (IncludeFileList,
+                                            JobScriptSpecification,
+                                            generate_script_block,
+                                            process_metadata)
 from tests.utils.base import dataset, dummy_executor  # type: ignore
 
 
@@ -36,7 +44,6 @@ def test_bad_meta_data():
             'type_string': 'my_namespace::obj',
             'method_name': 'pT',
             'return_type': 'int',
-            'is_pointer': 'False',
         }
     ]
 
@@ -54,7 +61,6 @@ def test_md_method_type_double():
             'type_string': 'my_namespace::obj',
             'method_name': 'pT',
             'return_type': 'double',
-            'is_pointer': 'False',
         }
     ]
 
@@ -62,8 +68,30 @@ def test_md_method_type_double():
 
     t = method_type_info('my_namespace::obj', 'pT')
     assert t is not None
-    assert t.type == 'double'
-    assert t.is_pointer() is False
+    assert t.r_type.type == 'double'
+    assert not t.r_type.is_a_pointer
+    assert t.deref_depth == 0
+
+
+def test_md_method_type_double_deref():
+    'Make sure a double can be set'
+    metadata = [
+        {
+            'metadata_type': 'add_method_type_info',
+            'type_string': 'my_namespace::obj',
+            'method_name': 'pT',
+            'return_type': 'double',
+            'deref_count': 2,
+        }
+    ]
+
+    process_metadata(metadata)
+
+    t = method_type_info('my_namespace::obj', 'pT')
+    assert t is not None
+    assert t.r_type.type == 'double'
+    assert not t.r_type.is_a_pointer
+    assert t.deref_depth == 2
 
 
 def test_md_method_type_collection():
@@ -74,7 +102,6 @@ def test_md_method_type_collection():
             'type_string': 'my_namespace::obj',
             'method_name': 'pT',
             'return_type_element': 'double',
-            'is_pointer': 'False',
         }
     ]
 
@@ -82,11 +109,34 @@ def test_md_method_type_collection():
 
     t = method_type_info('my_namespace::obj', 'pT')
     assert t is not None
-    assert isinstance(t, collection)
-    assert t.type == 'std::vector<double>'
-    assert isinstance(t.element_type(), terminal)
-    assert str(t.element_type()) == 'double'
-    assert t.is_pointer() is False
+    assert isinstance(t.r_type, collection)
+    assert t.r_type.type == 'std::vector<double>'
+    assert isinstance(t.r_type.element_type, terminal)
+    assert str(t.r_type.element_type) == 'double'
+    assert not t.r_type.is_a_pointer
+
+
+def test_md_method_type_collection_item_ptr():
+    'Make sure a double can be set'
+    metadata = [
+        {
+            'metadata_type': 'add_method_type_info',
+            'type_string': 'my_namespace::obj',
+            'method_name': 'pT',
+            'return_type_element': 'double*',
+        }
+    ]
+
+    process_metadata(metadata)
+
+    t = method_type_info('my_namespace::obj', 'pT')
+    assert t is not None
+    assert isinstance(t.r_type, collection)
+    assert t.r_type.type == 'std::vector<double*>'
+    assert isinstance(t.r_type.element_type, terminal)
+    assert str(t.r_type.element_type) == 'double*'
+    assert t.r_type.element_type.p_depth == 1
+    assert not t.r_type.is_a_pointer
 
 
 def test_md_method_type_custom_collection():
@@ -98,7 +148,6 @@ def test_md_method_type_custom_collection():
             'method_name': 'pT',
             'return_type_element': 'double',
             'return_type_collection': 'MyCustomCollection',
-            'is_pointer': 'False',
         }
     ]
 
@@ -106,10 +155,30 @@ def test_md_method_type_custom_collection():
 
     t = method_type_info('my_namespace::obj', 'pT')
     assert t is not None
-    assert isinstance(t, collection)
-    assert t.type == 'MyCustomCollection'
-    assert str(t.element_type()) == 'double'
-    assert t.is_pointer() is False
+    assert isinstance(t.r_type, collection)
+    assert t.r_type.type == 'MyCustomCollection'
+    assert str(t.r_type.element_type) == 'double'
+    assert not t.r_type.is_a_pointer
+
+
+def test_md_method_type_collection_ptr():
+    'Make sure a double can be set'
+    metadata = [
+        {
+            'metadata_type': 'add_method_type_info',
+            'type_string': 'my_namespace::obj',
+            'method_name': 'pT',
+            'return_type_element': 'double',
+            'return_type_collection': 'vector<double>*',
+        }
+    ]
+
+    process_metadata(metadata)
+
+    t = method_type_info('my_namespace::obj', 'pT')
+    assert t is not None
+    assert isinstance(t.r_type, collection)
+    assert t.r_type.is_a_pointer
 
 
 def test_md_method_type_object_pointer():
@@ -119,8 +188,7 @@ def test_md_method_type_object_pointer():
             'metadata_type': 'add_method_type_info',
             'type_string': 'my_namespace::obj',
             'method_name': 'vertex',
-            'return_type': 'my_namespace::vertex',
-            'is_pointer': 'True',
+            'return_type': 'my_namespace::vertex*',
         }
     ]
 
@@ -128,8 +196,8 @@ def test_md_method_type_object_pointer():
 
     t = method_type_info('my_namespace::obj', 'vertex')
     assert t is not None
-    assert t.type == 'my_namespace::vertex'
-    assert t.is_pointer() is True
+    assert t.r_type.type == 'my_namespace::vertex'
+    assert t.r_type.is_a_pointer
 
 
 def test_with_method_call_with_type(caplog):
@@ -141,13 +209,29 @@ def test_with_method_call_with_type(caplog):
             'type_string': 'my_namespace::obj',
             'method_name': 'pT',
             'return_type': 'int',
-            'is_pointer': 'False',
         })
         .Select(lambda e: e.info('fork').pT())
         .value()
      )
 
     assert 'pT' not in caplog.text
+
+
+def test_md_include_files():
+    'Add some include files'
+    metadata = [
+        {
+            'metadata_type': 'include_files',
+            'files': ['file1.h', 'file2.h'],
+        }
+    ]
+
+    result = process_metadata(metadata)
+
+    assert len(result) == 1
+    s = result[0]
+    assert isinstance(s, IncludeFileList)
+    assert s.files == ['file1.h', 'file2.h']
 
 
 def test_md_atlas_collection():
@@ -170,8 +254,8 @@ def test_md_atlas_collection():
     assert s.name == 'TruthParticles'
     assert s.include_files == ['file1.h', 'file2.h']
     assert isinstance(s.container_type, atlas_xaod_event_collection_collection)
-    assert s.container_type._element_name == 'xAOD::Electron'
-    assert s.container_type._type_name == 'xAOD::ElectronContainer'
+    assert s.container_type.element_type.type == 'xAOD::Electron'
+    assert s.container_type.type == 'xAOD::ElectronContainer'
     assert s.libraries == []
 
 
@@ -195,7 +279,7 @@ def test_md_atlas_collection_single_obj():
     assert s.name == 'EventInfo'
     assert s.include_files == ['xAODEventInfo/EventInfo.h']
     assert isinstance(s.container_type, atlas_xaod_event_collection_container)
-    assert s.container_type._type_name == 'xAOD::EventInfo'
+    assert s.container_type.type == 'xAOD::EventInfo'
     assert s.libraries == ['xAODEventInfo']
 
 
@@ -270,8 +354,8 @@ def test_md_cms_collection():
     assert s.name == 'Vertex'
     assert s.include_files == ['DataFormats/VertexReco/interface/Vertex.h']
     assert isinstance(s.container_type, cms_aod_event_collection_collection)
-    assert s.container_type._element_name == 'reco::Vertex'
-    assert s.container_type._type_name == 'reco::VertexCollection'
+    assert s.container_type.element_type.type == 'reco::Vertex'
+    assert s.container_type.type == 'reco::VertexCollection'
 
 
 def test_md_cms_collection_extra():
@@ -582,7 +666,7 @@ class dummy_ttree_fill(statement.ttree_fill):
 
 class dummy_query_ast_visitor(query_ast_visitor):
     def __init__(self):
-        super().__init__('dummy', False)
+        super().__init__('dummy')
 
     def create_book_ttree_obj(self, tree_name: str, leaves: list) -> statement.book_ttree:
         return dummy_book_ttree()

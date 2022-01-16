@@ -2,13 +2,14 @@
 # is needed to.
 import ast
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
-from typing import Any, Callable, Dict
-from func_adl_xAOD.common.meta_data import JobScriptSpecification, process_metadata
+from typing import Any, Callable, Dict, List
+from func_adl_xAOD.common.meta_data import IncludeFileList, JobScriptSpecification, process_metadata
 import os
 import sys
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from pathlib import Path
+import itertools
 
 import func_adl_xAOD.common.cpp_ast as cpp_ast
 import func_adl_xAOD.common.cpp_representation as crep
@@ -87,6 +88,7 @@ class executor(ABC):
         self._template_dir_name = template_dir_name
         self._method_names = method_names
         self._job_option_blocks = []
+        self._include_files: List[str] = []
 
     def _copy_template_file(self, j2_env, info, template_file, final_dir: Path):
         'Copy a file to a final directory'
@@ -116,6 +118,9 @@ class executor(ABC):
         })
         a = cpp_ast.cpp_ast_finder(method_names).visit(a)
 
+        # Pull out all include files required
+        self._include_files = list(itertools.chain(*[md.files for md in cpp_functions if isinstance(md, IncludeFileList)]))
+
         # Pull off any joboption blocks
         for m in cpp_functions:
             if isinstance(m, JobScriptSpecification):
@@ -123,6 +128,11 @@ class executor(ABC):
 
         # And return the modified ast
         return a
+
+    @property
+    def include_files(self) -> List[str]:
+        'Return the list of include files from the query'
+        return self._include_files
 
     @abstractmethod
     def build_collection_callback(self, metadata: EventCollectionSpecification) -> Callable[[ast.Call], ast.Call]:
@@ -173,7 +183,7 @@ class executor(ABC):
         book_code = _cpp_source_emitter()
         qv.emit_book(book_code)
         class_decl_code = qv.class_declaration_code()
-        includes = qv.include_files()
+        includes = qv.include_files() + self.include_files
         link_libraries = qv.link_libraries()
 
         # The replacement dict to pass to the template generator can now be filled
