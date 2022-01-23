@@ -162,7 +162,8 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         '''
         rep = getattr(node, 'rep', None)
         if rep is not None:
-            if not self._gc.current_scope().starts_with(rep.scope()):
+            rep_scope = getattr(node, 'scope', rep.scope())
+            if not self._gc.current_scope().starts_with(rep_scope):
                 rep = None
 
         if rep is None:
@@ -1093,6 +1094,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         source = args[0]
 
         # Make sure we are in a loop.
+        cs = self._gc.current_scope()
         seq = self.as_sequence(source)
 
         # The First terminal works by protecting the code with a if (first_time) {} block.
@@ -1125,4 +1127,4 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # Otherwise return a new version of the value.
         first_value = sv if isinstance(sv, crep.cpp_sequence) else sv.copy_with_new_scope(self._gc.current_scope())
 
-        crep.set_rep(node, first_value)
+        crep.set_rep(node, first_value, cs)

@@ -2,6 +2,7 @@
 from tests.utils.locators import find_line_with, find_open_blocks  # type: ignore
 from tests.utils.general import get_lines_of_code, print_lines  # type: ignore
 from tests.atlas.xaod.utils import atlas_xaod_dataset  # type: ignore
+import re
 
 
 def test_first_jet_in_event():
@@ -11,9 +12,11 @@ def test_first_jet_in_event():
 
 
 def test_first_after_selectmany():
-    atlas_xaod_dataset() \
+    r = atlas_xaod_dataset() \
         .Select('lambda e: e.Jets("jets").SelectMany(lambda j: e.Tracks("InnerTracks")).First()') \
         .value()
+    lines = get_lines_of_code(r)
+    print_lines(lines)
 
 
 def test_first_after_where():
@@ -67,3 +70,27 @@ def test_First_Of_Select_After_Where_is_in_right_place():
     ln = find_line_with(">10.0", lines)
     # Look for the "false" that First uses to remember it has gone by one.
     assert find_line_with("false", lines[ln:], throw_if_not_found=False) > 0
+
+
+def test_First_with_dict():
+    r = (atlas_xaod_dataset()
+         .Select(lambda e: e.Jets('Anti').First())
+         .Select(lambda j: {
+             'pt': j.pt(),
+             'eta': j.eta()
+         })
+         .value())
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    l_pt = lines[find_line_with("->pt()", lines)]
+    l_eta = lines[find_line_with("->eta()", lines)]
+
+    obj_finder = re.compile(r".*(i_obj[0-9]+)->.*")
+    l_pt_r = obj_finder.match(l_pt)
+    l_eta_r = obj_finder.match(l_eta)
+
+    assert l_pt_r is not None
+    assert l_eta_r is not None
+
+    assert l_pt_r[1] == l_eta_r[1]

@@ -50,7 +50,7 @@ from __future__ import annotations
 # Others follow a similar line of reasoning.
 import ast
 import copy
-from typing import Optional, TypeVar, Union, cast
+from typing import Any, Optional, TypeVar, Union, cast
 
 import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.util_scope import gc_scope, gc_scope_top_level
@@ -276,11 +276,13 @@ class cpp_sequence(cpp_rep_base):
         return self._scope
 
 
-def set_rep(node: ast.AST, value: cpp_rep_base):
+def set_rep(node: ast.AST, value: cpp_rep_base, scope: Optional[Any] = None):
     '''
     Set the representation of a node to a value.
     '''
     node.rep = value  # type: ignore
+    if scope is not None:
+        node.scope = scope  # type: ignore
 
 
 def get_rep(node: ast.AST) -> cpp_rep_base:

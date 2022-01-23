@@ -1,9 +1,12 @@
+import re
+
 import pytest
 from func_adl import Range
-from tests.atlas.xaod.utils import atlas_xaod_dataset, exe_from_qastle  # type: ignore
+from tests.atlas.xaod.utils import (atlas_xaod_dataset,  # type: ignore
+                                    exe_from_qastle)
 from tests.utils.general import get_lines_of_code, print_lines  # type: ignore
-from tests.utils.locators import (find_line_numbers_with, find_line_with,  # type: ignore
-                                  find_open_blocks)
+from tests.utils.locators import (find_line_numbers_with,  # type: ignore
+                                  find_line_with, find_open_blocks)
 
 # Tests that make sure the xaod executor is working correctly
 
@@ -54,6 +57,32 @@ def test_per_jet_item():
     l_push_back = find_line_with("Fill()", lines)
     active_blocks = find_open_blocks(lines[:l_push_back])
     assert 1 == ["for" in a for a in active_blocks].count(True)
+
+
+def test_per_jet_dict_items():
+    # The following statement should be a straight sequence, not an array.
+    r = (atlas_xaod_dataset()
+         .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+         .Select(lambda j: {
+             'pt': j.pt(),
+             'eta': j.eta(),
+         })
+         .value())
+    # Check to see if there mention of push_back anywhere.
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    l_pt = lines[find_line_with("->pt()", lines)]
+    l_eta = lines[find_line_with("->eta()", lines)]
+
+    obj_finder = re.compile(r".*(i_obj[0-9]+)->.*")
+    l_pt_r = obj_finder.match(l_pt)
+    l_eta_r = obj_finder.match(l_eta)
+
+    assert l_pt_r is not None
+    assert l_eta_r is not None
+
+    assert l_pt_r[1] == l_eta_r[1]
 
 
 def test_builtin_abs_function():
