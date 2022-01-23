@@ -30,23 +30,6 @@ job.sampleHandler(sh)
 {{i}}
 {% endfor %}
 
-# Commented out for now because it really slows things down. Uncomment and change
-# the bank to be Analysis_NOSYS in query.cxx and it will work again.
-# #Get the systematics tool in - because we need it.
-# from AnaAlgorithm.AnaAlgorithmConfig import AnaAlgorithmConfig
-# config = AnaAlgorithmConfig( 'CP::SysListLoaderAlg/SysLoaderAlg' )
-# config.sigmaRecommended = 1
-# job.algsAdd( config )
-
-# # First step - run calibration for the jets so they are available to use when we want them.
-# ROOT.CP.JetCalibrationAlg ("dummy", None)
-# from JetAnalysisAlgorithms.JetAnalysisSequence import makeJetAnalysisSequence
-# #from jetsequence import makeJetAnalysisSequence
-# jetSequence = makeJetAnalysisSequence( 'data', "AntiKt4EMTopoJets" )
-# jetSequence.configure( inputName = "AntiKt4EMTopoJets", outputName = 'AnalysisJets' )
-# for alg in jetSequence:
-#     job.algsAdd(alg)
-
 # Create the algorithm's configuration.
 alg = createAlgorithm('query', 'AnalysisAlg')
 # later on we'll add some configuration options for our algorithm that go here
