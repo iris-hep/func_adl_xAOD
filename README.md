@@ -63,6 +63,11 @@ Template functions don't make sense yet in python.
 
 It is possible to inject metadata into the `qastle` query to alter the behavior of the C++ code production. Each sub-section below has a different type of metadata. In order to invoke this, use the `Metadata` call, which takes as input stream and outputs the same stream, but the argument is a dictionary which contains the metadata.
 
+A few things about metadata:
+
+- No two metadata blocks can have the same name and different content. However, it is legal for them to have different dependencies. In that case, the multiple blocks are treated as a single block with a union of the dependencies.
+- Exceptions (`ValueError`) are raised if the dependency graph can't be completed, or a circular dependency is discovered.
+
 #### Method Return Type
 
 If you have a method that returns a non-standard type, use this metadata type to specify to the backend the return type. There are two different forms for this metadata - one if a single item is returned, and another if a collection of items are returned.
