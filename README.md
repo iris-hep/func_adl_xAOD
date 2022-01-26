@@ -95,6 +95,38 @@ For a _collection_:
 | return_type_collection | The type of the collection | `vector<float>`, `vector<float>*` |
 | deref_count | Number of times to dereference object before invoking this method (optional) | 2 |
 
+#### C++ Inline Functions
+
+These are inline functions - they are placed inline in the code, surrounded by a braces. Only the `result` is declared
+outside, and expected to be set somewhere inside the block.
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"add_cpp_function"` |
+| name | C++ Function Name | `"DeltaR"` |
+| include_files | List of include files | `[vector, TLorentzVector.h]` |
+| arguments | List of argument names | `[vec1, vec2]` |
+| code | List of code lines | `["auto t = (vec1+vec2);", "result = t.m();"]` |
+| result_name | If not using `result` what should be used (optional) | `"my_result"` |
+| return_type | C++ return type | `double` |
+
+Note that a very simple replacement is done for `result_name` - so it needs to be a totally unique name. The back-end may well change `result` to some other name (like `r232`) depending on the complexity of the expression being parsed.
+
+#### Job Scripts
+
+ATLAS runs job scripts to configure its environment. These are needed to do things like apply corrections, etc. This block allows those to be added on the fly. In ATLAS these jobs scripts are python.
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"add_job_script"` |
+| name | Name of this script block | `"apply_corrections"` |
+| script | List of lines of python | `["calibration = makeAnalysis('mc')", "job.addSequence(calibration)"]` |
+| depends_on | List of other script blocks that this should come after | `["correction_setup"]` |
+
+A dependency graph is built from the `depends_on` entry, otherwise the blocks will appear in a random order.
+
+NOTE: Currently the CMS backend will ignore any job script metadata sent to it.
+
 #### Event Level Collections
 
 CMS and ATLAS store their basic reconstruction objects as collections (e.g. jets, etc.). You can define new collections on the fly with the following metadata
