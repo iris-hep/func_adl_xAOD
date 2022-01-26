@@ -28,6 +28,22 @@ def test_binary_plus_return_type_2():
     assert r.cpp_type().type == 'double'
 
 
+def test_bool_true():
+    q = atlas_xaod_query_ast_visitor()
+    r = q.get_rep(ast.parse("True").body[0].value)  # type: ignore
+    assert isinstance(r, crep.cpp_value)
+    assert r.cpp_type().type == 'bool'
+    assert r.as_cpp() == 'true'
+
+
+def test_bool_false():
+    q = atlas_xaod_query_ast_visitor()
+    r = q.get_rep(ast.parse("False").body[0].value)  # type: ignore
+    assert isinstance(r, crep.cpp_value)
+    assert r.cpp_type().type == 'bool'
+    assert r.as_cpp() == 'false'
+
+
 def test_complex_number_not_understood():
     if sys.version_info >= (3, 8):
         import cmath  # NOQA
