@@ -830,8 +830,20 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             crep.set_rep(node, crep.cpp_value(value, self._gc.current_scope(), ctyp.terminal("int")))
         elif type(value) is float:
             crep.set_rep(node, crep.cpp_value(value, self._gc.current_scope(), ctyp.terminal("double")))
+        elif type(value) is bool:
+            cpp_value = "true" if value else "false"
+            crep.set_rep(node, crep.cpp_value(cpp_value, self._gc.current_scope(), ctyp.terminal('bool')))
         else:
-            raise Exception(f"Unsupported constant type: {type(value)}")
+            raise ValueError(f"Unsupported constant type: {type(value)}")
+
+    def visit_NameConstant(self, node: ast.NameConstant):
+        value = node.value
+        if value is True:
+            crep.set_rep(node, crep.cpp_value("true", self._gc.current_scope(), ctyp.terminal('bool')))
+        elif value is False:
+            crep.set_rep(node, crep.cpp_value("false", self._gc.current_scope(), ctyp.terminal('bool')))
+        else:
+            raise ValueError(f"Unsupported constant: {value}")
 
     def code_fill_ttree(self, e_rep: crep.cpp_rep_base, e_name: crep.cpp_variable,
                         scope_fill: Union[gc_scope, gc_scope_top_level]) -> Union[gc_scope, gc_scope_top_level]:
