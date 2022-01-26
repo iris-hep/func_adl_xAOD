@@ -44,6 +44,14 @@ def test_bool_false():
     assert r.as_cpp() == 'false'
 
 
+def test_bool_None():
+    q = atlas_xaod_query_ast_visitor()
+    with pytest.raises(ValueError) as e:
+        q.get_rep(ast.parse("None").body[0].value)  # type: ignore
+
+    assert 'None' in str(e)
+
+
 def test_complex_number_not_understood():
     if sys.version_info >= (3, 8):
         import cmath  # NOQA
