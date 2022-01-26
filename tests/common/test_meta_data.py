@@ -554,6 +554,19 @@ def test_md_jb_duplicate():
     assert script == ['line3', 'line4']
 
 
+def test_md_jb_duplicate_different_depends():
+    blocks = [
+        JobScriptSpecification('block1', ['line1'], []),
+        JobScriptSpecification('block2', ['line2'], []),
+        JobScriptSpecification('block3', ['line3', 'line4'], ['block1']),
+        JobScriptSpecification('block3', ['line3', 'line4'], ['block2']),
+    ]
+
+    script = generate_script_block(blocks)
+
+    assert script == ['line1', 'line2', 'line3', 'line4']
+
+
 def test_md_jb_dup_script_dif():
     blocks = [
         JobScriptSpecification('block2', ['line3', 'line5'], []),

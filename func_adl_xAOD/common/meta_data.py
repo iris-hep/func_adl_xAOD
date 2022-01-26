@@ -114,6 +114,7 @@ def generate_script_block(blocks: List[JobScriptSpecification]) -> List[str]:
 
     * Takes dependencies into account
     * Gets rid of any duplicates
+    * Will combine any blocks with the same script text, but different dependencies.
 
     Args:
         blocks (List[JobScriptSpecification]): The list of, unordered, dependency blocks
@@ -121,35 +122,41 @@ def generate_script_block(blocks: List[JobScriptSpecification]) -> List[str]:
     Returns:
         List[str]: The list of insertions to insert.
     '''
-    script_block = {
-        j.name: j
-        for j in blocks
-    }
-    for j in blocks:
-        if j != script_block[j.name]:
-            raise ValueError(f'Duplicate block name {j.name} used, but blocks are not identical!')
+    # Build the dependency graph and check for improper
+    # duplications and dependencies.
+    dependencies: Dict[str, List[str]] = {}
+    block_lookup: Dict[str, JobScriptSpecification] = {}
 
-    # Check for all dependencies being there
-    for j in blocks:
-        for d in j.depends_on:
-            if d not in script_block:
-                raise ValueError(f'Dependency {d} not found in script block')
+    for b in blocks:
+        if b.name not in dependencies:
+            dependencies[b.name] = []
+            block_lookup[b.name] = b
+        else:
+            if b.script != block_lookup[b.name].script:
+                raise ValueError(f'Duplication block name {b.name}, but blocks are not identical!')
+
+        dependencies[b.name].extend(b.depends_on)
+
+    for name, deps in dependencies.items():
+        for d in deps:
+            if d not in dependencies:
+                raise ValueError(f'Dependent metadata block {d} not found in sent metadata (from {name}!')
 
     # Next, start from blocks that have no dependencies and work our way up.
     seen_blocks = set()
     script_text = []
 
-    while len(seen_blocks) < len(script_block):
+    while len(seen_blocks) < len(dependencies):
         emitted = False
-        for _, j in script_block.items():
+        for j in block_lookup.values():
             if j.name not in seen_blocks:
-                if set(j.depends_on) <= seen_blocks:
+                if set(dependencies[j.name]) <= seen_blocks:
                     for ln in j.script:
                         script_text.append(ln)
                     seen_blocks.add(j.name)
                     emitted = True
         if not emitted:
-            remaining_blocks = ', '.join((set(script_block.keys()) - seen_blocks))
+            remaining_blocks = ', '.join((set(block_lookup.keys()) - seen_blocks))
             raise ValueError(f'There seems to be a metadata script block circular dependency ({remaining_blocks})')
 
     return script_text
