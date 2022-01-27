@@ -112,7 +112,7 @@ class executor(ABC):
         method_names = dict(self._method_names)
         method_names.update({
             md.name:
-                (lambda call_node: cpp_ast.build_CPPCodeValue(md, call_node)) if isinstance(md, cpp_ast.CPPCodeSpecification)  # type: ignore
+                (lambda call_node, md=md: cpp_ast.build_CPPCodeValue(md, call_node)) if isinstance(md, cpp_ast.CPPCodeSpecification)  # type: ignore
                 else self.build_collection_callback(md)
             for md in cpp_functions if isinstance(md, (cpp_ast.CPPCodeSpecification, EventCollectionSpecification))
         })

@@ -76,6 +76,35 @@ def test_metadata_cpp_code():
     assert isinstance(call_obj, CPPCodeValue)
 
 
+def test_metadata_cpp_code_capture():
+    'Make sure we do not capture bad data (bug seen)'
+
+    a1 = parse_statement('Select(MetaData(MetaData(ds, {'
+                         '"metadata_type": "add_job_script",'
+                         '"name": "apply_corrections",'
+                         '"script": ["line1"],'
+                         '"depends_on": [],'
+                         '}),{'
+                         '"metadata_type": "add_cpp_function",'
+                         '"name": "MyDeltaR",'
+                         '"include_files": ["TVector2.h", "math.h"],'
+                         '"arguments": ["eta1", "phi1", "eta2", "phi2"],'
+                         '"code": ['
+                         '   "auto d_eta = eta1 - eta2;",'
+                         '   "auto d_phi = TVector2::Phi_mpi_pi(phi1-phi2);",'
+                         '   "auto result = (d_eta*d_eta + d_phi*d_phi);"'
+                         '],'
+                         '"return_type": "double"'
+                         '}), lambda e: MyDeltaR(1,2,3,4))')
+
+    new_a1 = do_nothing_executor().apply_ast_transformations(a1)
+
+    assert 'CPPCodeValue' in ast.dump(new_a1)
+
+    call_obj = new_a1.args[1].body.func  # type: ignore
+    assert isinstance(call_obj, CPPCodeValue)
+
+
 def test_metadata_collection():
     'Make sure the metadata for a new collections goes all the way through'
 
