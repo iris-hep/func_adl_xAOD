@@ -154,21 +154,27 @@ For _cms_:
 | contains_collection | Some items are singletons (like `EventInfo`) | `True` or `False` |
 | element_pointer | Indicates if the element type is a pointer | `True` or `False` |
 
-#### Include Files
+#### Code Blocks
 
-Any include files listed will be added to the top of the `query.cpp` file that is generated. While ordering is maintained within a single `Metadata` query here, it is not maintained between different `Metadata` calls.
+Code blocks provide a way to inject various lines of C++ into code. There are a number of options, and any combinations of keys can be used.
 
-All includes are done with straight quotes:
-
-```C++
-#include "file1.hpp"
-#include "file2.hpp"
-```
 
 | Key | Description | Example |
 | ------------ | ------------ | --------------|
-| metadata_type | The metadata type | `"include_files"` |
-| files | List of files to include. | `["file1.hpp", "file2.hpp"]` |
+| metadata_type | The metadata type | `"inject_code"` |
+| body_includes | List of files to include in the C++ file (`query.cpp`). | `["file1.hpp", "file2.hpp"]` |
+| header_includes | List of files to include in the C++ header file (`query.hpp`). | `["file1.hpp", "file2.hpp"]` |
+| private_members | List of class instance variables to declare (`query.hpp`) | `["int first;", "int second;"]` |
+| instance_initialization | Initializers added to the constructor in the main C++ class file (`query.cpp`) | `["first(10)", "second(10)"]` |
+| ctor_lines | Lines of C++ to add to the body of the constructor (`query.cpp`) | `["second = first * 10;"]`
+| link_libraries | Items to add to the `CMake LINK_LIBRARIES` list (`CMakeLists.txt`) | `["TrigDecisionToolLib"]` |
+
+A few things to note:
+
+- Note the items that have semicolons and those that do not. This is crucial - the system will not add them in those cases!
+- While the ordering of lines withing a single `inject_code` metadata block will be maintained, different blocks may be reordered arbitrarily.
+- Include files always use the double-quote: `#include "file1.hpp"`
+
 
 ### Output Formats
 

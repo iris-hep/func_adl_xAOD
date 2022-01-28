@@ -3,7 +3,7 @@ from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
 from func_adl_xAOD.common.cpp_types import add_method_type_info, collection, terminal
 from func_adl_xAOD.common.cpp_types import CPPParsedTypeInfo, parse_type
 from typing import Any, Dict, List, Union
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -14,11 +14,32 @@ class JobScriptSpecification:
 
 
 @dataclass
-class IncludeFileList:
-    files: List[str]
+class InjectCodeBlock:
+    'Code to be directly injected into the hpp and cpp files'
+
+    # Include files for the cpp code
+    body_includes: List[str] = field(default_factory=list)
+
+    # Include files for the hpp code
+    header_includes: List[str] = field(default_factory=list)
+
+    # Instance variable declarations
+    private_members: List[str] = field(default_factory=list)
+
+    # Instance variable ctor initializers
+    instance_initialization: List[str] = field(default_factory=list)
+
+    # Code lines to place in the constructor
+    ctor_lines: List[str] = field(default_factory=list)
+
+    # Lines to add to initialize statement
+    initialize_lines: List[str] = field(default_factory=list)
+
+    # Packages/Libraries to add to the CMake lib line
+    link_libraries: List[str] = field(default_factory=list)
 
 
-def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification, IncludeFileList]]:
+def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification, InjectCodeBlock]]:
     '''Process a list of metadata, in order.
 
     Args:
@@ -27,7 +48,7 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
     Returns:
         List[X]: Metadata we've found
     '''
-    cpp_funcs: List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification, IncludeFileList]] = []
+    cpp_funcs: List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification, InjectCodeBlock]] = []
     for md in md_list:
         md_type = md.get('metadata_type')
         if md_type is None:
@@ -46,9 +67,15 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
             if 'deref_count' in md:
                 d_count = int(md['deref_count'])
             add_method_type_info(md['type_string'], md['method_name'], term, d_count)
-        elif md_type == 'include_files':
-            spec = IncludeFileList(md['files'])
-            cpp_funcs.append(spec)
+        elif md_type == 'inject_code':
+            info = dict(md)
+            del info['metadata_type']
+            if len(info) > 0:
+                try:
+                    spec = InjectCodeBlock(**info)
+                    cpp_funcs.append(spec)
+                except TypeError as e:
+                    raise ValueError(f'Bad inject_code block item: {str(e)}')
         elif md_type == 'add_job_script':
             spec = JobScriptSpecification(
                 name=md['name'],

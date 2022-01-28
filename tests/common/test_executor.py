@@ -130,10 +130,12 @@ def test_include_files():
     'Make sure include files are properly dealt with'
 
     a1 = parse_statement('Select(MetaData(ds, {'
-                         '"metadata_type": "include_files",'
-                         '"files": ["xAODEventInfo/EventInfo.h"],'
+                         '"metadata_type": "inject_code",'
+                         '"body_includes": ["xAODEventInfo/EventInfo.h"],'
+                         '"header_includes": ["file.hpp"],'
                          '}), lambda e: e.crazy("fork").pT())')
 
     exe = do_nothing_executor()
     _ = exe.apply_ast_transformations(a1)
-    assert exe.include_files == ["xAODEventInfo/EventInfo.h"]
+    assert exe.body_include_files == ["xAODEventInfo/EventInfo.h"]
+    assert exe.header_include_files == ["file.hpp"]
