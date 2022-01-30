@@ -222,6 +222,7 @@ def test_md_code_block():
     metadata = [
         {
             'metadata_type': 'inject_code',
+            'name': "my_code_block",
             'body_includes': ['file1.h', 'file2.h'],
             'header_includes': ['file3.h', 'file4.h'],
             'private_members': ['int first;'],
@@ -259,6 +260,7 @@ def test_md_code_block_one_at_a_time():
         metadata = [
             {
                 'metadata_type': 'inject_code',
+                'name': "my_code_block",
                 k: md[k],
             }
         ]
@@ -293,6 +295,47 @@ def test_md_code_block_empty():
     ]
     r = process_metadata(metadata)
     assert len(r) == 0
+
+
+def test_md_code_block_duplicate():
+    'make sure all options of a code block work'
+    block1 = {
+        'metadata_type': 'inject_code',
+        'name': "my_code_block",
+        'body_includes': ['file1.h', 'file2.h'],
+        'header_includes': ['file3.h', 'file4.h'],
+        'private_members': ['int first;'],
+        'instance_initialization': ['first(10)'],
+        'ctor_lines': ['first = first * 10;'],
+        'initialize_lines': ['line1', 'line2'],
+        'link_libraries': ['lib1', 'lib2'],
+    }
+    metadata = [block1, dict(block1)]
+    r = process_metadata(metadata)
+    assert len(r) == 1
+
+
+def test_md_code_block_duplicate_bad():
+    'make sure all options of a code block work'
+    block1 = {
+        'metadata_type': 'inject_code',
+        'name': "my_code_block",
+        'body_includes': ['file1.h', 'file2.h'],
+        'header_includes': ['file3.h', 'file4.h'],
+        'private_members': ['int first;'],
+        'instance_initialization': ['first(10)'],
+        'ctor_lines': ['first = first * 10;'],
+        'initialize_lines': ['line1', 'line2'],
+        'link_libraries': ['lib1', 'lib2'],
+    }
+    block2 = dict(block1)
+    block2['body_includes'] = ['file5.h']
+    metadata = [block1, block2]
+
+    with pytest.raises(ValueError) as e:
+        process_metadata(metadata)
+
+    assert 'my_code_block' in str(e)
 
 
 def test_md_atlas_collection():

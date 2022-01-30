@@ -112,6 +112,8 @@ outside, and expected to be set somewhere inside the block.
 
 Note that a very simple replacement is done for `result_name` - so it needs to be a totally unique name. The back-end may well change `result` to some other name (like `r232`) depending on the complexity of the expression being parsed.
 
+If two functions are sent with the same name they must be identical or behavior is undefined.
+
 #### Job Scripts
 
 ATLAS runs job scripts to configure its environment. These are needed to do things like apply corrections, etc. This block allows those to be added on the fly. In ATLAS these jobs scripts are python.
@@ -158,10 +160,10 @@ For _cms_:
 
 Code blocks provide a way to inject various lines of C++ into code. There are a number of options, and any combinations of keys can be used.
 
-
 | Key | Description | Example |
 | ------------ | ------------ | --------------|
 | metadata_type | The metadata type | `"inject_code"` |
+| name | The name of the code block | `"code_block_1"` |
 | body_includes | List of files to include in the C++ file (`query.cpp`). | `["file1.hpp", "file2.hpp"]` |
 | header_includes | List of files to include in the C++ header file (`query.hpp`). | `["file1.hpp", "file2.hpp"]` |
 | private_members | List of class instance variables to declare (`query.hpp`) | `["int first;", "int second;"]` |
@@ -174,7 +176,7 @@ A few things to note:
 - Note the items that have semicolons and those that do not. This is crucial - the system will not add them in those cases!
 - While the ordering of lines withing a single `inject_code` metadata block will be maintained, different blocks may be reordered arbitrarily.
 - Include files always use the double-quote: `#include "file1.hpp"`
-
+- The name of the code block is not used anywhere, and it must be unique. If two code blocks are submitted with the same name but different contents it will generate an error.
 
 ### Output Formats
 

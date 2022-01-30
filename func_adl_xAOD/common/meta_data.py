@@ -17,6 +17,9 @@ class JobScriptSpecification:
 class InjectCodeBlock:
     'Code to be directly injected into the hpp and cpp files'
 
+    # Name of the code block
+    name: str
+
     # Include files for the cpp code
     body_includes: List[str] = field(default_factory=list)
 
@@ -39,7 +42,30 @@ class InjectCodeBlock:
     link_libraries: List[str] = field(default_factory=list)
 
 
-def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification, InjectCodeBlock]]:
+SpecificationTypes = Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification, InjectCodeBlock]
+
+
+def ok_to_add_code_block(spec, cpp_funcs: List[SpecificationTypes]) -> bool:
+    '''Check already added code blocks specs to see if there is one with the same name,
+    and if so, if its contents are the same.
+
+    Return ok if this is a unique code block
+    Return false if this is a duplicate
+    Throw an error if the name but not content matches.
+
+    Args:
+        spec (InjectCodeBlock): The block to be going after
+        cpp_funcs ([type]): The list code blocks we should find a match in
+    '''
+    for b in cpp_funcs:
+        if isinstance(b, InjectCodeBlock) and b.name == spec.name:
+            if b == spec:
+                return False
+            raise ValueError(f'Duplicate inject_code blocks with name {spec.name} that are not identical. Do not know which one to use!')
+    return True
+
+
+def process_metadata(md_list: List[Dict[str, Any]]) -> List[SpecificationTypes]:
     '''Process a list of metadata, in order.
 
     Args:
@@ -48,7 +74,7 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
     Returns:
         List[X]: Metadata we've found
     '''
-    cpp_funcs: List[Union[CPPCodeSpecification, EventCollectionSpecification, JobScriptSpecification, InjectCodeBlock]] = []
+    cpp_funcs: List[SpecificationTypes] = []
     for md in md_list:
         md_type = md.get('metadata_type')
         if md_type is None:
@@ -73,9 +99,10 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[Union[CPPCodeSpecifi
             if len(info) > 0:
                 try:
                     spec = InjectCodeBlock(**info)
-                    cpp_funcs.append(spec)
                 except TypeError as e:
                     raise ValueError(f'Bad inject_code block item: {str(e)}')
+                if ok_to_add_code_block(spec, cpp_funcs):
+                    cpp_funcs.append(spec)
         elif md_type == 'add_job_script':
             spec = JobScriptSpecification(
                 name=md['name'],

@@ -131,6 +131,7 @@ def test_include_files():
 
     a1 = parse_statement('Select(MetaData(ds, {'
                          '"metadata_type": "inject_code",'
+                         '"name": "crazy_fork",'
                          '"body_includes": ["xAODEventInfo/EventInfo.h"],'
                          '"header_includes": ["file.hpp"],'
                          '}), lambda e: e.crazy("fork").pT())')
