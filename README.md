@@ -95,10 +95,11 @@ For a _collection_:
 | return_type_collection | The type of the collection | `vector<float>`, `vector<float>*` |
 | deref_count | Number of times to dereference object before invoking this method (optional) | 2 |
 
-#### C++ Inline Functions
+#### C++ Inline Functions and Methods
 
 These are inline functions - they are placed inline in the code, surrounded by a braces. Only the `result` is declared
-outside, and expected to be set somewhere inside the block.
+outside, and expected to be set somewhere inside the block. This mechanism can also specify a method. In that case
+the optional parameter `instance_obj` should be specified.
 
 | Key | Description | Example |
 | ------------ | ------------ | --------------|
@@ -107,8 +108,11 @@ outside, and expected to be set somewhere inside the block.
 | include_files | List of include files | `[vector, TLorentzVector.h]` |
 | arguments | List of argument names | `[vec1, vec2]` |
 | code | List of code lines | `["auto t = (vec1+vec2);", "result = t.m();"]` |
+| instance_object | Present only if this is an object replacement. It species the code string that should be replaced by the current object | `"obj_j"` |
+| method_object | The object name that the method can be called on. Present only if this is a method. | `"xAOD::Jet_vt"` |
 | result_name | If not using `result` what should be used (optional) | `"my_result"` |
 | return_type | C++ return type | `double` |
+| return_is_collection | If true, then the return is a collection of `return_type` | `True` |
 
 Note that a very simple replacement is done for `result_name` - so it needs to be a totally unique name. The back-end may well change `result` to some other name (like `r232`) depending on the complexity of the expression being parsed.
 

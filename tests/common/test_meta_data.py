@@ -543,6 +543,32 @@ def test_md_function_call():
     assert spec.cpp_return_type == 'double'
 
 
+def test_md_method_call():
+    'Inject code to run some C++ as a method'
+    metadata = [
+        {
+            'metadata_type': 'add_cpp_function',
+            'name': 'getAttributeFloat',
+            'include_files': [],
+            'arguments': ['name'],
+            'instance_object': 'obj_j',
+            'method_object': 'xAOD::Jet_v1',
+            'code': [
+                'auto result = obj_j->getAttribute<float>(name);'
+            ],
+            'return_type': 'double'
+        }
+    ]
+
+    specs = process_metadata(metadata)
+    assert len(specs) == 1
+    spec = specs[0]
+    assert isinstance(spec, CPPCodeSpecification)
+
+    assert spec.method_object == 'xAOD::Jet_v1'
+    assert spec.instance_object == 'obj_j'
+
+
 def test_md_function_call_renamed_result():
     'Check result name is properly set'
     metadata = [

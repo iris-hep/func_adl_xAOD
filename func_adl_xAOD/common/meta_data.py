@@ -118,6 +118,9 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[SpecificationTypes]:
                 md['code'],
                 md['result_name'] if 'result_name' in md else 'result',
                 md['return_type'],
+                bool(md['return_is_collection']) if 'return_is_collection' in md else False,
+                md['method_object'] if 'method_object' in md else None,
+                md['instance_object'] if 'instance_object' in md else None,
             )
             cpp_funcs.append(spec)
         elif md_type == 'add_atlas_event_collection_info':
