@@ -827,9 +827,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         if type(value) is str:
             crep.set_rep(node, crep.cpp_value(f'"{value}"', self._gc.current_scope(), ctyp.terminal("string")))
         elif type(value) is int:
-            crep.set_rep(node, crep.cpp_value(value, self._gc.current_scope(), ctyp.terminal("int")))
+            crep.set_rep(node, crep.cpp_value(str(value), self._gc.current_scope(), ctyp.terminal("int")))
         elif type(value) is float:
-            crep.set_rep(node, crep.cpp_value(value, self._gc.current_scope(), ctyp.terminal("double")))
+            crep.set_rep(node, crep.cpp_value(str(value), self._gc.current_scope(), ctyp.terminal("double")))
         elif type(value) is bool:
             cpp_value = "true" if value else "false"
             crep.set_rep(node, crep.cpp_value(cpp_value, self._gc.current_scope(), ctyp.terminal('bool')))

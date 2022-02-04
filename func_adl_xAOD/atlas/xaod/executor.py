@@ -16,7 +16,7 @@ class atlas_xaod_executor(executor):
         runner_name = 'runner.sh'
         template_dir_name = 'func_adl_xAOD/template/atlas/r21'
         self._ecc = atlas_event_collection_coder()
-        method_names = {
+        method_names: Dict[str, Callable[[ast.Call], ast.Call]] = {
             md.name: self.build_callback(self._ecc, md)
             for md in atlas_xaod_collections
         }
