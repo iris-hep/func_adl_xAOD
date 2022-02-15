@@ -107,9 +107,9 @@ the optional parameter `instance_obj` should be specified.
 | name | C++ Function Name | `"DeltaR"` |
 | include_files | List of include files | `[vector, TLorentzVector.h]` |
 | arguments | List of argument names | `[vec1, vec2]` |
-| code | List of code lines | `["auto t = (vec1+vec2);", "result = t.m();"]` |
-| instance_object | Present only if this is an object replacement. It species the code string that should be replaced by the current object | `"obj_j"` |
-| method_object | The object name that the method can be called on. Present only if this is a method. | `"xAOD::Jet_vt"` |
+| code | List of code lines | `["auto t = (vec1+vec2);", "auto result = t.m();"]` |
+| instance_object | Present only if this is an object replacement. It species the code string that should be replaced by the current object | `"xAOD::Jet_vt"` |
+| method_object | The object name that the method can be called on. Present only if this is a method. | `"obj_j"` |
 | result_name | If not using `result` what should be used (optional) | `"my_result"` |
 | return_type | C++ return type | `double` |
 | return_is_collection | If true, then the return is a collection of `return_type` | `True` |
