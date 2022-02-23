@@ -12,28 +12,36 @@ from func_adl_xAOD.common.util_scope import gc_scope_top_level
 from tests.atlas.xaod.utils import ast_parse_with_replacement
 
 
-def test_binary_plus_return_type_1():
-    q = atlas_xaod_query_ast_visitor()
-    r = q.get_rep(ast.parse('1+1.2').body[0].value)  # type: ignore
-
-    assert isinstance(r, crep.cpp_value)
-    assert r.cpp_type().type == 'double'
-
-
-def test_binary_plus_return_type_2():
-    q = atlas_xaod_query_ast_visitor()
-    r = q.get_rep(ast.parse('1.2+1').body[0].value)  # type: ignore
-
-    assert isinstance(r, crep.cpp_value)
-    assert r.cpp_type().type == 'double'
-
-
 def test_bool_true():
     q = atlas_xaod_query_ast_visitor()
     r = q.get_rep(ast.parse("True").body[0].value)  # type: ignore
     assert isinstance(r, crep.cpp_value)
     assert r.cpp_type().type == 'bool'
     assert r.as_cpp() == 'true'
+
+
+def test_float():
+    q = atlas_xaod_query_ast_visitor()
+    r = q.get_rep(ast.parse("1.2").body[0].value)  # type: ignore
+    assert isinstance(r, crep.cpp_value)
+    assert r.cpp_type().type == 'double'
+    assert r.as_cpp() == '1.2'
+
+
+def test_int():
+    q = atlas_xaod_query_ast_visitor()
+    r = q.get_rep(ast.parse("3").body[0].value)  # type: ignore
+    assert isinstance(r, crep.cpp_value)
+    assert r.cpp_type().type == 'int'
+    assert r.as_cpp() == '3'
+
+
+def test_string():
+    q = atlas_xaod_query_ast_visitor()
+    r = q.get_rep(ast.parse("'hi there'").body[0].value)  # type: ignore
+    assert isinstance(r, crep.cpp_value)
+    assert r.cpp_type().type == 'string'
+    assert r.as_cpp() == '"hi there"'
 
 
 def test_bool_false():
@@ -63,6 +71,22 @@ def test_complex_number_not_understood():
             q.get_rep(node)
 
         assert 'complex' in str(e)
+
+
+def test_binary_plus_return_type_1():
+    q = atlas_xaod_query_ast_visitor()
+    r = q.get_rep(ast.parse('1+1.2').body[0].value)  # type: ignore
+
+    assert isinstance(r, crep.cpp_value)
+    assert r.cpp_type().type == 'double'
+
+
+def test_binary_plus_return_type_2():
+    q = atlas_xaod_query_ast_visitor()
+    r = q.get_rep(ast.parse('1.2+1').body[0].value)  # type: ignore
+
+    assert isinstance(r, crep.cpp_value)
+    assert r.cpp_type().type == 'double'
 
 
 def test_binary_plus_return_type_3():
@@ -112,6 +136,19 @@ def test_as_root_rep_already_set():
     node.rep = v  # type: ignore
 
     assert v is q.get_as_ROOT(node)
+
+
+def test_compare_string_var():
+    q = atlas_xaod_query_ast_visitor()
+    node = ast.parse('e == "hi"').body[0].value  # type: ignore
+
+    node.left.rep = crep.cpp_value('e', gc_scope_top_level(), ctyp.terminal('string'))  # type: ignore
+
+    r = q.get_rep(node)
+
+    assert isinstance(r, crep.cpp_value)
+    assert r.cpp_type().type == 'bool'
+    assert r.as_cpp() == '(e=="hi")'
 
 
 def test_as_root_as_dict():
