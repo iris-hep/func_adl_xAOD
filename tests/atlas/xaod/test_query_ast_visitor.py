@@ -138,6 +138,19 @@ def test_as_root_rep_already_set():
     assert v is q.get_as_ROOT(node)
 
 
+def test_compare_string_var():
+    q = atlas_xaod_query_ast_visitor()
+    node = ast.parse('e == "hi"').body[0].value # type: ignore
+
+    node.left.rep = crep.cpp_value('e', gc_scope_top_level(), ctyp.terminal('string'))  # type: ignore
+
+    r = q.get_rep(node)
+
+    assert isinstance(r, crep.cpp_value)
+    assert r.cpp_type().type == 'bool'
+    assert r.as_cpp() == '(e=="hi")'
+
+
 def test_as_root_as_dict():
     q = atlas_xaod_query_ast_visitor()
     node = ast.parse('1/1')
