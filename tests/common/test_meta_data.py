@@ -16,7 +16,7 @@ from func_adl_xAOD.common.event_collections import (
     EventCollectionSpecification, event_collection_coder,
     event_collection_container)
 from func_adl_xAOD.common.executor import executor
-from func_adl_xAOD.common.meta_data import (IncludeFileList,
+from func_adl_xAOD.common.meta_data import (InjectCodeBlock,
                                             JobScriptSpecification,
                                             generate_script_block,
                                             process_metadata)
@@ -217,12 +217,19 @@ def test_with_method_call_with_type(caplog):
     assert 'pT' not in caplog.text
 
 
-def test_md_include_files():
-    'Add some include files'
+def test_md_code_block():
+    'make sure all options of a code block work'
     metadata = [
         {
-            'metadata_type': 'include_files',
-            'files': ['file1.h', 'file2.h'],
+            'metadata_type': 'inject_code',
+            'name': "my_code_block",
+            'body_includes': ['file1.h', 'file2.h'],
+            'header_includes': ['file3.h', 'file4.h'],
+            'private_members': ['int first;'],
+            'instance_initialization': ['first(10)'],
+            'ctor_lines': ['first = first * 10;'],
+            'initialize_lines': ['line1', 'line2'],
+            'link_libraries': ['lib1', 'lib2'],
         }
     ]
 
@@ -230,8 +237,105 @@ def test_md_include_files():
 
     assert len(result) == 1
     s = result[0]
-    assert isinstance(s, IncludeFileList)
-    assert s.files == ['file1.h', 'file2.h']
+    assert isinstance(s, InjectCodeBlock)
+    assert s.body_includes == ['file1.h', 'file2.h']
+    assert s.header_includes == ['file3.h', 'file4.h']
+    assert s.private_members == ['int first;']
+    assert s.instance_initialization == ['first(10)']
+    assert s.ctor_lines == ['first = first * 10;']
+    assert s.link_libraries == ['lib1', 'lib2']
+    assert s.initialize_lines == ['line1', 'line2']
+
+
+def test_md_code_block_one_at_a_time():
+    md = {
+        'body_includes': ['file1.h', 'file2.h'],
+        'header_includes': ['file3.h', 'file4.h'],
+        'private_members': ['int first;'],
+        'instance_initialization': ['first(10)'],
+        'ctor_lines': ['first = first * 10;'],
+        'link_libraries': ['lib1', 'lib2'],
+    }
+    for k in md.keys():
+        metadata = [
+            {
+                'metadata_type': 'inject_code',
+                'name': "my_code_block",
+                k: md[k],
+            }
+        ]
+
+        process_metadata(metadata)
+
+
+def test_md_code_block_bad_item():
+    metadata = [
+        {
+            'metadata_type': 'inject_code',
+            'body_includes': ['file1.h', 'file2.h'],
+            'header_includes': ['file3.h', 'file4.h'],
+            'private_members': ['int first;'],
+            'instance_initialization': ['first(10)'],
+            'ctor_lines': ['first = first * 10;'],
+            'link_libraries_f': ['lib1', 'lib2'],
+        }
+    ]
+
+    with pytest.raises(ValueError) as e:
+        process_metadata(metadata)
+
+    assert "link_libraries_f" in str(e)
+
+
+def test_md_code_block_empty():
+    metadata = [
+        {
+            'metadata_type': 'inject_code',
+        }
+    ]
+    r = process_metadata(metadata)
+    assert len(r) == 0
+
+
+def test_md_code_block_duplicate():
+    'make sure all options of a code block work'
+    block1 = {
+        'metadata_type': 'inject_code',
+        'name': "my_code_block",
+        'body_includes': ['file1.h', 'file2.h'],
+        'header_includes': ['file3.h', 'file4.h'],
+        'private_members': ['int first;'],
+        'instance_initialization': ['first(10)'],
+        'ctor_lines': ['first = first * 10;'],
+        'initialize_lines': ['line1', 'line2'],
+        'link_libraries': ['lib1', 'lib2'],
+    }
+    metadata = [block1, dict(block1)]
+    r = process_metadata(metadata)
+    assert len(r) == 1
+
+
+def test_md_code_block_duplicate_bad():
+    'make sure all options of a code block work'
+    block1 = {
+        'metadata_type': 'inject_code',
+        'name': "my_code_block",
+        'body_includes': ['file1.h', 'file2.h'],
+        'header_includes': ['file3.h', 'file4.h'],
+        'private_members': ['int first;'],
+        'instance_initialization': ['first(10)'],
+        'ctor_lines': ['first = first * 10;'],
+        'initialize_lines': ['line1', 'line2'],
+        'link_libraries': ['lib1', 'lib2'],
+    }
+    block2 = dict(block1)
+    block2['body_includes'] = ['file5.h']
+    metadata = [block1, block2]
+
+    with pytest.raises(ValueError) as e:
+        process_metadata(metadata)
+
+    assert 'my_code_block' in str(e)
 
 
 def test_md_atlas_collection():
@@ -437,6 +541,32 @@ def test_md_function_call():
     assert len(spec.code) == 3
     assert spec.result == 'result'
     assert spec.cpp_return_type == 'double'
+
+
+def test_md_method_call():
+    'Inject code to run some C++ as a method'
+    metadata = [
+        {
+            'metadata_type': 'add_cpp_function',
+            'name': 'getAttributeFloat',
+            'include_files': [],
+            'arguments': ['name'],
+            'instance_object': 'obj_j',
+            'method_object': 'xAOD::Jet_v1',
+            'code': [
+                'auto result = obj_j->getAttribute<float>(name);'
+            ],
+            'return_type': 'double'
+        }
+    ]
+
+    specs = process_metadata(metadata)
+    assert len(specs) == 1
+    spec = specs[0]
+    assert isinstance(spec, CPPCodeSpecification)
+
+    assert spec.method_object == 'xAOD::Jet_v1'
+    assert spec.instance_object == 'obj_j'
 
 
 def test_md_function_call_renamed_result():

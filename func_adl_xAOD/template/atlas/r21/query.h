@@ -3,6 +3,11 @@
 
 #include <AnaAlgorithm/AnaAlgorithm.h>
 
+{% for i in header_include_files %}
+#include "{{i}}"
+{% endfor %}
+
+
 class query : public EL::AnaAlgorithm
 {
 public:
@@ -21,6 +26,9 @@ private:
   {{l}}
   {% endfor %}
 
+  {% for l in private_members %}
+  {{l}}
+  {% endfor %}
 };
 
 #endif

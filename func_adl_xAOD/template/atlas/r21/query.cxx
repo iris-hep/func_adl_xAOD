@@ -2,7 +2,7 @@
 #include <analysis/query.h>
 #include "xAODRootAccess/tools/TFileAccessTracer.h"
 
-{% for i in include_files %}
+{% for i in body_include_files %}
 #include "{{i}}"
 {% endfor %}
 
@@ -11,6 +11,9 @@
 query :: query (const std::string& name,
                                   ISvcLocator *pSvcLocator)
     : EL::AnaAlgorithm (name, pSvcLocator)
+  {% for l in instance_initialization %}
+  ,{{l}}
+  {%- endfor %}
 {
   // Here you put any code for the base initialization of variables,
   // e.g. initialize all pointers to 0.  This is also where you
@@ -23,6 +26,11 @@ query :: query (const std::string& name,
   // and for a large amount of data, this can sometimes take a minute.
   // So we get rid of it.
   xAOD::TFileAccessTracer::enableDataSubmission(false);
+
+  {% for l in ctor_lines %}
+  {{l}}
+  {% endfor %}
+
 }
 
 StatusCode query :: initialize ()
@@ -33,6 +41,10 @@ StatusCode query :: initialize ()
   // connected.
 
   {% for l in book_code %}
+  {{l}}
+  {% endfor %}
+
+  {% for l in initialize_lines %}
   {{l}}
   {% endfor %}
 

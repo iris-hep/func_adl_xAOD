@@ -3,7 +3,7 @@
 import ast
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 from typing import Any, Callable, Dict, List
-from func_adl_xAOD.common.meta_data import IncludeFileList, JobScriptSpecification, process_metadata
+from func_adl_xAOD.common.meta_data import InjectCodeBlock, JobScriptSpecification, process_metadata
 import os
 import sys
 from abc import ABC, abstractmethod
@@ -88,7 +88,7 @@ class executor(ABC):
         self._template_dir_name = template_dir_name
         self._method_names = method_names
         self._job_option_blocks = []
-        self._include_files: List[str] = []
+        self._inject_blocks: List[InjectCodeBlock] = []
 
     def _copy_template_file(self, j2_env, info, template_file, final_dir: Path):
         'Copy a file to a final directory'
@@ -112,14 +112,14 @@ class executor(ABC):
         method_names = dict(self._method_names)
         method_names.update({
             md.name:
-                (lambda call_node: cpp_ast.build_CPPCodeValue(md, call_node)) if isinstance(md, cpp_ast.CPPCodeSpecification)  # type: ignore
+                (lambda call_node, md=md: cpp_ast.build_CPPCodeValue(md, call_node)) if isinstance(md, cpp_ast.CPPCodeSpecification)  # type: ignore
                 else self.build_collection_callback(md)
             for md in cpp_functions if isinstance(md, (cpp_ast.CPPCodeSpecification, EventCollectionSpecification))
         })
         a = cpp_ast.cpp_ast_finder(method_names).visit(a)
 
-        # Pull out all include files required
-        self._include_files = list(itertools.chain(*[md.files for md in cpp_functions if isinstance(md, IncludeFileList)]))
+        # Save the injection blocks
+        self._inject_blocks = [md for md in cpp_functions if isinstance(md, InjectCodeBlock)]
 
         # Pull off any joboption blocks
         for m in cpp_functions:
@@ -129,10 +129,44 @@ class executor(ABC):
         # And return the modified ast
         return a
 
+    def _ib_fetch(self, name: str) -> List[str]:
+        'Return items from inject code blocks'
+        return list(itertools.chain(*[getattr(md, name) for md in self._inject_blocks]))
+
     @property
-    def include_files(self) -> List[str]:
-        'Return the list of include files from the query'
-        return self._include_files
+    def body_include_files(self) -> List[str]:
+        'Return the list of include files for the query.cpp file'
+        return self._ib_fetch('body_includes')
+
+    @property
+    def header_include_files(self) -> List[str]:
+        'Return the list of include files for the query.cpp file'
+        return self._ib_fetch('header_includes')
+
+    @property
+    def private_members(self) -> List[str]:
+        'Return the list of include files for the query.cpp file'
+        return self._ib_fetch('private_members')
+
+    @property
+    def instance_initialization(self) -> List[str]:
+        'Return the list of include files for the query.cpp file'
+        return self._ib_fetch('instance_initialization')
+
+    @property
+    def ctor_lines(self) -> List[str]:
+        'Return the list of include files for the query.cpp file'
+        return self._ib_fetch('ctor_lines')
+
+    @property
+    def link_libraries(self) -> List[str]:
+        'Return the list of include files for the query.cpp file'
+        return self._ib_fetch('link_libraries')
+
+    @property
+    def initialize_lines(self) -> List[str]:
+        'Return the list of include files for the query.cpp file'
+        return self._ib_fetch('initialize_lines')
 
     @abstractmethod
     def build_collection_callback(self, metadata: EventCollectionSpecification) -> Callable[[ast.Call], ast.Call]:
@@ -183,15 +217,20 @@ class executor(ABC):
         book_code = _cpp_source_emitter()
         qv.emit_book(book_code)
         class_decl_code = qv.class_declaration_code()
-        includes = qv.include_files() + self.include_files
-        link_libraries = qv.link_libraries()
+        includes = qv.include_files() + self.body_include_files
+        link_libraries = qv.link_libraries() + self.link_libraries
 
         # The replacement dict to pass to the template generator can now be filled
         info = {}
         info['query_code'] = query_code.lines_of_query_code()
         info['class_decl'] = class_decl_code
         info['book_code'] = book_code.lines_of_query_code()
-        info['include_files'] = includes
+        info['body_include_files'] = includes
+        info['header_include_files'] = self.header_include_files
+        info['private_members'] = self.private_members
+        info['instance_initialization'] = self.instance_initialization
+        info['initialize_lines'] = self.initialize_lines
+        info['ctor_lines'] = self.ctor_lines
         info['link_libraries'] = link_libraries
         info.update(self.add_to_replacement_dict())
 

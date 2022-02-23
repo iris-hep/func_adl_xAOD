@@ -2,13 +2,14 @@
 #
 # This is one mechanism to allow for a leaky abstraction.
 import ast
-from collections import namedtuple
-from typing import Callable, Dict, Optional, cast
+from dataclasses import dataclass
+from typing import Callable, Dict, List, Optional, cast
 
-import func_adl_xAOD.common.statement as statements
-from func_adl_xAOD.common.cpp_representation import cpp_value, cpp_variable
-from func_adl_xAOD.common.cpp_vars import unique_name
 import func_adl_xAOD.common.cpp_types as ctyp
+import func_adl_xAOD.common.statement as statements
+from func_adl_xAOD.common.cpp_representation import (cpp_collection, cpp_value,
+                                                     cpp_variable)
+from func_adl_xAOD.common.cpp_vars import unique_name
 from func_adl_xAOD.common.util_scope import gc_scope
 
 # The list of methods and the re-write functions for them. Each rewrite function
@@ -63,8 +64,35 @@ class CPPCodeValue (ast.AST):
 
 
 # Info used to build a code spec
-# TODO: Convert to a dataclass
-CPPCodeSpecification = namedtuple('CPPCodeSpecification', ['name', 'include_files', 'arguments', 'code', 'result', 'cpp_return_type'])
+@dataclass
+class CPPCodeSpecification:
+    # Name of the function or method
+    name: str
+
+    # List of include files that we should include accessing this guy
+    include_files: List[str]
+
+    # The names of the arguments (in python)
+    arguments: List[str]
+
+    # List of lines that will be used as the template for C++ code
+    code: List[str]
+
+    # The name of the result variable
+    result: str
+
+    # The type of the result variable, or if a collection, of the values
+    cpp_return_type: str
+
+    # True if this is a collection return type. In that case, the collection is expected
+    # to obey vector like semantics
+    cpp_return_is_collection: bool = False
+
+    # The name of the object this method applies against
+    method_object: Optional[str] = None
+
+    # The name of the object if this is being used as a method (e.g. the `self` variable)
+    instance_object: Optional[str] = None
 
 
 def build_CPPCodeValue(spec: CPPCodeSpecification, call_node: ast.Call) -> ast.Call:
@@ -89,6 +117,12 @@ def build_CPPCodeValue(spec: CPPCodeSpecification, call_node: ast.Call) -> ast.C
     if len(call_node.args) != len(spec.arguments):
         raise ValueError(f"The call of {spec.name}({', '.join(spec.arguments)}) has insufficient arguments ({len(call_node.args)}).")
 
+    if isinstance(call_node.func, ast.Attribute) and spec.method_object is None:
+        raise ValueError(f"The {spec.name} is a function, but it is invoked like a method.")
+
+    if isinstance(call_node.func, ast.Name) and spec.method_object is not None:
+        raise ValueError(f"The {spec.name} is a method, but it is invoked like a function.")
+
     # Create an AST to hold onto all of this.
     r = CPPCodeValue()
     # We need TVector2 included here
@@ -100,7 +134,14 @@ def build_CPPCodeValue(spec: CPPCodeSpecification, call_node: ast.Call) -> ast.C
     # The code is three steps
     r.running_code += spec.code
     r.result = spec.result
-    r.result_rep = lambda scope: cpp_variable(unique_name(spec.name), scope=scope, cpp_type=ctyp.terminal(spec.cpp_return_type))
+    if spec.cpp_return_is_collection:
+        r.result_rep = lambda scope: cpp_collection(unique_name(spec.name), scope=scope, collection_type=ctyp.collection(ctyp.terminal(spec.cpp_return_type)))  # type: ignore
+    else:
+        r.result_rep = lambda scope: cpp_variable(unique_name(spec.name), scope=scope, cpp_type=ctyp.terminal(spec.cpp_return_type))
+
+    # If this is a mehtod, copy the info over to generate the obj reference.
+    if spec.method_object is not None:
+        r.replacement_instance_obj = (spec.method_object, call_node.func.value.id)  # type: ignore
 
     call_node.func = r  # type: ignore
     return call_node

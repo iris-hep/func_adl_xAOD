@@ -95,6 +95,44 @@ For a _collection_:
 | return_type_collection | The type of the collection | `vector<float>`, `vector<float>*` |
 | deref_count | Number of times to dereference object before invoking this method (optional) | 2 |
 
+#### C++ Inline Functions and Methods
+
+These are inline functions - they are placed inline in the code, surrounded by a braces. Only the `result` is declared
+outside, and expected to be set somewhere inside the block. This mechanism can also specify a method. In that case
+the optional parameter `instance_obj` should be specified.
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"add_cpp_function"` |
+| name | C++ Function Name | `"DeltaR"` |
+| include_files | List of include files | `[vector, TLorentzVector.h]` |
+| arguments | List of argument names | `[vec1, vec2]` |
+| code | List of code lines | `["auto t = (vec1+vec2);", "auto result = t.m();"]` |
+| instance_object | Present only if this is an object replacement. It species the code string that should be replaced by the current object | `"xAOD::Jet_vt"` |
+| method_object | The object name that the method can be called on. Present only if this is a method. | `"obj_j"` |
+| result_name | If not using `result` what should be used (optional) | `"my_result"` |
+| return_type | C++ return type | `double` |
+| return_is_collection | If true, then the return is a collection of `return_type` | `True` |
+
+Note that a very simple replacement is done for `result_name` - so it needs to be a totally unique name. The back-end may well change `result` to some other name (like `r232`) depending on the complexity of the expression being parsed.
+
+If two functions are sent with the same name they must be identical or behavior is undefined.
+
+#### Job Scripts
+
+ATLAS runs job scripts to configure its environment. These are needed to do things like apply corrections, etc. This block allows those to be added on the fly. In ATLAS these jobs scripts are python.
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"add_job_script"` |
+| name | Name of this script block | `"apply_corrections"` |
+| script | List of lines of python | `["calibration = makeAnalysis('mc')", "job.addSequence(calibration)"]` |
+| depends_on | List of other script blocks that this should come after | `["correction_setup"]` |
+
+A dependency graph is built from the `depends_on` entry, otherwise the blocks will appear in a random order.
+
+NOTE: Currently the CMS backend will ignore any job script metadata sent to it.
+
 #### Event Level Collections
 
 CMS and ATLAS store their basic reconstruction objects as collections (e.g. jets, etc.). You can define new collections on the fly with the following metadata
@@ -122,21 +160,27 @@ For _cms_:
 | contains_collection | Some items are singletons (like `EventInfo`) | `True` or `False` |
 | element_pointer | Indicates if the element type is a pointer | `True` or `False` |
 
-#### Include Files
+#### Code Blocks
 
-Any include files listed will be added to the top of the `query.cpp` file that is generated. While ordering is maintained within a single `Metadata` query here, it is not maintained between different `Metadata` calls.
-
-All includes are done with straight quotes:
-
-```C++
-#include "file1.hpp"
-#include "file2.hpp"
-```
+Code blocks provide a way to inject various lines of C++ into code. There are a number of options, and any combinations of keys can be used.
 
 | Key | Description | Example |
 | ------------ | ------------ | --------------|
-| metadata_type | The metadata type | `"include_files"` |
-| files | List of files to include. | `["file1.hpp", "file2.hpp"]` |
+| metadata_type | The metadata type | `"inject_code"` |
+| name | The name of the code block | `"code_block_1"` |
+| body_includes | List of files to include in the C++ file (`query.cpp`). | `["file1.hpp", "file2.hpp"]` |
+| header_includes | List of files to include in the C++ header file (`query.hpp`). | `["file1.hpp", "file2.hpp"]` |
+| private_members | List of class instance variables to declare (`query.hpp`) | `["int first;", "int second;"]` |
+| instance_initialization | Initializers added to the constructor in the main C++ class file (`query.cpp`) | `["first(10)", "second(10)"]` |
+| ctor_lines | Lines of C++ to add to the body of the constructor (`query.cpp`) | `["second = first * 10;"]`
+| link_libraries | Items to add to the `CMake LINK_LIBRARIES` list (`CMakeLists.txt`) | `["TrigDecisionToolLib"]` |
+
+A few things to note:
+
+- Note the items that have semicolons and those that do not. This is crucial - the system will not add them in those cases!
+- While the ordering of lines withing a single `inject_code` metadata block will be maintained, different blocks may be reordered arbitrarily.
+- Include files always use the double-quote: `#include "file1.hpp"`
+- The name of the code block is not used anywhere, and it must be unique. If two code blocks are submitted with the same name but different contents it will generate an error.
 
 ### Output Formats
 
