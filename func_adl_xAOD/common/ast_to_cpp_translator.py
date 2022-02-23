@@ -809,7 +809,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         crep.set_rep(node, result)
 
     def visit_Num(self, node):
-        crep.set_rep(node, crep.cpp_value(node.n, self._gc.current_scope(), guess_type_from_number(node.n)))
+        crep.set_rep(node, crep.cpp_value(str(node.n), self._gc.current_scope(), guess_type_from_number(node.n)))
 
     def visit_Str(self, node):
         crep.set_rep(node, crep.cpp_value('"{0}"'.format(node.s), self._gc.current_scope(), ctyp.terminal("string")))
