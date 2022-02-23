@@ -140,7 +140,7 @@ def test_as_root_rep_already_set():
 
 def test_compare_string_var():
     q = atlas_xaod_query_ast_visitor()
-    node = ast.parse('e == "hi"').body[0].value # type: ignore
+    node = ast.parse('e == "hi"').body[0].value  # type: ignore
 
     node.left.rep = crep.cpp_value('e', gc_scope_top_level(), ctyp.terminal('string'))  # type: ignore
 
