@@ -16,15 +16,6 @@ class Atlas_xAOD_File_Type:
         pass
 
 
-def test_per_event_item():
-    r = atlas_xaod_dataset() \
-        .Select('lambda e: e.EventInfo("EventInfo").runNumber()') \
-        .value()
-    vs = r.QueryVisitor._gc._class_vars
-    assert 1 == len(vs)
-    assert "double" == str(vs[0].cpp_type())
-
-
 def test_dict_output():
     'This is integration testing - making sure the dict to root conversion works'
     r = atlas_xaod_dataset() \
@@ -43,6 +34,15 @@ def test_dict_output_fail_expansion():
             .Select(lambda e: e.EventInfo("EventInfo").runNumber()) \
             .Select(lambda e: {'run_number': e, **my_old_dict}) \
             .value()
+
+
+def test_per_event_item():
+    r = atlas_xaod_dataset() \
+        .Select('lambda e: e.EventInfo("EventInfo").runNumber()') \
+        .value()
+    vs = r.QueryVisitor._gc._class_vars
+    assert 1 == len(vs)
+    assert "double" == str(vs[0].cpp_type())
 
 
 def test_per_jet_item():
@@ -83,6 +83,30 @@ def test_per_jet_dict_items():
     assert l_eta_r is not None
 
     assert l_pt_r[1] == l_eta_r[1]
+
+
+def test_output_datatype_string():
+    'Make sure a string coming back works'
+    r = (atlas_xaod_dataset()
+         .MetaData({
+                   'metadata_type': 'add_method_type_info',
+                   'type_string': 'xAOD::Jet',
+                   'method_name': 'astring',
+                   'return_type': 'string',
+                   })
+         .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+         .Select(lambda j: j.astring())
+         .value()
+         )
+    # Check to see if there mention of push_back anywhere.
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Good enough to check that the class var that will record the ttree
+    # variable is set correctly.
+    vs = r.QueryVisitor._gc._class_vars
+    assert len(vs) == 1
+    assert vs[0]._cpp_type.type == "string"
 
 
 def test_builtin_abs_function():
