@@ -239,3 +239,5 @@ logging.getLogger("func_adl_xAOD.common.local_dataset").setLevel(level=logging.D
 ```
 
 - In general, the first two lines are a good thing to have in your notebooks, etc. It allows you to see where warning messages are coming from and might help when things are going sideways.
+
+Note that some of the local runners will use a docker volume to cache calibration files and the like. If you need a truly fresh start, you'll need to remove the volume first.
