@@ -61,7 +61,7 @@ def _find(pathname: str, matchFunc=os.path.isfile):
 
 
 def _find_dir(path):
-    return _find(path, matchFunc=os.path.isdir)
+    return _find(path, matchFunc=os.path.isdir)  # type: ignore
 
 
 def _is_format_request(a: ast.AST) -> bool:
