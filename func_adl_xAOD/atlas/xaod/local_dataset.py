@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List, Optional, Union
 
-from func_adl_xAOD.common.local_dataset import LocalDataset
+from func_adl_xAOD.common.local_dataset import LocalDataset, docker_volume_info
 from func_adl_xAOD.atlas.xaod.executor import atlas_xaod_executor
 from func_adl_xAOD.common.executor import executor
 
@@ -34,3 +34,6 @@ class xAODDataset(LocalDataset):
             executor: Return the executor
         '''
         return atlas_xaod_executor()
+
+    def docker_cache_volume(self) -> List[docker_volume_info]:
+        return [docker_volume_info(docker_name='atlas_xaod_calibration_cache', mount_point='/xaod_calibration_cache')]
