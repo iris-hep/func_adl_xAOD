@@ -14,6 +14,7 @@ input_method="filelist"
 input_file=""
 compile=1
 run=1
+calib_cache="/xaod_calibration_cache"
 
 while getopts "d:o:cr" opt; do
     case "$opt" in
@@ -182,6 +183,16 @@ if [ $run = 1 ]; then
    if [ -e ./bogus ]; then
      rm -rf bogus
    fi
+
+   # If there is a calibration path, lets try to use it.
+   if [ -e $calib_cache ]; then
+      export CALIBPATH=$calib_cache:$CALIBPATH
+      sudo -i chmod a+w $calib_cache
+      echo "Using calibration cache: $calib_cache"
+      echo "Update calibration sources: $CALIBPATH"
+   fi
+
+   # Finally, run!
    python ../source/analysis/share/ATestRun_eljob.py --submission-dir=bogus
 
    # Place the output file where it belongs

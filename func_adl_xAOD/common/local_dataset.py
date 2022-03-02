@@ -1,4 +1,5 @@
 import ast
+from dataclasses import dataclass
 import logging
 import shutil
 import tempfile
@@ -12,6 +13,19 @@ from func_adl import EventDataset
 from func_adl_xAOD.common.executor import executor
 from func_adl_xAOD.common.result_ttree import cpp_ttree_rep
 from python_on_whales import docker
+
+
+@dataclass
+class docker_volume_info:
+    # Name of the volume in docker. Will be re-used.
+    docker_name: str
+
+    # The directory where the volume should be mounted
+    mount_point: str
+
+
+def _docker_volume_name(info: docker_volume_info) -> str:
+    return 'func_adl_' + info.docker_name
 
 
 class LocalDataset(EventDataset, ABC):
@@ -76,6 +90,16 @@ class LocalDataset(EventDataset, ABC):
             executor: Return the executor
         '''
 
+    @abstractmethod
+    def docker_cache_volume(self) -> List[docker_volume_info]:
+        '''Return info for a cache volume that can be mounted to the docker container.
+
+        Used to cache downloaded files between runs (like calibration files).
+
+        Returns:
+            str: The volume string
+        '''
+
     async def execute_result_async(self, a: ast.AST, title: str) -> Any:
         '''Take the `ast` and turn it into code and run it in docker, async.
 
@@ -119,6 +143,14 @@ class LocalDataset(EventDataset, ABC):
                 (f_spec.output_path, '/results', ''),
                 (datafile_dir, '/data/', 'ro'),
             ]
+
+            # Add any docker volumes in
+            for v_info in self.docker_cache_volume():
+                # Make sure the volume has been created
+                v_name = _docker_volume_name(v_info)
+                # if not docker.volume.exists(v_name):
+                #     docker.volume.create(v_name)
+                volumes_to_mount.append((v_name, v_info.mount_point))
 
             output: str = ""
             try:
