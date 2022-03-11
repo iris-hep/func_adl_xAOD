@@ -46,7 +46,7 @@ class CPPCodeValue (ast.AST):
         # that are passed to the function and then a text replacement is done in the code.
         self.args = []
 
-        # Special replacement if this is a method call. A tuple. THe first item is the string to be replaced in the
+        # Special replacement if this is a method call. A tuple. The first item is the string to be replaced in the
         # code. The second is the name against which we should be making the call (e.g. if j is the current jet variable,
         # the tuple might be ("obj", "j")).
         self.replacement_instance_obj = None
