@@ -61,7 +61,7 @@ def ok_to_add_code_block(spec, cpp_funcs: List[SpecificationTypes]) -> bool:
         if isinstance(b, InjectCodeBlock) and b.name == spec.name:
             if b == spec:
                 return False
-            raise ValueError(f'Duplicate inject_code blocks with name {spec.name} that are not identical. Do not know which one to use!')
+            raise ValueError(f'Duplicate inject_code blocks with name {spec.name} that are not identical. Do not know which one to use! first: {b} second: {spec}')
     return True
 
 
