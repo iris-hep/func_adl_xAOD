@@ -99,6 +99,9 @@ class executor(ABC):
         Run through all the transformations that we have on tap to be run on the client side.
         Return a (possibly) modified ast.
         '''
+        # Reset the blocks
+        self._job_option_blocks = []
+        self._inject_blocks = []
 
         # Do tuple resolutions. This might eliminate a whole bunch fo code!
         a, meta_data = extract_metadata(a)
