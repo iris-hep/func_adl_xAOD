@@ -190,7 +190,7 @@ def generate_script_block(blocks: List[JobScriptSpecification]) -> List[str]:
             block_lookup[b.name] = b
         else:
             if b.script != block_lookup[b.name].script:
-                raise ValueError(f'Duplication block name {b.name}, but blocks are not identical!')
+                raise ValueError(f'Duplicate metadata block "{b.name}", but blocks are not identical ({b.script} and {block_lookup[b.name].script} should be identical)!')
 
         dependencies[b.name].extend(b.depends_on)
 
