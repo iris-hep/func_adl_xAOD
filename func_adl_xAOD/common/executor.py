@@ -94,15 +94,29 @@ class executor(ABC):
         'Copy a file to a final directory'
         j2_env.get_template(template_file).stream(info).dump(str(final_dir / template_file))
 
+    def reset(self):
+        '''Called before any work is done on a new ast. Resets object to ground zero.
+
+        If anyone who inherits has global state, it should be reset here too.
+
+        TODO: The fact this is here is because we are dealing with global variables, either
+        the instance variables here or actual global state. We really should not have this.
+        Some subtle bugs have already occurred because of this. Especially in running locally
+        vs running up in ServiceX.
+        '''
+        # Reset out object
+        self._job_option_blocks = []
+        self._inject_blocks = []
+
+        # Reset the type system
+        import func_adl_xAOD.common.cpp_types as ctyp
+        ctyp.g_method_type_dict = {}
+
     def apply_ast_transformations(self, a: ast.AST):
         r'''
         Run through all the transformations that we have on tap to be run on the client side.
         Return a (possibly) modified ast.
         '''
-        # Reset the blocks
-        self._job_option_blocks = []
-        self._inject_blocks = []
-
         # Do tuple resolutions. This might eliminate a whole bunch fo code!
         a, meta_data = extract_metadata(a)
         cpp_functions = process_metadata(meta_data)
@@ -246,6 +260,9 @@ class executor(ABC):
             self._copy_template_file(j2_env, info, file_name, output_path)
 
         (output_path / self._runner_name).chmod(0o755)
+
+        # Reset our object for the next call (e.g. reset global state)
+        self.reset()
 
         # Build the return object.
         return ExecutionInfo(result_rep, output_path, self._runner_name, self._file_names)

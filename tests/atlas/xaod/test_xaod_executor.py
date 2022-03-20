@@ -861,6 +861,7 @@ def test_exeuctor_forgets_blocks():
      .Select(lambda j: j.pt())
      .value()
      )
+    our_exe.reset()
     (dataset_xaod()
      .MetaData({
                'metadata_type': 'add_job_script',

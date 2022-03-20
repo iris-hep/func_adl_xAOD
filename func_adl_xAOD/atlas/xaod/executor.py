@@ -30,6 +30,12 @@ class atlas_xaod_executor(executor):
         'Required due to by-reference lambda capture not working as expected in python'
         return lambda cd: ecc.get_collection(md, cd)
 
+    def reset(self):
+        '''Reset our atlas default types
+        '''
+        super().reset()
+        define_default_atlas_types()
+
     def get_visitor_obj(self):
         return atlas_xaod_query_ast_visitor()
 
