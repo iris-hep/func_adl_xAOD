@@ -2,6 +2,7 @@ import re
 
 import pytest
 from func_adl import Range
+from func_adl_xAOD.atlas.xaod.executor import atlas_xaod_executor
 from tests.atlas.xaod.utils import (atlas_xaod_dataset,  # type: ignore
                                     exe_from_qastle)
 from tests.utils.general import get_lines_of_code, print_lines  # type: ignore
@@ -164,7 +165,7 @@ def test_per_jet_item_with_where():
         .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets")') \
         .Where("lambda j: j.pt()>40.0") \
         .Select(lambda j: {
-            'JetPts': j.pt()
+            'JetPts': j.pt()  # type: ignore
         }) \
         .value()
     # Make sure that the tree Fill is at the same level as the _JetPts2 getting set.
@@ -261,9 +262,9 @@ def test_result_awkward():
 def test_per_jet_item_with_event_level():
     r = atlas_xaod_dataset() \
         .Select('lambda e: (e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()), e.EventInfo("EventInfo").runNumber())') \
-        .SelectMany(lambda ji: ji[0].Select(lambda pt: {
+        .SelectMany(lambda ji: ji[0].Select(lambda pt: {  # type: ignore
             'JetPt': pt,
-            'runNumber': ji[1]}
+            'runNumber': ji[1]}  # type: ignore
         )) \
         .value()
     lines = get_lines_of_code(r)
@@ -512,8 +513,8 @@ def test_per_jet_with_matching():
         .Select('lambda e: (e.Jets("AntiKt4EMTopoJets"),e.TruthParticles("TruthParticles").Where(lambda tp1: tp1.pdgId() == 35))') \
         .SelectMany('lambda ev: ev[0].Select(lambda j1: (j1, ev[1].Where(lambda tp2: DeltaR(tp2.eta(), tp2.phi(), j1.eta(), j1.phi()) < 0.4)))') \
         .Select(lambda ji: {
-            'JetPts': ji[0].pt(),
-            'NumLLPs': ji[1].Count()
+            'JetPts': ji[0].pt(),  # type: ignore
+            'NumLLPs': ji[1].Count()  # type: ignore
         }) \
         .value()
     lines = get_lines_of_code(r)
@@ -531,8 +532,8 @@ def test_per_jet_with_matching_and_zeros():
         .Select('lambda e: (e.Jets("AntiKt4EMTopoJets"),e.TruthParticles("TruthParticles").Where(lambda tp1: tp1.pdgId() == 35))') \
         .SelectMany('lambda ev: ev[0].Select(lambda j1: (j1, ev[1].Where(lambda tp2: DeltaR(tp2.eta(), tp2.phi(), j1.eta(), j1.phi()) < 0.4)))') \
         .Select(lambda ji: {
-            'JetPts': ji[0].pt(),
-            'NumLLPs': 0 if ji[1].Count() == 0 else (ji[1].First().pt() - ji[1].First().pt())
+            'JetPts': ji[0].pt(),  # type: ignore
+            'NumLLPs': 0 if ji[1].Count() == 0 else (ji[1].First().pt() - ji[1].First().pt())  # type: ignore
         }) \
         .value()
     lines = get_lines_of_code(r)
@@ -585,9 +586,10 @@ def test_per_jet_with_matching_and_zeros_and_sum():
         .Select('lambda e: (e.Jets("AntiKt4EMTopoJets"),e.TruthParticles("TruthParticles").Where(lambda tp1: tp1.pdgId() == 35))') \
         .SelectMany('lambda ev: ev[0].Select(lambda j1: (j1, ev[1].Where(lambda tp2: DeltaR(tp2.eta(), tp2.phi(), j1.eta(), j1.phi()) < 0.4)))') \
         .Select(lambda ji: {
-            'JetPts': ji[0].pt(),
-            'NumLLPs': 0 if ji[1].Count() == 0 else (ji[1].First().pt() - ji[1].First().pt()),
-            'sums': ji[0].getAttributeVectorFloat("EnergyPerSampling").Sum()}) \
+            'JetPts': ji[0].pt(),  # type: ignore
+            'NumLLPs': 0 if ji[1].Count() == 0 else (ji[1].First().pt() - ji[1].First().pt()),  # type: ignore
+            'sums': ji[0].getAttributeVectorFloat("EnergyPerSampling").Sum()  # type: ignore
+        }) \
         .value()
     lines = get_lines_of_code(r)
     print_lines(lines)
@@ -822,6 +824,56 @@ def test_metadata_returned_collection_double_ptr():
     assert len(value_ref) == 1
     deref = find_line_numbers_with('(*', lines)
     assert len(deref) == 1
+
+
+def test_exeuctor_forgets_blocks():
+    'An executor must be able to run twice, and forget between'
+
+    from tests.utils.base import dataset, dummy_executor
+    from func_adl_xAOD.atlas.xaod.query_ast_visitor import atlas_xaod_query_ast_visitor
+
+    our_exe = atlas_xaod_executor()
+
+    class executor_atlas_holder(dummy_executor):
+        def __init__(self):
+            super().__init__()
+
+        def get_executor_obj(self) -> atlas_xaod_executor:
+            return our_exe
+
+        def get_visitor_obj(self) -> atlas_xaod_query_ast_visitor:
+            return atlas_xaod_query_ast_visitor()
+
+    class dataset_xaod(dataset):
+        def __init__(self, qastle_roundtrip=False):
+            super().__init__(qastle_roundtrip=qastle_roundtrip)
+
+        def get_dummy_executor_obj(self) -> dummy_executor:
+            return executor_atlas_holder()
+
+    (dataset_xaod()
+     .MetaData({
+               'metadata_type': 'add_job_script',
+               'name': 'fork',
+               'script': ['line1', 'line2'],
+               })
+     .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+     .Select(lambda j: j.pt())
+     .value()
+     )
+    our_exe.reset()
+    (dataset_xaod()
+     .MetaData({
+               'metadata_type': 'add_job_script',
+               'name': 'fork',
+               'script': ['line3', 'line4'],
+               })
+     .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+     .Select(lambda j: j.pt())
+     .value()
+     )
+
+    our_exe.add_to_replacement_dict()
 
 
 def test_event_collection_too_many_arg():

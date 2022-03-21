@@ -30,6 +30,12 @@ class cms_aod_executor(executor):
 
         define_default_cms_types()
 
+    def reset(self):
+        '''Reset system to initial state
+        '''
+        super().reset()
+        define_default_cms_types()
+
     @staticmethod
     def build_callback(ecc, md):
         'Required due to by-reference lambda capture not working as expected in python'

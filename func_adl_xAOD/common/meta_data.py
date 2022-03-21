@@ -61,7 +61,7 @@ def ok_to_add_code_block(spec, cpp_funcs: List[SpecificationTypes]) -> bool:
         if isinstance(b, InjectCodeBlock) and b.name == spec.name:
             if b == spec:
                 return False
-            raise ValueError(f'Duplicate inject_code blocks with name {spec.name} that are not identical. Do not know which one to use!')
+            raise ValueError(f'Duplicate inject_code blocks with name {spec.name} that are not identical. Do not know which one to use! first: {b} second: {spec}')
     return True
 
 
@@ -190,7 +190,7 @@ def generate_script_block(blocks: List[JobScriptSpecification]) -> List[str]:
             block_lookup[b.name] = b
         else:
             if b.script != block_lookup[b.name].script:
-                raise ValueError(f'Duplication block name {b.name}, but blocks are not identical!')
+                raise ValueError(f'Duplicate metadata block "{b.name}", but blocks are not identical ({b.script} and {block_lookup[b.name].script} should be identical)!')
 
         dependencies[b.name].extend(b.depends_on)
 
