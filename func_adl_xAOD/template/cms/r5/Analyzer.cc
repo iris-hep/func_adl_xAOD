@@ -15,7 +15,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 // extra headers
-{% for i in include_files %}
+{% for i in body_include_files %}
 #include "{{i}}"
 {% endfor %}
 
