@@ -84,7 +84,11 @@ if [ $run = 1 ]; then
 
     # Figure out the output file
     if [ $output_method == "cp" ]; then
-        destination=$output_dir/ANALYSIS.root
+        if [ -d $output_dir ]; then
+            destination=$output_dir/ANALYSIS.root
+        else
+            destination=$output_dir
+        fi
         cmd="cp"
     else
         destination=$1
