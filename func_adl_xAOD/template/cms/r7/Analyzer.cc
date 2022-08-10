@@ -3,13 +3,13 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
+#include "FWCore/Utilities/interface/InputTag.h" // extra header thar are not in AOD
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -22,7 +22,7 @@
 
 #include "TTree.h"
 
-class Analyzer : public edm::EDAnalyzer
+class Analyzer : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
 public:
    explicit Analyzer(const edm::ParameterSet &);
@@ -31,9 +31,9 @@ public:
    static void fillDescriptions(edm::ConfigurationDescriptions &descriptions);
 
 private:
-   virtual void beginJob();
-   virtual void analyze(const edm::Event &, const edm::EventSetup &);
-   virtual void endJob();
+   virtual void beginJob() override;
+   virtual void analyze(const edm::Event &, const edm::EventSetup &) override;
+   virtual void endJob() override;
 
    virtual void beginRun(edm::Run const &, edm::EventSetup const &);
    virtual void endRun(edm::Run const &, edm::EventSetup const &);

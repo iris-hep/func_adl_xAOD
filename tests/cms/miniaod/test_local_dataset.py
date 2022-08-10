@@ -10,7 +10,7 @@ def test_integrated_run():
     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
     from func_adl_xAOD.cms.miniaod.local_dataset import CMSRun2miniAODDataset
     r = (CMSRun2miniAODDataset(f_location)
-         .SelectMany('lambda e: e.TrackMuons("globalMuons")')
+         .SelectMany('lambda e: e.Muons("globalMuons")')
          .Select('lambda m: m.pt()')
          .AsROOTTTree('junk.root', 'my_tree', ['muon_pt'])
          .value())
@@ -41,7 +41,7 @@ def test_run(docker_mock):
     '''Test a simple run using docker mock'''
     from func_adl_xAOD.cms.miniaod.local_dataset import CMSRun2miniAODDataset
     r = (CMSRun2miniAODDataset(f_location)
-         .SelectMany('lambda e: e.TrackMuons("globalMuons")')
+         .SelectMany('lambda e: e.Muons("globalMuons")')
          .Select('lambda m: m.pt()')
          .AsROOTTTree('junk.root', 'my_tree', ['muon_pt'])
          .value())

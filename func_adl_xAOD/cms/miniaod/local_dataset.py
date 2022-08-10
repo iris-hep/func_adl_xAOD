@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 from func_adl_xAOD.common.local_dataset import LocalDataset, docker_volume_info
-from func_adl_xAOD.cms.aod.executor import cms_aod_executor
+from func_adl_xAOD.cms.miniaod.executor import cms_miniaod_executor
 from func_adl_xAOD.common.executor import executor
 
 
@@ -30,7 +30,7 @@ class CMSRun2miniAODDataset(LocalDataset):
         Returns:
             executor: Return the executor
         '''
-        return cms_aod_executor()
+        return cms_miniaod_executor()
 
     def docker_cache_volume(self) -> List[docker_volume_info]:
         return []
