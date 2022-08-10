@@ -59,7 +59,7 @@ if [ $compile = 1 ]; then
     cd Analyzer
 
 
-    cp $DIR/Analyzer.cc ./src/
+    cp $DIR/Analyzer.cc ./src
     cp $DIR/analyzer_cfg.py .
     cp $DIR/BuildFile.xml .
 

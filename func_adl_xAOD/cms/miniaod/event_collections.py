@@ -22,7 +22,7 @@ class cms_miniaod_event_collection_collection(event_collection_collection_contai
 # is strongly typed, and thus we have to transmit this information.
 cms_miniaod_collections = [
     EventCollectionSpecification('cms', "Muons",
-                                 ['DataFormats/PatCandidates/interface/Muon.h'],
+                                 ["DataFormats/PatCandidates/interface/Muon.h"],
                                  cms_miniaod_event_collection_collection('pat::MuonCollection', 'pat::Muon'),
                                  [],
                                  ),
