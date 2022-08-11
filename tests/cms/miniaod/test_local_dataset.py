@@ -4,7 +4,7 @@ import pytest
 python_on_whales = pytest.importorskip("python_on_whales")
 
 
-@pytest.mark.cms_aod_runner
+@pytest.mark.cms_miniaod_runner
 def test_integrated_run():
     '''Test a simple run with docker'''
     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
