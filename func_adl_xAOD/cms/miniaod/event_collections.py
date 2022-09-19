@@ -16,7 +16,9 @@ class cms_miniaod_event_collection_collection(event_collection_collection_contai
 
     def __str__(self):
         return f"Handle<{self.type}>"
-
+    def token_type(self):
+        #returns the c++ type of the token. Required for miniAOD token declaration
+        return f"edm::EDGetTokenT<{self.type}>"
 
 # all the collections types that are available. This is required because C++
 # is strongly typed, and thus we have to transmit this information.
@@ -46,7 +48,7 @@ cms_miniaod_collections = [
 def define_default_cms_types():
     'Define the default cms types'
     ctyp.add_method_type_info("pat::Muon", "globalTrack", ctyp.terminal('reco::Track', p_depth=1))
-    ctyp.add_method_type_info("pat::Muon", "hitPattern", ctyp.terminal('reco::HitPattern'))
+    # ctyp.add_method_type_info("pat::Muon", "hitPattern", ctyp.terminal('reco::HitPattern'))
     ctyp.add_method_type_info("pat::Muon", "isPFIsolationValid", ctyp.terminal('bool'))
     ctyp.add_method_type_info("pat::Muon", "isPFMuon", ctyp.terminal('bool'))
     ctyp.add_method_type_info("pat::Muon", "pfIsolationR04", ctyp.terminal('reco::MuonPFIsolation'))
@@ -64,4 +66,4 @@ def define_default_cms_types():
 class cms_event_collection_coder(event_collection_coder):
     def get_running_code(self, container_type: event_collection_container) -> list:
         return [f'{container_type} result;',
-                'iEvent.getByToken(collection_name, result);']
+                'iEvent.getByToken(token_, result);']

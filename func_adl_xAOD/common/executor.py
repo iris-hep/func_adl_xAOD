@@ -1,6 +1,7 @@
 # Drive the translate of the AST from start into a set of files, which one can then do whatever
 # is needed to.
 import ast
+from lib2to3.pgen2 import token
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 from typing import Any, Callable, Dict, List
 from func_adl_xAOD.common.meta_data import InjectCodeBlock, JobScriptSpecification, process_metadata
@@ -82,13 +83,17 @@ def _is_format_request(a: ast.AST) -> bool:
 
 class executor(ABC):
     def __init__(self, file_names: list, runner_name: str, template_dir_name: str,
-                 method_names: Dict[str, Callable[[ast.Call], ast.Call]]):
+                 method_names: Dict[str, Callable[[ast.Call], ast.Call]], token = None):
         self._file_names = file_names
         self._runner_name = runner_name
         self._template_dir_name = template_dir_name
         self._method_names = method_names
+        print("method??")
+        print(self._method_names)
         self._job_option_blocks = []
         self._inject_blocks: List[InjectCodeBlock] = []
+        if token is None:
+            self.token = []
 
     def _copy_template_file(self, j2_env, info, template_file, final_dir: Path):
         'Copy a file to a final directory'
@@ -124,7 +129,7 @@ class executor(ABC):
         a = aggregate_node_transformer().visit(a)
         a = simplify_chained_calls().visit(a)
         a = find_known_functions().visit(a)
-
+        print(ast.dump(a))
         # Any C++ custom code needs to be threaded into the ast
         method_names = dict(self._method_names)
         method_names.update({
@@ -134,15 +139,12 @@ class executor(ABC):
             for md in cpp_functions if isinstance(md, (cpp_ast.CPPCodeSpecification, EventCollectionSpecification))
         })
         a = cpp_ast.cpp_ast_finder(method_names).visit(a)
-
         # Save the injection blocks
         self._inject_blocks = [md for md in cpp_functions if isinstance(md, InjectCodeBlock)]
-
         # Pull off any joboption blocks
         for m in cpp_functions:
             if isinstance(m, JobScriptSpecification):
                 self._job_option_blocks.append(m)
-
         # And return the modified ast
         return a
 
@@ -157,27 +159,27 @@ class executor(ABC):
 
     @property
     def header_include_files(self) -> List[str]:
-        'Return the list of include files for the query.cpp file'
+        'Return the list of include files for the header file'
         return self._ib_fetch('header_includes')
 
     @property
     def private_members(self) -> List[str]:
-        'Return the list of include files for the query.cpp file'
+        'Return the list of private members for the query.cpp file'
         return self._ib_fetch('private_members')
 
     @property
     def instance_initialization(self) -> List[str]:
-        'Return the list of include files for the query.cpp file'
+        'Return the list of initialziation of instances for the query.cpp file'
         return self._ib_fetch('instance_initialization')
 
     @property
     def ctor_lines(self) -> List[str]:
-        'Return the list of include files for the query.cpp file'
+        'Return the Lines of C++ to add to the body of the constructor for the query.cpp file'
         return self._ib_fetch('ctor_lines')
 
     @property
     def link_libraries(self) -> List[str]:
-        'Return the list of include files for the query.cpp file'
+        'Return the items to add to the `CMake LINK_LIBRARIES` list'
         return self._ib_fetch('link_libraries')
 
     @property
@@ -210,7 +212,7 @@ class executor(ABC):
         '''
         return {}
 
-    def write_cpp_files(self, ast: ast.AST, output_path: Path) -> ExecutionInfo:
+    def write_cpp_files(self, xxx: ast.AST, output_path: Path) -> ExecutionInfo:
         r"""
         Given the AST generate the C++ files that need to run. Return them along with
         the input files.
@@ -218,16 +220,14 @@ class executor(ABC):
 
         # Find the base file dataset and mark it.
         from func_adl import find_EventDataset
-        file = find_EventDataset(ast)
+        file = find_EventDataset(xxx)
         iterator = crep.cpp_variable("bogus-do-not-use", top_level_scope(), cpp_type=None)
         crep.set_rep(file, crep.cpp_sequence(iterator, iterator, top_level_scope()))
-
         # Visit the AST to generate the code structure and find out what the
         # result is going to be.
         qv = self.get_visitor_obj()
-        result_rep = qv.get_rep(ast) if _is_format_request(ast) \
-            else qv.get_as_ROOT(ast)
-
+        result_rep = qv.get_rep(xxx) if _is_format_request(xxx) \
+            else qv.get_as_ROOT(xxx)
         # Emit the C++ code into our dictionaries to be used in template generation below.
         query_code = _cpp_source_emitter()
         qv.emit_query(query_code)

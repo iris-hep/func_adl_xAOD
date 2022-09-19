@@ -136,6 +136,10 @@ class collection (terminal):
         # And the element type we are representing
         self._element_type = element_type
 
+    def token_type(self):
+        #returns the c++ type of the token. Required for miniAOD token declaration
+        return None
+
     # TODO: Turn into a property
     @property
     def element_type(self) -> terminal:

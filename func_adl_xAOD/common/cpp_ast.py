@@ -11,7 +11,7 @@ from func_adl_xAOD.common.cpp_representation import (cpp_collection, cpp_value,
                                                      cpp_variable)
 from func_adl_xAOD.common.cpp_vars import unique_name
 from func_adl_xAOD.common.util_scope import gc_scope
-
+import func_adl_xAOD.common.cpp_representation as crep
 # The list of methods and the re-write functions for them. Each rewrite function
 # is called with the Call node, which includes arguments, names, etc. It should return
 # None or a cpp_ast.

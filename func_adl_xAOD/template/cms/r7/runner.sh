@@ -58,12 +58,14 @@ if [ $compile = 1 ]; then
     mkedanlzr Analyzer
     cd Analyzer
 
-
-    cp $DIR/Analyzer.cc ./src
-    cp $DIR/analyzer_cfg.py .
-    cp $DIR/BuildFile.xml .
-
+    ##cp $DIR/Analyzer.cc ./src/Analyzer/plugins
+    ##cp $DIR/analyzer_cfg.py ./src/Analyzer/ConfFile_cfg.py
+    ##cp $DIR/BuildFile.xml ./src/Analyzer/plugins
+    cp $DIR/Analyzer.cc ./plugins/
+    cp $DIR/analyzer_cfg.py ./python/ConfFile_cfg.py
+    cp $DIR/BuildFile.xml ./plugins/
     ## build the analyzer
+    exit 1
     scram b
 else
     cd analysis/Analyzer
@@ -98,9 +100,8 @@ if [ $run = 1 ]; then
       fi
     fi
     export CMS_OUTPUT_FILE=ANALYSIS.root
-
     # run the analysis
-    cmsRun analyzer_cfg.py
+    cmsRun python/ConfFile_cfg.py
 
     # Convert the ROOT file into the proper format.
     # CMS writes the tuples one directory down rather than in the top level.

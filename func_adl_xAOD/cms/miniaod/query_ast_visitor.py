@@ -1,7 +1,10 @@
+import string
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
-from func_adl_xAOD.common.statement import book_ttree, ttree_fill
-
-
+from func_adl_xAOD.common.statement import book_ttree, set_var, ttree_fill
+from func_adl_xAOD.common.util_scope import gc_scope_top_level
+import func_adl_xAOD.common.cpp_types as ctyp
+import func_adl_xAOD.common.cpp_representation as crep
+from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 class book_cms_miniaod_ttree(book_ttree):
     'Book an CMS TTree for writing out. Meant to be in the Book method'
 
@@ -26,6 +29,12 @@ class cms_miniaod_ttree_fill(ttree_fill):
     def emit(self, e):
         e.add_line('myTree->Fill();')
 
+# class cms_miniaod_initialize_token(set_var):
+#     'for initializing the token'
+
+#     def __init__(self, target_var, value_var):
+#         super().__init__(target_var, value_var)
+
 
 class cms_miniaod_query_ast_visitor(query_ast_visitor):
     r"""
@@ -34,7 +43,7 @@ class cms_miniaod_query_ast_visitor(query_ast_visitor):
     """
 
     def __init__(self):
-        prefix = 'cms_aod'
+        prefix = 'cms_miniaod'
         super().__init__(prefix)
 
     def create_book_ttree_obj(self, tree_name: str, leaves: list) -> book_ttree:
