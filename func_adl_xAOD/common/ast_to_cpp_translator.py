@@ -627,7 +627,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             crep.set_rep(call_node, cpp_ast.process_ast_node(self, self._gc, call_node))
             self.return_tag(call_node)
         elif isinstance(call_node.func, FunctionAST):
-            print("func_ast")
             self.visit_function_ast(call_node)
         else:
             # Perhaps a method call we can normalize?

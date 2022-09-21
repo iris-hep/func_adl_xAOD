@@ -88,8 +88,6 @@ class executor(ABC):
         self._runner_name = runner_name
         self._template_dir_name = template_dir_name
         self._method_names = method_names
-        print("method??")
-        print(self._method_names)
         self._job_option_blocks = []
         self._inject_blocks: List[InjectCodeBlock] = []
         if token is None:
@@ -129,7 +127,6 @@ class executor(ABC):
         a = aggregate_node_transformer().visit(a)
         a = simplify_chained_calls().visit(a)
         a = find_known_functions().visit(a)
-        print(ast.dump(a))
         # Any C++ custom code needs to be threaded into the ast
         method_names = dict(self._method_names)
         method_names.update({
