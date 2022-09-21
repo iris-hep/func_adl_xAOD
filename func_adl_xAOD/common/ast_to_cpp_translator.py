@@ -291,7 +291,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         'Look up the in our local dict. This takes care of function arguments, etc.'
         return self._arg_stack.lookup_name(id)
 
-    
+    def token_declaration(self, token_type):
+        pass
+
     def make_sequence_from_collection(self, rep: crep.cpp_collection) -> crep.cpp_sequence:
         '''
         Take a collection and produce a sequence. Eventually this should likely be some sort of
@@ -307,12 +309,8 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         collection = crep.dereference_var(rep)
 
         #declare class variable(token) for miniAOD, for now
-        token_type = cpp_type.token_type()
-        if token_type is not None:
-            token = crep.cpp_variable("token_", gc_scope_top_level, ctyp.terminal(token_type))
-            self._gc.declare_class_variable(token)
-            test_out = statement.set_var(token, crep.cpp_value("collection_name", None, None))
-            self._gc.add_book_statement(test_out)
+
+        self.token_declaration(cpp_type)
         l_statement = statement.loop(iterator_value, collection)
         self._gc.add_statement(l_statement)
         iterator_value.reset_scope(self._gc.current_scope())
@@ -613,6 +611,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         assert hasattr(node, 'rep')
         return crep.get_rep(node)
 
+    def return_tag(self, call_node: ast.Call):
+        pass
+
     def visit_Call(self, call_node: ast.Call):
         r'''
         Very limited call forwarding.
@@ -624,7 +625,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             self.visit_Call_Member(call_node)
         elif isinstance(call_node.func, cpp_ast.CPPCodeValue):
             crep.set_rep(call_node, cpp_ast.process_ast_node(self, self._gc, call_node))
+            self.return_tag(call_node)
         elif isinstance(call_node.func, FunctionAST):
+            print("func_ast")
             self.visit_function_ast(call_node)
         else:
             # Perhaps a method call we can normalize?

@@ -1,10 +1,11 @@
-import string
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
 from func_adl_xAOD.common.statement import book_ttree, set_var, ttree_fill
 from func_adl_xAOD.common.util_scope import gc_scope_top_level
 import func_adl_xAOD.common.cpp_types as ctyp
 import func_adl_xAOD.common.cpp_representation as crep
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
+import ast
+import func_adl_xAOD.common.statement as statement
 class book_cms_miniaod_ttree(book_ttree):
     'Book an CMS TTree for writing out. Meant to be in the Book method'
 
@@ -45,9 +46,26 @@ class cms_miniaod_query_ast_visitor(query_ast_visitor):
     def __init__(self):
         prefix = 'cms_miniaod'
         super().__init__(prefix)
+        tag = None
 
     def create_book_ttree_obj(self, tree_name: str, leaves: list) -> book_ttree:
         return book_cms_miniaod_ttree(tree_name, leaves)
 
     def create_ttree_fill_obj(self, tree_name: str) -> ttree_fill:
         return cms_miniaod_ttree_fill(tree_name)
+
+    def return_tag(self, call_node) -> str:
+        r"""
+        Returns the tag that the client required. For example, returns "slimmedMuon"
+        in SelectMany('lambda e: e.Muons("slimmedMuons")')'
+        """
+        self.tag = str(ast.literal_eval(call_node.args[0]))
+
+    def token_declaration(self, cpp_type):
+        """
+        Declare token for cms_miniAOD
+        """
+        token = crep.cpp_variable("token_", gc_scope_top_level, ctyp.terminal(cpp_type.token_type()))
+        self._gc.declare_class_variable(token)
+        test_out = statement.set_var(token, crep.cpp_value(f'consumes<{cpp_type.type}>(edm::InputTag("{self.tag}"))', None, None))
+        self._gc.add_book_statement(test_out)
