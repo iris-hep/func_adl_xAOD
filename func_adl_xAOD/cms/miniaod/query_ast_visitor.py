@@ -30,13 +30,6 @@ class cms_miniaod_ttree_fill(ttree_fill):
     def emit(self, e):
         e.add_line('myTree->Fill();')
 
-# class cms_miniaod_initialize_token(set_var):
-#     'for initializing the token'
-
-#     def __init__(self, target_var, value_var):
-#         super().__init__(target_var, value_var)
-
-
 class cms_miniaod_query_ast_visitor(query_ast_visitor):
     r"""
     Drive the conversion to C++ from the top level query
@@ -53,19 +46,3 @@ class cms_miniaod_query_ast_visitor(query_ast_visitor):
 
     def create_ttree_fill_obj(self, tree_name: str) -> ttree_fill:
         return cms_miniaod_ttree_fill(tree_name)
-
-    def return_tag(self, call_node) -> str:
-        r"""
-        Returns the tag that the client required. For example, returns "slimmedMuon"
-        in SelectMany('lambda e: e.Muons("slimmedMuons")')'
-        """
-        self.tag = str(ast.literal_eval(call_node.args[0]))
-
-    def token_declaration(self, cpp_type):
-        """
-        Declare token for cms_miniAOD
-        """
-        token = crep.cpp_variable("token_", gc_scope_top_level, ctyp.terminal(cpp_type.token_type()))
-        self._gc.declare_class_variable(token)
-        test_out = statement.set_var(token, crep.cpp_value(f'consumes<{cpp_type.type}>(edm::InputTag("{self.tag}"))', None, None))
-        self._gc.add_book_statement(test_out)

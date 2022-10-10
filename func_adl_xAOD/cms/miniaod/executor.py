@@ -18,7 +18,6 @@ class cms_miniaod_executor(executor):
         template_dir_name = 'func_adl_xAOD/template/cms/r7'
 
         self._ecc = cms_event_collection_coder()
-        #self._ecc.get_class_decl_code()
         method_names = {
             md.name: self.build_callback(self._ecc, md)
             for md in cms_miniaod_collections

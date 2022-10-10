@@ -98,7 +98,6 @@ if [ $run = 1 ]; then
       fi
     fi
     export CMS_OUTPUT_FILE=ANALYSIS.root
-    exit 1
     # run the analysis
     cmsRun analyzer_cfg.py
 

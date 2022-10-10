@@ -310,7 +310,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         #declare class variable(token) for miniAOD, for now
 
-        self.token_declaration(cpp_type)
+        #self.token_declaration(cpp_type)
         l_statement = statement.loop(iterator_value, collection)
         self._gc.add_statement(l_statement)
         iterator_value.reset_scope(self._gc.current_scope())
@@ -625,7 +625,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             self.visit_Call_Member(call_node)
         elif isinstance(call_node.func, cpp_ast.CPPCodeValue):
             crep.set_rep(call_node, cpp_ast.process_ast_node(self, self._gc, call_node))
-            self.return_tag(call_node)
         elif isinstance(call_node.func, FunctionAST):
             self.visit_function_ast(call_node)
         else:

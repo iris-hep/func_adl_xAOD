@@ -1,5 +1,11 @@
 from typing import Union
 import func_adl_xAOD.common.cpp_types as ctyp
+import func_adl_xAOD.common.cpp_ast as cpp_ast
+import func_adl_xAOD.common.cpp_representation as crep
+from func_adl_xAOD.common.cpp_vars import unique_name
+import func_adl_xAOD.common.statement as statement
+from func_adl_xAOD.common.util_scope import gc_scope_top_level
+import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.event_collections import (
     EventCollectionSpecification, event_collection_coder, event_collection_collection_container, event_collection_container)
 
@@ -24,7 +30,8 @@ class cms_miniaod_event_collection_collection(event_collection_collection_contai
 # is strongly typed, and thus we have to transmit this information.
 cms_miniaod_collections = [
     EventCollectionSpecification('cms', "Muons",
-                                 ["DataFormats/PatCandidates/interface/Muon.h"],
+                                 ["DataFormats/PatCandidates/interface/Muon.h",
+                                  "DataFormats/PatCandidates/interface/PackedCandidate.h"],
                                  cms_miniaod_event_collection_collection('pat::MuonCollection', 'pat::Muon'),
                                  [],
                                  ),
@@ -48,7 +55,8 @@ cms_miniaod_collections = [
 def define_default_cms_types():
     'Define the default cms types'
     ctyp.add_method_type_info("pat::Muon", "globalTrack", ctyp.terminal('reco::Track', p_depth=1))
-    # ctyp.add_method_type_info("pat::Muon", "hitPattern", ctyp.terminal('reco::HitPattern'))
+    ctyp.add_method_type_info("pat::Muon", "pseudoTrack", ctyp.terminal('reco::Track', p_depth=1))
+    ctyp.add_method_type_info("pat::Muon", "hitPattern", ctyp.terminal('reco::HitPattern'))
     ctyp.add_method_type_info("pat::Muon", "isPFIsolationValid", ctyp.terminal('bool'))
     ctyp.add_method_type_info("pat::Muon", "isPFMuon", ctyp.terminal('bool'))
     ctyp.add_method_type_info("pat::Muon", "pfIsolationR04", ctyp.terminal('reco::MuonPFIsolation'))
@@ -64,6 +72,18 @@ def define_default_cms_types():
 
 
 class cms_event_collection_coder(event_collection_coder):
+    t_name = unique_name("token")
     def get_running_code(self, container_type: event_collection_container) -> list:
         return [f'{container_type} result;',
-                'iEvent.getByToken(token_, result);']
+                f'iEvent.getByToken({self.t_name}, result);']
+
+    def get_running_code_CPPCodeValue(self, cpv: cpp_ast.CPPCodeValue, md: EventCollectionSpecification):
+        #Used to build CPPCodeVlue for miniAOD
+        cpv.running_code = self.get_running_code(md.container_type)
+        #Specify the token name and type
+        token_variable = crep.cpp_variable(self.t_name, gc_scope_top_level, ctyp.terminal(md.container_type.token_type()))
+        #value of initializing the token
+        # token_init = statement.set_var(token_variable, crep.cpp_value(f'consumes<{md.container_type.type}>(edm::InputTag(collection_name))', None, None))
+        token_init = f'consumes<{md.container_type.type}>(edm::InputTag(collection_name))'
+        #add both token declaration and initializtion to CPPCodeValue.fields for building the cpp files
+        cpv.fields.append((token_variable, token_init))

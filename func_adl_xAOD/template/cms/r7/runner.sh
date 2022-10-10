@@ -65,7 +65,6 @@ if [ $compile = 1 ]; then
     cp $DIR/analyzer_cfg.py ./python/ConfFile_cfg.py
     cp $DIR/BuildFile.xml ./plugins/
     ## build the analyzer
-    exit 1
     scram b
 else
     cd analysis/Analyzer
