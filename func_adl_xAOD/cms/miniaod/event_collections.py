@@ -29,20 +29,20 @@ class cms_miniaod_event_collection_collection(event_collection_collection_contai
 # all the collections types that are available. This is required because C++
 # is strongly typed, and thus we have to transmit this information.
 cms_miniaod_collections = [
-    EventCollectionSpecification('cms', "Muons",
-                                 ["DataFormats/PatCandidates/interface/Muon.h",
-                                  "DataFormats/PatCandidates/interface/PackedCandidate.h"],
+    EventCollectionSpecification('cms_miniaod', "Muons",
+                                 ["DataFormats/PatCandidates/interface/Muon.h"
+                                  ],
                                  cms_miniaod_event_collection_collection('pat::MuonCollection', 'pat::Muon'),
                                  [],
                                  ),
-    EventCollectionSpecification('cms', "Vertex",
+    EventCollectionSpecification('cms_miniaod', "Vertex",
                                  ["DataFormats/VertexReco/interface/Vertex.h",
                                   "DataFormats/VertexReco/interface/VertexFwd.h"
                                   ],
                                  cms_miniaod_event_collection_collection('reco::VertexCollection', 'reco::Vertex', p_depth_element=0),
                                  [],
                                  ),
-    EventCollectionSpecification('cms', "Electrons",
+    EventCollectionSpecification('cms_miniaod', "Electrons",
                                  ['DataFormats/PatCandidates/interface/Electron.h',
                                   'DataFormats/EgammaCandidates/interface/GsfElectron.h'
                                   ],
@@ -54,14 +54,15 @@ cms_miniaod_collections = [
 
 def define_default_cms_types():
     'Define the default cms types'
-    ctyp.add_method_type_info("pat::Muon", "globalTrack", ctyp.terminal('reco::Track', p_depth=1))
-    ctyp.add_method_type_info("pat::Muon", "pseudoTrack", ctyp.terminal('reco::Track', p_depth=1))
-    ctyp.add_method_type_info("pat::Muon", "hitPattern", ctyp.terminal('reco::HitPattern'))
+    ctyp.add_method_type_info("reco::TrackRef", "hitPattern", ctyp.terminal('reco::HitPattern'))
+    #ctyp.add_method_type_info("reco::TrackRef", "reco::TrackRef::hitpattern", ctyp.terminal('reco::HitPattern'))
+
+    ctyp.add_method_type_info("pat::Muon", "globalTrack", ctyp.terminal('reco::TrackRef', p_depth=1))
     ctyp.add_method_type_info("pat::Muon", "isPFIsolationValid", ctyp.terminal('bool'))
     ctyp.add_method_type_info("pat::Muon", "isPFMuon", ctyp.terminal('bool'))
     ctyp.add_method_type_info("pat::Muon", "pfIsolationR04", ctyp.terminal('reco::MuonPFIsolation'))
 
-    ctyp.add_method_type_info("pat::Electron", "gsfTrack", ctyp.terminal('reco::GsfTrack', p_depth=1))
+    ctyp.add_method_type_info("pat::Electron", "gsfTrack", ctyp.terminal('reco::GsfTrackRef', p_depth=1))
     ctyp.add_method_type_info("pat::Electron", "isEB", ctyp.terminal('bool'))
     ctyp.add_method_type_info("pat::Electron", "isEE", ctyp.terminal('bool'))
     ctyp.add_method_type_info("pat::Electron", "passingPflowPreselection", ctyp.terminal('bool'))

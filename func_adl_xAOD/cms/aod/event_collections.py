@@ -21,7 +21,7 @@ class cms_aod_event_collection_collection(event_collection_collection_container)
 # all the collections types that are available. This is required because C++
 # is strongly typed, and thus we have to transmit this information.
 cms_aod_collections = [
-    EventCollectionSpecification('cms', "Tracks",
+    EventCollectionSpecification('cms_aod', "Tracks",
                                  ['DataFormats/TrackReco/interface/Track.h',
                                   'DataFormats/TrackReco/interface/TrackFwd.h',
                                   'DataFormats/TrackReco/interface/HitPattern.h'
@@ -29,7 +29,7 @@ cms_aod_collections = [
                                  cms_aod_event_collection_collection('reco::TrackCollection', 'reco::Track'),
                                  [],
                                  ),
-    EventCollectionSpecification('cms', "TrackMuons",
+    EventCollectionSpecification('cms_aod', "TrackMuons",
                                  ['DataFormats/MuonReco/interface/Muon.h',
                                   'DataFormats/MuonReco/interface/MuonFwd.h',
                                   'DataFormats/MuonReco/interface/MuonSelectors.h',
@@ -42,7 +42,7 @@ cms_aod_collections = [
                                  cms_aod_event_collection_collection('reco::TrackCollection', 'reco::Track'),
                                  [],
                                  ),
-    EventCollectionSpecification('cms', "Muons",
+    EventCollectionSpecification('cms_aod', "Muons",
                                  ['DataFormats/MuonReco/interface/Muon.h',
                                   'DataFormats/MuonReco/interface/MuonFwd.h',
                                   'DataFormats/MuonReco/interface/MuonSelectors.h',
@@ -52,14 +52,14 @@ cms_aod_collections = [
                                  cms_aod_event_collection_collection('reco::MuonCollection', 'reco::Muon'),
                                  [],
                                  ),
-    EventCollectionSpecification('cms', "Vertex",
+    EventCollectionSpecification('cms_aod', "Vertex",
                                  ["DataFormats/VertexReco/interface/Vertex.h",
                                   "DataFormats/VertexReco/interface/VertexFwd.h"
                                   ],
                                  cms_aod_event_collection_collection('reco::VertexCollection', 'reco::Vertex', p_depth_element=0),
                                  [],
                                  ),
-    EventCollectionSpecification('cms', "GsfElectrons",
+    EventCollectionSpecification('cms_aod', "GsfElectrons",
                                  ['DataFormats/EgammaCandidates/interface/GsfElectron.h',
                                   'DataFormats/GsfTrackReco/interface/GsfTrack.h',
                                   'DataFormats/GsfTrackReco/interface/GsfTrackFwd.h'

@@ -59,8 +59,8 @@ class CPPCodeValue (ast.AST):
         # A lambda that takes teh scope as an argument and returns a cpp variable to hold things.
         self.result_rep: Optional[Callable[[gc_scope], cpp_variable]] = None
 
-        # Used only for miniaod (for now)to declare and initialize the required token, the element is 
-        # a tuple:(cpp_rep:token_declaration, str: token_initialization)
+        # Instance declaration and initialization. The instance is initialized in the constructor. 
+        # The element is a tuple:(cpp_rep:instance_declaration, str: instance_initialization)
         self.fields = []
 
 

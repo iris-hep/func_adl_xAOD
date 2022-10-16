@@ -14,7 +14,7 @@ class CMS_miniAOD_File_Type:
 
 def test_Select_member_variable():
     r = cms_miniaod_dataset() \
-        .SelectMany(lambda e: e.Muons("muons")) \
+        .SelectMany(lambda e: e.Muons("slimmedMuons")) \
         .Select(lambda m: m.pfIsolationR04().sumChargedHadronPt) \
         .value()
     lines = get_lines_of_code(r)
@@ -25,7 +25,7 @@ def test_Select_member_variable():
 def test_complex_dict():
     'Seen to fail in the wild, so a test case to track'
     r = cms_miniaod_dataset() \
-        .Select(lambda e: {"muons": e.Muons("muons"), "primvtx": e.Vertex("offlinePrimaryVertices")}) \
+        .Select(lambda e: {"muons": e.Muons("slimmedMuons"), "primvtx": e.Vertex("offlinePrimaryVertices")}) \
         .Select(lambda i: i.muons
                 .Where(lambda m: isNonnull(m.globalTrack()))
                 .Select(lambda m: m.globalTrack().dx(i.primvtx[0].position()))
@@ -41,7 +41,7 @@ def test_complex_dict():
 def test_2nd_order_lookup():
     'Seen in the wild to generate an out-of-scope error'
     r = (cms_miniaod_dataset()
-         .Select(lambda e: {"m": e.Muons("muons"), "p": e.Vertex("offlinePrimaryVertices")[0].position()})
+         .Select(lambda e: {"m": e.Muons("slimmedMuons"), "p": e.Vertex("offlinePrimaryVertices")[0].position()})
          .Select(lambda i:
                  i.m
                  .Where(lambda m: m.isPFMuon()
@@ -59,7 +59,7 @@ def test_2nd_order_lookup():
     print_lines(lines)
 
     # Make sure the vertex line isn't used after it goes out of scope
-    vertex_decl_line = find_line_with('edm::Handle<reco::VertexCollection>', lines)
+    vertex_decl_line = find_line_with('Handle<reco::VertexCollection>', lines)
 
     vertex_variable_name = lines[vertex_decl_line].split(' ')[-1].strip(';')
 
@@ -75,7 +75,7 @@ def test_metadata_collection():
     'This is integration testing - making sure the dict to root conversion works'
     r = (cms_miniaod_dataset()
          .MetaData({
-                   'metadata_type': 'add_cms_event_collection_info',
+                   'metadata_type': 'add_cms_miniaod_event_collection_info',
                    'name': 'ForkVertex',
                    'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
                    'container_type': 'reco::VertexCollection',
@@ -87,9 +87,10 @@ def test_metadata_collection():
          .Select(lambda e: {'run_number': e})
          .value())
     vs = r.QueryVisitor._gc._class_vars
-    assert 1 == len(vs)
-    assert "int" == str(vs[0].cpp_type())
-
+    print(vs[0].cpp_type())
+    assert 2 == len(vs)
+    assert "int" == str(vs[1].cpp_type())
+    assert "edm::EDGetTokenT<reco::VertexCollection>" == str(vs[0].cpp_type())
 
 def test_metadata_collection_bad_experiment():
     'This is integration testing - making sure the dict to root conversion works'

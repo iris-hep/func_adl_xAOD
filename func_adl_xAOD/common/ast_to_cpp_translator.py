@@ -979,7 +979,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # - If a value, you want it at the level where the value is set.
         self._gc.set_scope(scope_fill)
         self._gc.add_statement(self.create_ttree_fill_obj(tree_name))
-        #self._gc.declare_class_variable(crep.cpp_variable("xxx", scope=gc_scope_top_level, cpp_type=ctyp.terminal('xxx')))
         for e in zip(seq_values.values(), var_names):
             if rep_is_collection(e[0]):
                 self._gc.add_statement(statement.container_clear(e[1][1]))

@@ -42,7 +42,7 @@ class cms_miniaod_executor(executor):
         return cms_miniaod_query_ast_visitor()
 
     def build_collection_callback(self, metadata: EventCollectionSpecification) -> Callable[[ast.Call], ast.Call]:
-        if metadata.backend_name != 'cms':
-            raise ValueError(f'Attempt to create a collection from metadata for the {metadata.backend_name} backend; only "atlas" allowed.')
+        if metadata.backend_name != 'cms_miniaod':
+            raise ValueError(f'Attempt to create a collection from metadata for the {metadata.backend_name} backend; only "atlas, cms_aod, or cms_miniaod" allowed.')
 
         return lambda cd: self._ecc.get_collection(metadata, cd)

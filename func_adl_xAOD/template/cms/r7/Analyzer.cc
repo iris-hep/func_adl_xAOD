@@ -13,6 +13,7 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "DataFormats/TrackReco/interface/Track.h"
 
 // extra headers
 {% for i in body_include_files %}
