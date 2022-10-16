@@ -83,15 +83,13 @@ def _is_format_request(a: ast.AST) -> bool:
 
 class executor(ABC):
     def __init__(self, file_names: list, runner_name: str, template_dir_name: str,
-                 method_names: Dict[str, Callable[[ast.Call], ast.Call]], token = None):
+                 method_names: Dict[str, Callable[[ast.Call], ast.Call]]):
         self._file_names = file_names
         self._runner_name = runner_name
         self._template_dir_name = template_dir_name
         self._method_names = method_names
         self._job_option_blocks = []
         self._inject_blocks: List[InjectCodeBlock] = []
-        if token is None:
-            self.token = []
 
     def _copy_template_file(self, j2_env, info, template_file, final_dir: Path):
         'Copy a file to a final directory'
@@ -209,7 +207,7 @@ class executor(ABC):
         '''
         return {}
 
-    def write_cpp_files(self, xxx: ast.AST, output_path: Path) -> ExecutionInfo:
+    def write_cpp_files(self, ast: ast.AST, output_path: Path) -> ExecutionInfo:
         r"""
         Given the AST generate the C++ files that need to run. Return them along with
         the input files.
@@ -217,14 +215,14 @@ class executor(ABC):
 
         # Find the base file dataset and mark it.
         from func_adl import find_EventDataset
-        file = find_EventDataset(xxx)
+        file = find_EventDataset(ast)
         iterator = crep.cpp_variable("bogus-do-not-use", top_level_scope(), cpp_type=None)
         crep.set_rep(file, crep.cpp_sequence(iterator, iterator, top_level_scope()))
         # Visit the AST to generate the code structure and find out what the
         # result is going to be.
         qv = self.get_visitor_obj()
-        result_rep = qv.get_rep(xxx) if _is_format_request(xxx) \
-            else qv.get_as_ROOT(xxx)
+        result_rep = qv.get_rep(ast) if _is_format_request(ast) \
+            else qv.get_as_ROOT(ast)
         # Emit the C++ code into our dictionaries to be used in template generation below.
         query_code = _cpp_source_emitter()
         qv.emit_query(query_code)

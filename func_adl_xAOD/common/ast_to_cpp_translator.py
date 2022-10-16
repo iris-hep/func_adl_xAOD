@@ -198,10 +198,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
     def create_book_ttree_obj(self, tree_name: str, leaves: list) -> statement.book_ttree:
         pass
 
-    # @abstractmethod
-    # def declare_class_variable(self, var: crep.cpp_variable):
-    #     pass
-
     def get_as_ROOT(self, node: ast.AST) -> rh.cpp_ttree_rep:
         '''For a given node, return a root ttree rep.
 
@@ -291,8 +287,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         'Look up the in our local dict. This takes care of function arguments, etc.'
         return self._arg_stack.lookup_name(id)
 
-    def token_declaration(self, token_type):
-        pass
 
     def make_sequence_from_collection(self, rep: crep.cpp_collection) -> crep.cpp_sequence:
         '''
@@ -307,10 +301,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # It could be this should deref until p_depth is 0
         collection = crep.dereference_var(rep)
-
-        #declare class variable(token) for miniAOD, for now
-
-        #self.token_declaration(cpp_type)
         l_statement = statement.loop(iterator_value, collection)
         self._gc.add_statement(l_statement)
         iterator_value.reset_scope(self._gc.current_scope())
@@ -610,9 +600,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         'This has already been resolved, so return it.'
         assert hasattr(node, 'rep')
         return crep.get_rep(node)
-
-    def return_tag(self, call_node: ast.Call):
-        pass
 
     def visit_Call(self, call_node: ast.Call):
         r'''

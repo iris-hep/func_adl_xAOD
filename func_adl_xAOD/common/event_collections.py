@@ -2,7 +2,6 @@
 import ast
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-import string
 from typing import List, Union
 
 import func_adl_xAOD.common.cpp_ast as cpp_ast
@@ -14,7 +13,6 @@ from func_adl_xAOD.common.cpp_vars import unique_name
 class event_collection_container(ctyp.terminal, ABC):
     def __init__(self, type_name: Union[str, ctyp.CPPParsedTypeInfo], p_depth: int):
         super().__init__(type_name, p_depth=p_depth)
-        self.type_name = type_name
 
     @abstractmethod
     def __str__(self) -> str:
@@ -24,14 +22,6 @@ class event_collection_container(ctyp.terminal, ABC):
         Returns:
             str: Description
         '''
-    def get_type_name(self) -> str:
-        '''Return the string representation of the type_name of the event collection.
-        Helpful for identifying it in ast dumps
-
-        Returns:
-            str: Description
-        '''
-        return self.type_name
 
 class event_collection_collection_container(ctyp.collection, ABC):
     def __init__(self, type_name: Union[str, ctyp.CPPParsedTypeInfo],
@@ -107,13 +97,3 @@ class event_collection_coder(ABC):
         Returns:
             List[str]: Lines of C++ code to execute to get this out.
         '''
-    # @abstractmethod
-    # def get_class_decl_code(self, container_type: Union[event_collection_container, event_collection_collection_container]) -> List[crep.cpp_variable]:
-    #     '''Return the code that will declare the necessary class variables
-
-    #     Args:
-    #         container_type (event_collection_container): The container to extract.
-
-    #     Returns:
-    #         List[crep.cpp_collection]: list of cpp_variables for class declaration.
-    #     '''
