@@ -75,7 +75,7 @@ def test_metadata_collection():
     'This is integration testing - making sure the dict to root conversion works'
     r = (cms_aod_dataset()
          .MetaData({
-                   'metadata_type': 'add_cms_event_collection_info',
+                   'metadata_type': 'add_cms_aod_event_collection_info',
                    'name': 'ForkVertex',
                    'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
                    'container_type': 'reco::VertexCollection',

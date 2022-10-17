@@ -137,7 +137,7 @@ NOTE: Currently the CMS backend will ignore any job script metadata sent to it.
 
 CMS and ATLAS store their basic reconstruction objects as collections (e.g. jets, etc.). You can define new collections on the fly with the following metadata
 
-For _atlas_:
+For _ATLAS_:
 
 | Key | Description | Example |
 | ------------ | ------------ | --------------|
@@ -148,15 +148,27 @@ For _atlas_:
 | element_type | The element in the container. In atlas this is a pointer. | `"xAOD::Electron"` |
 | contains_collection | Some items are singletons (like `EventInfo`) | `True` or `False` |
 
-For _cms_:
+For _CMS AOD_:
 
 | Key | Description | Example |
 | ------------ | ------------ | --------------|
-| metadata_type | The metadata type | `"add_cms_event_collection_info"` |
+| metadata_type | The metadata type | `"add_cms_aod_event_collection_info"` |
 | name | The name of the collection (used to access it from the dataset object) | `"Vertex"` |
 | include_files| List of include files to use when accessing collection | `['DataFormats/VertexReco/interface/Vertex.h']` |
 | container_type | The container object that is filled | "'reco::VertexCollection'" |
-| element_type | The element in the container. In atlas this is a pointer. | `"reco::Vertex"` |
+| element_type | The element in the container. | `"reco::Vertex"` |
+| contains_collection | Some items are singletons (like `EventInfo`) | `True` or `False` |
+| element_pointer | Indicates if the element type is a pointer | `True` or `False` |
+
+For _CMS miniAOD_:
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"add_cms_miniaod_event_collection_info"` |
+| name | The name of the collection (used to access it from the dataset object) | `"Muon"` |
+| include_files| List of include files to use when accessing collection | `[DataFormats/PatCandidates/interface/Muon.h]` |
+| container_type | The container object that is filled | "'pat::MuonCollection'" |
+| element_type | The element in the container. | `"pat::Muon"` |
 | contains_collection | Some items are singletons (like `EventInfo`) | `True` or `False` |
 | element_pointer | Indicates if the element type is a pointer | `True` or `False` |
 
@@ -201,8 +213,8 @@ Setting up the development environment:
 
 To run tests:
 
-- `pytest -m "not atlas_xaod_runner and not cms_aod_runner"` will run the _fast_ tests.
-- `pytest -m "atlas_xaod_runner"` and `pytest -m "cms_aod_runner"` will run the slow tests for ATLAS and CMS respectively that require docker installed on your command line. `docker` is involved via pythons `os.system` - so it needs to be available to the test runner.
+- `pytest -m "not atlas_xaod_runner and not cms_runner"` will run the _fast_ tests.
+- `pytest -m "atlas_xaod_runner"`, `pytest -m "cms_aod_runner"` and `pytest -m "cms_miniaod_runner"`  will run the slow tests for ATLAS xAOD, CMS AOD and CMS miniAOD respectively that require docker installed on your command line. `docker` is involved via pythons `os.system` - so it needs to be available to the test runner.
 - The CI on github is setup to run tests against python `3.7`, `3.8`, and `3.9` (only the non-xaod-runner tests).
 
 Contributing:
@@ -224,7 +236,7 @@ Designed for running locally, it is possible to setup and use the `xAOD` backend
 pip install func_adl_xAOD[local]
 ```
 
-You can then use the `xAODDataset` object or the `CMSRun1AODDataset` object to execute `qastle` running on a docker image for ATLAS or CMS Run 1 AOD, locally.
+You can then use the `xAODDataset` object, the `CMSRun1AODDataset` object and `CMSRun2miniAODDataset` to execute `qastle` running on a docker image for ATLAS or CMS Run 1 AOD, locally.
 
 - Specify the local path to files you want to run on in the arguments to the constructor
 - Files are run serially, and in a blocking way

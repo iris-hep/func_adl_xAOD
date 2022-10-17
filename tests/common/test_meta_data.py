@@ -466,7 +466,7 @@ def test_md_cms_collection_extra():
     'Make a CMS collection container'
     metadata = [
         {
-            'metadata_type': 'add_cms_event_collection_info',
+            'metadata_type': 'add_cms_aod_event_collection_info',
             'name': 'Vertex',
             'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
             'container_type': 'reco::VertexCollection',
@@ -485,7 +485,7 @@ def test_md_cms_collection_no_element_type():
     'Make a CMS collection container badly'
     metadata = [
         {
-            'metadata_type': 'add_cms_event_collection_info',
+            'metadata_type': 'add_cms_aod_event_collection_info',
             'name': 'Vertex',
             'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
             'container_type': 'reco::VertexCollection',
@@ -502,7 +502,7 @@ def test_md_cms_collection_element_type_needed():
     'Make a CMS collection container badly'
     metadata = [
         {
-            'metadata_type': 'add_cms_event_collection_info',
+            'metadata_type': 'add_cms_aod_event_collection_info',
             'name': 'Vertex',
             'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
             'container_type': 'reco::VertexCollection',
