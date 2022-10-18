@@ -144,7 +144,7 @@ For _ATLAS_:
 | metadata_type | The metadata type | `"add_atlas_event_collection_info"` |
 | name | The name of the collection (used to access it from the dataset object) | `"TruthParticles"` |
 | include_files| List of include files to use when accessing collection | `['file1.h', 'file2.h']` |
-| container_type | The container object that is filled | "'xAOD::ElectronContainer'" |
+| container_type | The container object that is filled | `"xAOD::ElectronContainer"` |
 | element_type | The element in the container. In atlas this is a pointer. | `"xAOD::Electron"` |
 | contains_collection | Some items are singletons (like `EventInfo`) | `True` or `False` |
 
@@ -155,7 +155,7 @@ For _CMS AOD_:
 | metadata_type | The metadata type | `"add_cms_aod_event_collection_info"` |
 | name | The name of the collection (used to access it from the dataset object) | `"Vertex"` |
 | include_files| List of include files to use when accessing collection | `['DataFormats/VertexReco/interface/Vertex.h']` |
-| container_type | The container object that is filled | "'reco::VertexCollection'" |
+| container_type | The container object that is filled | `"reco::VertexCollection"` |
 | element_type | The element in the container. | `"reco::Vertex"` |
 | contains_collection | Some items are singletons (like `EventInfo`) | `True` or `False` |
 | element_pointer | Indicates if the element type is a pointer | `True` or `False` |
@@ -167,7 +167,7 @@ For _CMS miniAOD_:
 | metadata_type | The metadata type | `"add_cms_miniaod_event_collection_info"` |
 | name | The name of the collection (used to access it from the dataset object) | `"Muon"` |
 | include_files| List of include files to use when accessing collection | `[DataFormats/PatCandidates/interface/Muon.h]` |
-| container_type | The container object that is filled | "'pat::MuonCollection'" |
+| container_type | The container object that is filled | `"pat::MuonCollection"` |
 | element_type | The element in the container. | `"pat::Muon"` |
 | contains_collection | Some items are singletons (like `EventInfo`) | `True` or `False` |
 | element_pointer | Indicates if the element type is a pointer | `True` or `False` |
