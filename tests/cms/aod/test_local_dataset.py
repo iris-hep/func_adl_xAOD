@@ -1,4 +1,4 @@
-from tests.cms.aod.config import f_location
+from .config import f_location
 import pytest
 
 python_on_whales = pytest.importorskip("python_on_whales")

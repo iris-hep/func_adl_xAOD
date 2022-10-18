@@ -76,6 +76,7 @@ class event_collection_coder(ABC):
         r.args = ['collection_name', ]
         r.include_files += md.include_files
         r.link_libraries += md.libraries
+
         self.get_running_code_CPPCodeValue(r, md)
         r.result = 'result'
 

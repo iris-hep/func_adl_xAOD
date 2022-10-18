@@ -137,7 +137,7 @@ class collection (terminal):
         self._element_type = element_type
 
     def token_type(self):
-        #returns the c++ type of the token. Required for miniAOD token declaration
+        #returns the c++ type of the token. Meant to be overriden by inherited class if needed.
         return None
 
     # TODO: Turn into a property

@@ -79,12 +79,11 @@ class cms_event_collection_coder(event_collection_coder):
                 f'iEvent.getByToken({self.t_name}, result);']
 
     def get_running_code_CPPCodeValue(self, cpv: cpp_ast.CPPCodeValue, md: EventCollectionSpecification):
-        #Used to build CPPCodeVlue for miniAOD
+        # Used to build CPPCodeVlue for miniAOD
         cpv.running_code = self.get_running_code(md.container_type)
-        #Specify the token name and type
+        # Specify the token name and type
         token_variable = crep.cpp_variable(self.t_name, gc_scope_top_level, ctyp.terminal(md.container_type.token_type()))
-        #value of initializing the token
-        # token_init = statement.set_var(token_variable, crep.cpp_value(f'consumes<{md.container_type.type}>(edm::InputTag(collection_name))', None, None))
+        # value of initializing the token
         token_init = f'consumes<{md.container_type.type}>(edm::InputTag(collection_name))'
-        #add both token declaration and initializtion to CPPCodeValue.fields for building the cpp files
+        # add both token declaration and initializtion to CPPCodeValue.fields for building the cpp files
         cpv.fields.append((token_variable, token_init))
