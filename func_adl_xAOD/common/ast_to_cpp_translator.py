@@ -188,6 +188,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # If it didn't work, this is an internal error. But make the error message a bit nicer.
         if not hasattr(node, 'rep'):
             raise Exception('Internal Error: attempted to get C++ representation for AST node "{0}", but failed.'.format(ast.dump(node)))
+
         return crep.get_rep(node)
 
     @abstractmethod
@@ -287,7 +288,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         'Look up the in our local dict. This takes care of function arguments, etc.'
         return self._arg_stack.lookup_name(id)
 
-
     def make_sequence_from_collection(self, rep: crep.cpp_collection) -> crep.cpp_sequence:
         '''
         Take a collection and produce a sequence. Eventually this should likely be some sort of
@@ -301,9 +301,11 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # It could be this should deref until p_depth is 0
         collection = crep.dereference_var(rep)
+
         l_statement = statement.loop(iterator_value, collection)
         self._gc.add_statement(l_statement)
         iterator_value.reset_scope(self._gc.current_scope())
+
         # For a new sequence like this the sequence and iterator value are the same
         return crep.cpp_sequence(iterator_value, iterator_value, self._gc.current_scope())
 
@@ -343,6 +345,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
     def visit_Call_Lambda(self, call_node):
         'Call to a lambda function. We propagate the arguments through the function'
+
         with stack_frame(self._arg_stack):
             for c_arg, l_arg in zip(call_node.args, call_node.func.args.args):
                 self._arg_stack.define_name(l_arg.arg, c_arg)
@@ -590,6 +593,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         r = crep.cpp_value(f'{cpp_func.cpp_name}({",".join(a.as_cpp() for a in arg_reps)})',
                            self._gc.current_scope(),
                            cpp_type=ctyp.terminal(cpp_func.cpp_return_type))
+
         # Include files and return the resulting expression
         for i in cpp_func.include_files:
             self._gc.add_include(i)
@@ -867,6 +871,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
                 self._gc.set_scope(scope)
             else:
                 self._gc.set_scope(fill_scope)
+
         # If this is a sequence of a sequence (or deeper) then we need to setup the proper variables.
         if rep_is_collection(e_rep):
             assert isinstance(e_rep, crep.cpp_sequence), \
@@ -905,6 +910,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             cs = self._gc.current_scope()
             if cs.starts_with(scope_fill):
                 scope_fill = cs
+
         return scope_fill
 
     def call_ResultTTree(self, node: ast.Call, args: List[ast.AST]):
@@ -922,6 +928,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # for the variables - or perhaps a single variable.
         self.generic_visit(source)
         v_rep_not_norm = self.as_sequence(source)
+
         # What we have is a sequence of the data values we want to fill. The iterator at play
         # here is the scope we want to use to run our Fill() calls to the TTree.
         scope_fill = v_rep_not_norm.iterator_value().scope()
@@ -944,6 +951,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # For each incoming variable, we need to declare something we are going to write.
         for cv in var_names:
             self._gc.declare_class_variable(cv[1])
+
         # Next, emit the booking code
         self._gc.add_book_statement(self.create_book_ttree_obj(tree_name, var_names))
 

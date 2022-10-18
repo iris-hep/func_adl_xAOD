@@ -1,7 +1,7 @@
 # Drive the translate of the AST from start into a set of files, which one can then do whatever
 # is needed to.
 import ast
-from lib2to3.pgen2 import token
+
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 from typing import Any, Callable, Dict, List
 from func_adl_xAOD.common.meta_data import InjectCodeBlock, JobScriptSpecification, process_metadata
@@ -125,6 +125,7 @@ class executor(ABC):
         a = aggregate_node_transformer().visit(a)
         a = simplify_chained_calls().visit(a)
         a = find_known_functions().visit(a)
+
         # Any C++ custom code needs to be threaded into the ast
         method_names = dict(self._method_names)
         method_names.update({
@@ -134,12 +135,15 @@ class executor(ABC):
             for md in cpp_functions if isinstance(md, (cpp_ast.CPPCodeSpecification, EventCollectionSpecification))
         })
         a = cpp_ast.cpp_ast_finder(method_names).visit(a)
+
         # Save the injection blocks
         self._inject_blocks = [md for md in cpp_functions if isinstance(md, InjectCodeBlock)]
+
         # Pull off any joboption blocks
         for m in cpp_functions:
             if isinstance(m, JobScriptSpecification):
                 self._job_option_blocks.append(m)
+
         # And return the modified ast
         return a
 

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 
 import FWCore.ParameterSet.Config as cms  # type: ignore

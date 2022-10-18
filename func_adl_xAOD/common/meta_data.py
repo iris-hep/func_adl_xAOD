@@ -179,6 +179,7 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[SpecificationTypes]:
             cpp_funcs.append(spec)
         else:
             raise ValueError(f'Unknown metadata type ({md_type})')
+
     return cpp_funcs
 
 

@@ -11,7 +11,6 @@ from func_adl_xAOD.common.cpp_representation import (cpp_collection, cpp_value,
                                                      cpp_variable)
 from func_adl_xAOD.common.cpp_vars import unique_name
 from func_adl_xAOD.common.util_scope import gc_scope
-import func_adl_xAOD.common.cpp_representation as crep
 # The list of methods and the re-write functions for them. Each rewrite function
 # is called with the Call node, which includes arguments, names, etc. It should return
 # None or a cpp_ast.
@@ -239,7 +238,7 @@ def process_ast_node(visitor, gc, call_node: ast.Call):
         gc.declare_class_variable(i[0])
         for src, dest in repl_list:
             l_s = l_s.replace(src, str(dest))
-        token_set_var = statements.set_var(i[0], crep.cpp_value(l_s, None, None))
+        token_set_var = statements.set_var(i[0], cpp_value(l_s, None, None))
         gc.add_book_statement(token_set_var)
     # Set the result and close the scope
     assert cpp_ast_node.result is not None

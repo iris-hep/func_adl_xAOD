@@ -23,6 +23,7 @@ class event_collection_container(ctyp.terminal, ABC):
             str: Description
         '''
 
+
 class event_collection_collection_container(ctyp.collection, ABC):
     def __init__(self, type_name: Union[str, ctyp.CPPParsedTypeInfo],
                  element_name: Union[str, ctyp.CPPParsedTypeInfo],
@@ -41,6 +42,7 @@ class event_collection_collection_container(ctyp.collection, ABC):
             str: Description
         '''
 
+
 @dataclass
 class EventCollectionSpecification:
     backend_name: str
@@ -54,6 +56,7 @@ class EventCollectionSpecification:
 
     # List of libraries (e.g. ['xAODJet'])
     libraries: List[str]
+
 
 class event_collection_coder(ABC):
     '''Contains code to generate collections accessing code in the backend
@@ -75,6 +78,7 @@ class event_collection_coder(ABC):
         r.link_libraries += md.libraries
         self.get_running_code_CPPCodeValue(r, md)
         r.result = 'result'
+
         if issubclass(type(md.container_type), event_collection_collection_container):
             r.result_rep = lambda scope: crep.cpp_collection(unique_name(md.name.lower()), scope=scope, collection_type=md.container_type)  # type: ignore
         else:
