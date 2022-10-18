@@ -53,7 +53,8 @@ setup(name="func_adl_xAOD",
               'asyncmock',
               "pandas",
               "uproot",
-              "awkward"
+              "awkward",
+              "black",
           ],
           'local': [
               'python-on-whales'
