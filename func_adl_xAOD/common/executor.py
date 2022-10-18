@@ -1,7 +1,6 @@
 # Drive the translate of the AST from start into a set of files, which one can then do whatever
 # is needed to.
 import ast
-
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 from typing import Any, Callable, Dict, List
 from func_adl_xAOD.common.meta_data import InjectCodeBlock, JobScriptSpecification, process_metadata
