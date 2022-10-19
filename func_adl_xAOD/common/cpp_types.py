@@ -137,7 +137,8 @@ class collection (terminal):
         self._element_type = element_type
 
     def token_type(self):
-        #returns the c++ type of the token. Meant to be overriden by inherited class if needed.
+        # Return the type of the token. This token can be used to get data via 
+        # functions like getByToken()
         return None
 
     # TODO: Turn into a property

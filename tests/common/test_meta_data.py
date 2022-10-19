@@ -488,8 +488,8 @@ def test_md_cms_miniaod_collection():
     assert s.container_type.type == 'pat::MuonCollection'
 
 
-def test_md_cms_collection_extra():
-    'Make a CMS collection container'
+def test_md_cms_aod_collection_extra():
+    'Make a CMS AOD collection container'
     metadata = [
         {
             'metadata_type': 'add_cms_aod_event_collection_info',
@@ -506,9 +506,27 @@ def test_md_cms_collection_extra():
     with pytest.raises(ValueError):
         process_metadata(metadata)
 
+def test_md_cms_miniaod_collection_extra():
+    'Make a CMS miniAOD collection container'
+    metadata = [
+        {
+            'metadata_type': 'add_cms_miniaod_event_collection_info',
+            'name': 'Muon',
+            'include_files': ['DataFormats/PatCandidates/interface/Muon.h'],
+            'container_type': 'pat::MuonCollection',
+            'contains_collection': True,
+            'element_type': 'pat::Muon',
+            'element_pointer': False,
+            'fork_it_over': True,
+        }
+    ]
 
-def test_md_cms_collection_no_element_type():
-    'Make a CMS collection container badly'
+    with pytest.raises(ValueError):
+        process_metadata(metadata)
+
+
+def test_md_cms_aod_collection_no_element_type():
+    'Make a CMS aod collection container badly'
     metadata = [
         {
             'metadata_type': 'add_cms_aod_event_collection_info',
@@ -523,15 +541,46 @@ def test_md_cms_collection_no_element_type():
     with pytest.raises(ValueError):
         process_metadata(metadata)
 
+def test_md_cms_miniaod_collection_no_element_type():
+    'Make a CMS miniAOD collection container badly'
+    metadata = [
+        {
+            'metadata_type': 'add_cms_miniaod_event_collection_info',
+            'name': 'Muon',
+            'include_files': ['DataFormats/PatCandidates/interface/Muon.h'],
+            'container_type': 'pat::MuonCollection',
+            'contains_collection': False,
+            'element_type': 'pat::Muon',
+            'element_pointer': False,
+        }
+    ]
+    with pytest.raises(ValueError):
+        process_metadata(metadata)
 
-def test_md_cms_collection_element_type_needed():
-    'Make a CMS collection container badly'
+def test_md_cms_aod_collection_element_type_needed():
+    'Make a CMS aod collection container badly'
     metadata = [
         {
             'metadata_type': 'add_cms_aod_event_collection_info',
             'name': 'Vertex',
             'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
             'container_type': 'reco::VertexCollection',
+            'contains_collection': True,
+            'element_pointer': False,
+        }
+    ]
+    with pytest.raises(ValueError):
+        process_metadata(metadata)
+
+
+def test_md_cms_miniaod_collection_element_type_needed():
+    'Make a CMS miniaod collection container badly'
+    metadata = [
+        {
+            'metadata_type': 'add_cms_miniaod_event_collection_info',
+            'name': 'Muon',
+            'include_files': ['DataFormats/PatCandidates/interface/Muon.h'],
+            'container_type': 'pat::MuonCollection',
             'contains_collection': True,
             'element_pointer': False,
         }
