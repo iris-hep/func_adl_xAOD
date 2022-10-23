@@ -47,4 +47,3 @@ def test_run(docker_mock):
          .value())
 
     assert len(r) == 1
-
