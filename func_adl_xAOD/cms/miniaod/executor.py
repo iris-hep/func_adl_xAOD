@@ -11,6 +11,7 @@ from .event_collections import (cms_miniaod_collections,
                                 define_default_cms_types)
 from .query_ast_visitor import cms_miniaod_query_ast_visitor
 
+
 class cms_miniaod_executor(executor):
     def __init__(self):
         file_names = ['analyzer_cfg.py', 'Analyzer.cc', 'BuildFile.xml', "copy_root_tree.C", 'runner.sh']

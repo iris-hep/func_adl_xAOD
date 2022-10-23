@@ -1,11 +1,7 @@
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
-from func_adl_xAOD.common.statement import book_ttree, set_var, ttree_fill
-from func_adl_xAOD.common.util_scope import gc_scope_top_level
-import func_adl_xAOD.common.cpp_types as ctyp
-import func_adl_xAOD.common.cpp_representation as crep
-from func_adl_xAOD.common.event_collections import EventCollectionSpecification
-import ast
-import func_adl_xAOD.common.statement as statement
+from func_adl_xAOD.common.statement import book_ttree, ttree_fill
+
+
 class book_cms_miniaod_ttree(book_ttree):
     'Book an CMS TTree for writing out. Meant to be in the Book method'
 

@@ -1,9 +1,9 @@
 from typing import Union
+
 import func_adl_xAOD.common.cpp_types as ctyp
 import func_adl_xAOD.common.cpp_ast as cpp_ast
 import func_adl_xAOD.common.cpp_representation as crep
 from func_adl_xAOD.common.cpp_vars import unique_name
-import func_adl_xAOD.common.statement as statement
 from func_adl_xAOD.common.util_scope import gc_scope_top_level
 import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.event_collections import (

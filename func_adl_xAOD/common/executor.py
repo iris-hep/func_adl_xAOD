@@ -221,11 +221,13 @@ class executor(ABC):
         file = find_EventDataset(ast)
         iterator = crep.cpp_variable("bogus-do-not-use", top_level_scope(), cpp_type=None)
         crep.set_rep(file, crep.cpp_sequence(iterator, iterator, top_level_scope()))
+
         # Visit the AST to generate the code structure and find out what the
         # result is going to be.
         qv = self.get_visitor_obj()
         result_rep = qv.get_rep(ast) if _is_format_request(ast) \
             else qv.get_as_ROOT(ast)
+
         # Emit the C++ code into our dictionaries to be used in template generation below.
         query_code = _cpp_source_emitter()
         qv.emit_query(query_code)

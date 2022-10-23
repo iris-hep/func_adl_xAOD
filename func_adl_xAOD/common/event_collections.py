@@ -90,6 +90,10 @@ class event_collection_coder(ABC):
         return call_node
 
     def get_running_code_CPPCodeValue(self, cpv: cpp_ast.CPPCodeValue, md: EventCollectionSpecification):
+        r'''
+        Put the running code information stored in EventCollectionSpecification into CPPCodeValue. Can be
+        overridden to store extra information(such as variable declarations).
+        '''   
         cpv.running_code = self.get_running_code(md.container_type)
 
     @abstractmethod
