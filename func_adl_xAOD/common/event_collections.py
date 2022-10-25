@@ -85,7 +85,7 @@ class event_collection_coder(ABC):
         else:
             r.result_rep = lambda scope: crep.cpp_variable(unique_name(md.name.lower()), scope=scope, cpp_type=md.container_type)
 
-        # Replace it as the function that is going to get called.
+        # Replace it as a function that is going to get called.
         call_node.func = r  # type: ignore
         return call_node
 
