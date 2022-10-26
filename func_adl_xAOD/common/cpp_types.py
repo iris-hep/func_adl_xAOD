@@ -137,7 +137,7 @@ class collection (terminal):
         self._element_type = element_type
 
     def token_type(self):
-        # Return the type of the token. This token can be used to get data via 
+        # Return the type of the token. This token can be used to get data via
         # functions like getByToken()
         return None
 

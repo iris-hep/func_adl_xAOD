@@ -12,7 +12,7 @@ class CMSRun2miniAODDataset(LocalDataset):
     def __init__(self,
                  files: Union[Path, str, List[Path], List[str]],
                  docker_image: str = 'cmsopendata/cmssw_7_6_7-slc6_amd64_gcc493',
-                 docker_tag: str = 'latest',  #is it arbitrary?
+                 docker_tag: str = 'latest',
                  output_directory: Optional[Path] = None):
         '''Run on the given files
 

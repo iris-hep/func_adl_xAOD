@@ -5,7 +5,6 @@ import func_adl_xAOD.common.cpp_ast as cpp_ast
 import func_adl_xAOD.common.cpp_representation as crep
 from func_adl_xAOD.common.cpp_vars import unique_name
 from func_adl_xAOD.common.util_scope import gc_scope_top_level
-import func_adl_xAOD.common.cpp_types as ctyp
 from func_adl_xAOD.common.event_collections import (
     EventCollectionSpecification, event_collection_coder, event_collection_collection_container, event_collection_container)
 
@@ -22,10 +21,12 @@ class cms_miniaod_event_collection_collection(event_collection_collection_contai
 
     def __str__(self):
         return f"Handle<{self.type}>"
+
     def token_type(self):
-        # Return the type of the token. This token can be used to get data via 
+        # Return the type of the token. This token can be used to get data via
         # functions like getByToken()
         return f"edm::EDGetTokenT<{self.type}>"
+
 
 # all the collections types that are available. This is required because C++
 # is strongly typed, and thus we have to transmit this information.
@@ -74,6 +75,7 @@ def define_default_cms_types():
 
 class cms_event_collection_coder(event_collection_coder):
     t_name = unique_name("token")
+
     def get_running_code(self, container_type: event_collection_container) -> list:
         return [f'{container_type} result;',
                 f'iEvent.getByToken({self.t_name}, result);']

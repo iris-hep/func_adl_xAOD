@@ -92,6 +92,7 @@ def test_metadata_collection():
     assert "int" == str(vs[1].cpp_type())
     assert "edm::EDGetTokenT<reco::VertexCollection>" == str(vs[0].cpp_type())
 
+
 def test_metadata_collection_bad_experiment():
     'This is integration testing - making sure the dict to root conversion works'
     with pytest.raises(ValueError) as e:

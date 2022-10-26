@@ -186,6 +186,7 @@ class cpp_collection(cpp_value):
         'Return the type of the token required, such as edm::EDGetTokenT<pat::MuonCollection> for miniAOD file'
         return None
 
+
 class cpp_tuple(cpp_rep_base):
     r'''
     Represents a special kind of value - a tuple, which is just a container of other values. This

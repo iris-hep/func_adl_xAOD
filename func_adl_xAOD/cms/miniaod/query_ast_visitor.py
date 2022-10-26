@@ -26,6 +26,7 @@ class cms_miniaod_ttree_fill(ttree_fill):
     def emit(self, e):
         e.add_line('myTree->Fill();')
 
+
 class cms_miniaod_query_ast_visitor(query_ast_visitor):
     r"""
     Drive the conversion to C++ from the top level query
@@ -35,7 +36,6 @@ class cms_miniaod_query_ast_visitor(query_ast_visitor):
     def __init__(self):
         prefix = 'cms_miniaod'
         super().__init__(prefix)
-        tag = None
 
     def create_book_ttree_obj(self, tree_name: str, leaves: list) -> book_ttree:
         return book_cms_miniaod_ttree(tree_name, leaves)

@@ -463,6 +463,7 @@ def test_md_cms_aod_collection():
     assert s.container_type.element_type.type == 'reco::Vertex'
     assert s.container_type.type == 'reco::VertexCollection'
 
+
 def test_md_cms_miniaod_collection():
     'Make a CMS miniAOD collection container'
     metadata = [
@@ -506,6 +507,7 @@ def test_md_cms_aod_collection_extra():
     with pytest.raises(ValueError):
         process_metadata(metadata)
 
+
 def test_md_cms_miniaod_collection_extra():
     'Make a CMS miniAOD collection container'
     metadata = [
@@ -541,6 +543,7 @@ def test_md_cms_aod_collection_no_element_type():
     with pytest.raises(ValueError):
         process_metadata(metadata)
 
+
 def test_md_cms_miniaod_collection_no_element_type():
     'Make a CMS miniAOD collection container badly'
     metadata = [
@@ -556,6 +559,7 @@ def test_md_cms_miniaod_collection_no_element_type():
     ]
     with pytest.raises(ValueError):
         process_metadata(metadata)
+
 
 def test_md_cms_aod_collection_element_type_needed():
     'Make a CMS aod collection container badly'

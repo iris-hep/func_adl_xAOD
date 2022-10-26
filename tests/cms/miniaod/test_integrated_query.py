@@ -21,6 +21,7 @@ def turn_on_logging():
     yield None
     logging.basicConfig(level=logging.WARNING)
 
+
 def test_select_pt_of_muons():
     training_df = as_pandas(f_single
                             .SelectMany('lambda e: e.Muons("slimmedMuons")')
@@ -29,6 +30,7 @@ def test_select_pt_of_muons():
     assert training_df.iloc[0]['col1'] == 12.901309967041016
     assert training_df.iloc[1]['col1'] == 7.056070327758789
     assert training_df.iloc[-1]['col1'] == 49.50603485107422
+
 
 def test_select_pt_of_electrons():
     training_df = as_pandas(f_single
@@ -74,12 +76,12 @@ def test_select_hitpattern_of_global_muons():
     sys.setrecursionlimit(10000)
     training_df = as_pandas(f_single
                             .SelectMany(lambda e: e.Muons("slimmedMuons")
-                                .Where(lambda m: isNonnull(m.globalTrack()))
-                                .Select(lambda m: m.globalTrack())
-                                .Select(lambda m: m.hitPattern())
-                                .Select(lambda hp: Range(0, hp.numberOfHits(hp.TRACK_HITS))
+                                        .Where(lambda m: isNonnull(m.globalTrack()))
+                                        .Select(lambda m: m.globalTrack())
+                                        .Select(lambda m: m.hitPattern())
+                                        .Select(lambda hp: Range(0, hp.numberOfHits(hp.TRACK_HITS))
                                         .Select(lambda i: hp.getHitPattern(hp.TRACK_HITS, i)))))
-    assert training_df.iloc[0]['col1']== 1416.0
+    assert training_df.iloc[0]['col1'] == 1416.0
     assert training_df.iloc[1]['col1'] == 1420.0
     assert training_df.iloc[-1]['col1'] == 488.0
 
