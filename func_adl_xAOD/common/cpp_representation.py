@@ -182,6 +182,10 @@ class cpp_collection(cpp_value):
         'Return the type of the element of the sequence'
         return cast(ctyp.collection, self.cpp_type()).element_type
 
+    def token_type(self):
+        'Return the type of the token required, such as edm::EDGetTokenT<pat::MuonCollection> for miniAOD file'
+        return None
+
 
 class cpp_tuple(cpp_rep_base):
     r'''

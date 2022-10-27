@@ -695,7 +695,7 @@ def test_metadata_collection_bad_experiment():
     with pytest.raises(ValueError) as e:
         (atlas_xaod_dataset()
          .MetaData({
-                   'metadata_type': 'add_cms_event_collection_info',
+                   'metadata_type': 'add_cms_aod_event_collection_info',
                    'name': 'Vertex',
                    'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
                    'container_type': 'reco::VertexCollection',

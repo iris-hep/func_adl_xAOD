@@ -246,7 +246,7 @@ def test_truth_particles_awk():
     training_df = as_awkward(f_single
                              .Select(lambda e: e.TruthParticles('TruthParticles').Count()))
     print(training_df)
-    assert len(training_df[b'col1']) == 10
+    assert len(training_df['col1']) == 10
 
 
 def test_1D_array():
@@ -255,9 +255,9 @@ def test_1D_array():
                              .Select(lambda e: e.Jets("AntiKt4EMTopoJets")
                                      .Select(lambda j: j.pt() / 1000.0))
                              )
-    print(training_df)
-    assert len(training_df[b'col1']) == 10
-    assert len(training_df[b'col1'][0]) == 9  # type: ignore
+    print(training_df.type)
+    assert len(training_df['col1']) == 10
+    assert len(training_df['col1'][0]) == 9  # type: ignore
 
 
 def test_2D_array():
@@ -269,9 +269,9 @@ def test_2D_array():
                                      )
                              )
     print(training_df)
-    assert len(training_df[b'col1']) == 10
-    assert len(training_df[b'col1'][0]) == 9  # type: ignore
-    assert len(training_df[b'col1'][0][0]) == 9  # type: ignore
+    assert len(training_df['col1']) == 10
+    assert len(training_df['col1'][0]) == 9  # type: ignore
+    assert len(training_df['col1'][0][0]) == 9  # type: ignore
 
 
 def test_2D_nested_where():
@@ -287,6 +287,6 @@ def test_2D_nested_where():
                              .Select(lambda e0348: e0348.Select(lambda e0354: e0354.Count())))
 
     print(training_df)
-    a = training_df[b'col1']
+    a = training_df['col1']
     assert len(a) == 10
     assert len(a[0]) == 1  # type: ignore

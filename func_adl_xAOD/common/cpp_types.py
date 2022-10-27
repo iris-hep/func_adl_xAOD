@@ -136,6 +136,11 @@ class collection (terminal):
         # And the element type we are representing
         self._element_type = element_type
 
+    def token_type(self):
+        # Return the type of the token. This token can be used to get data via
+        # functions like getByToken()
+        return None
+
     # TODO: Turn into a property
     @property
     def element_type(self) -> terminal:

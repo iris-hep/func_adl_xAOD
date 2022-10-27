@@ -157,27 +157,27 @@ class executor(ABC):
 
     @property
     def header_include_files(self) -> List[str]:
-        'Return the list of include files for the query.cpp file'
+        'Return the list of include files for the header file'
         return self._ib_fetch('header_includes')
 
     @property
     def private_members(self) -> List[str]:
-        'Return the list of include files for the query.cpp file'
+        'Return the list of private members for the query.cpp file'
         return self._ib_fetch('private_members')
 
     @property
     def instance_initialization(self) -> List[str]:
-        'Return the list of include files for the query.cpp file'
+        'Return the list of initialziation of instances for the query.cpp file'
         return self._ib_fetch('instance_initialization')
 
     @property
     def ctor_lines(self) -> List[str]:
-        'Return the list of include files for the query.cpp file'
+        'Return the Lines of C++ to add to the body of the constructor for the query.cpp file'
         return self._ib_fetch('ctor_lines')
 
     @property
     def link_libraries(self) -> List[str]:
-        'Return the list of include files for the query.cpp file'
+        'Return the items to add to the `CMake LINK_LIBRARIES` list'
         return self._ib_fetch('link_libraries')
 
     @property

@@ -141,10 +141,10 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[SpecificationTypes]:
                 container_type,
                 link_libraries)
             cpp_funcs.append(spec)
-        elif md_type == 'add_cms_event_collection_info':
+        elif md_type == 'add_cms_aod_event_collection_info':
             for k in md.keys():
                 if k not in ['metadata_type', 'name', 'include_files', 'container_type', 'element_type', 'contains_collection', 'element_pointer']:
-                    raise ValueError(f'Unexpected key {k} when declaring ATLAS collection metadata')
+                    raise ValueError(f'Unexpected key {k} when declaring CMS AOD collection metadata')
             if (md['contains_collection'] and 'element_type' not in md) or (not md['contains_collection'] and 'element_type' in md):
                 raise ValueError('In collection metadata, `element_type` must be specified if `contains_collection` is true and not if it is false')
 
@@ -154,7 +154,24 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[SpecificationTypes]:
             #     else cms_aod_event_collection_container(md['container_type'])
 
             spec = EventCollectionSpecification(
-                'cms',
+                'cms_aod',
+                md['name'],
+                md['include_files'],
+                container_type,
+                [])
+            cpp_funcs.append(spec)
+        elif md_type == 'add_cms_miniaod_event_collection_info':
+            for k in md.keys():
+                if k not in ['metadata_type', 'name', 'include_files', 'container_type', 'element_type', 'contains_collection', 'element_pointer']:
+                    raise ValueError(f'Unexpected key {k} when declaring CMS MiniAOD collection metadata')
+            if (md['contains_collection'] and 'element_type' not in md) or (not md['contains_collection'] and 'element_type' in md):
+                raise ValueError('In collection metadata, `element_type` must be specified if `contains_collection` is true and not if it is false')
+
+            from func_adl_xAOD.cms.miniaod.event_collections import cms_miniaod_event_collection_collection
+            container_type = cms_miniaod_event_collection_collection(md['container_type'], md['element_type'])
+
+            spec = EventCollectionSpecification(
+                'cms_miniaod',
                 md['name'],
                 md['include_files'],
                 container_type,

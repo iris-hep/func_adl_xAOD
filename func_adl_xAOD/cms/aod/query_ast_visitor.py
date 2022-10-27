@@ -3,7 +3,7 @@ from func_adl_xAOD.common.statement import book_ttree, ttree_fill
 
 
 class book_cms_aod_ttree(book_ttree):
-    'Book an ATLAS TTree for writing out. Meant to be in the Book method'
+    'Book an cms TTree for writing out. Meant to be in the Book method'
 
     def __init__(self, tree_name, leaves):
         super().__init__(tree_name, leaves)

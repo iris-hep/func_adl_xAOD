@@ -59,7 +59,8 @@ class CPPCodeValue (ast.AST):
         # A lambda that takes teh scope as an argument and returns a cpp variable to hold things.
         self.result_rep: Optional[Callable[[gc_scope], cpp_variable]] = None
 
-        # We have no further fields for the ast machinery to explore, so this is empty for now.
+        # Instance declaration and initialization. The instance is initialized in the constructor.
+        # The element is a tuple:(cpp_rep:instance_declaration, str: instance_initialization)
         self.fields = []
 
 
@@ -232,6 +233,15 @@ def process_ast_node(visitor, gc, call_node: ast.Call):
         for src, dest in repl_list:
             l_s = l_s.replace(src, str(dest))
         blk.add_statement(statements.arbitrary_statement(l_s))
+
+    # Emit the instance declaration and intialization code.
+    for i in cpp_ast_node.fields:
+        l_s = i[1]
+        gc.declare_class_variable(i[0])
+        for src, dest in repl_list:
+            l_s = l_s.replace(src, str(dest))
+        token_set_var = statements.set_var(i[0], cpp_value(l_s, None, None))
+        gc.add_book_statement(token_set_var)
 
     # Set the result and close the scope
     assert cpp_ast_node.result is not None
