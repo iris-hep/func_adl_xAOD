@@ -1,4 +1,5 @@
 # The name of the package:
+project(analysis VERSION 1.0)
 atlas_subdir (analysis)
 
 # Add the shared library:
@@ -23,5 +24,5 @@ if (NOT XAOD_STANDALONE)
 endif ()
 
 # Install files from the package:
-atlas_install_joboptions( share/*_jobOptions.py )
+# atlas_install_joboptions( share/*_jobOptions.py )
 atlas_install_scripts( share/*_eljob.py )

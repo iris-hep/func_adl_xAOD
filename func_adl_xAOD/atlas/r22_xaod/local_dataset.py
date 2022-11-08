@@ -6,14 +6,14 @@ from func_adl_xAOD.atlas.xaod.executor import atlas_xaod_executor
 from func_adl_xAOD.common.executor import executor
 
 
-class xAODDataset(LocalDataset):
+class xAODR22Dataset(LocalDataset):
     """A dataset running locally"""
 
     def __init__(
         self,
         files: Union[Path, str, List[Path], List[str]],
         docker_image: str = "atlas/analysisbase",
-        docker_tag: str = "22.2.93",
+        docker_tag: str = "22.2.96",
         output_directory: Optional[Path] = None,
     ):
         """Run on the given files
