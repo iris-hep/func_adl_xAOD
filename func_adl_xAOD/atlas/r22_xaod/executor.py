@@ -1,9 +1,9 @@
 import ast
 from func_adl_xAOD.common.meta_data import generate_script_block
-from func_adl_xAOD.atlas.r22_xaod.event_collections import (
-    atlas_r22_event_collection_coder,
-    atlas_r22_xaod_collections,
-    define_default_r22_atlas_types,
+from func_adl_xAOD.atlas.xaod.event_collections import (
+    atlas_event_collection_coder,
+    atlas_xaod_collections,
+    define_default_atlas_types,
 )
 from typing import Any, Callable, Dict
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
@@ -24,15 +24,14 @@ class atlas_r22_xaod_executor(executor):
         ]
         runner_name = "runner.sh"
         template_dir_name = "func_adl_xAOD/template/atlas/r22"
-        self._ecc = atlas_r22_event_collection_coder()
+        self._ecc = atlas_event_collection_coder()
         method_names: Dict[str, Callable[[ast.Call], ast.Call]] = {
-            md.name: self.build_callback(self._ecc, md)
-            for md in atlas_r22_xaod_collections
+            md.name: self.build_callback(self._ecc, md) for md in atlas_xaod_collections
         }
         method_names.update(get_jet_methods())
         method_names.update(get_math_methods())
         super().__init__(file_names, runner_name, template_dir_name, method_names)
-        define_default_r22_atlas_types()
+        define_default_atlas_types()
 
     @staticmethod
     def build_callback(ecc, md):
@@ -42,7 +41,7 @@ class atlas_r22_xaod_executor(executor):
     def reset(self):
         """Reset our atlas default types"""
         super().reset()
-        define_default_r22_atlas_types()
+        define_default_atlas_types()
 
     def get_visitor_obj(self):
         return atlas_xaod_query_ast_visitor()
