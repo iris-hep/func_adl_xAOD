@@ -7,7 +7,7 @@ import pandas as pd
 import uproot
 from func_adl.object_stream import ObjectStream
 from func_adl_xAOD.atlas.r22_xaod.executor import atlas_r22_xaod_executor
-from func_adl_xAOD.atlas.r22_xaod.query_ast_visitor import (
+from func_adl_xAOD.atlas.xaod.query_ast_visitor import (
     atlas_xaod_query_ast_visitor,
 )
 from func_adl_xAOD.common.cpp_representation import cpp_sequence, cpp_variable, set_rep
