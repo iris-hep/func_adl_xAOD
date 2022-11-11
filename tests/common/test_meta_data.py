@@ -8,6 +8,8 @@ from func_adl_xAOD.atlas.xaod.event_collections import (
     atlas_xaod_event_collection_container)
 from func_adl_xAOD.cms.aod.event_collections import \
     cms_aod_event_collection_collection
+from func_adl_xAOD.cms.miniaod.event_collections import \
+    cms_miniaod_event_collection_collection
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
 from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
 from func_adl_xAOD.common.cpp_types import (collection, method_type_info,
@@ -437,11 +439,11 @@ def test_md_atlas_collection_bogus_extra():
         process_metadata(metadata)
 
 
-def test_md_cms_collection():
-    'Make a CMS collection container'
+def test_md_cms_aod_collection():
+    'Make a CMS AOD collection container'
     metadata = [
         {
-            'metadata_type': 'add_cms_event_collection_info',
+            'metadata_type': 'add_cms_aod_event_collection_info',
             'name': 'Vertex',
             'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
             'container_type': 'reco::VertexCollection',
@@ -454,7 +456,7 @@ def test_md_cms_collection():
     assert len(result) == 1
     s = result[0]
     assert isinstance(s, EventCollectionSpecification)
-    assert s.backend_name == 'cms'
+    assert s.backend_name == 'cms_aod'
     assert s.name == 'Vertex'
     assert s.include_files == ['DataFormats/VertexReco/interface/Vertex.h']
     assert isinstance(s.container_type, cms_aod_event_collection_collection)
@@ -462,11 +464,36 @@ def test_md_cms_collection():
     assert s.container_type.type == 'reco::VertexCollection'
 
 
-def test_md_cms_collection_extra():
-    'Make a CMS collection container'
+def test_md_cms_miniaod_collection():
+    'Make a CMS miniAOD collection container'
     metadata = [
         {
-            'metadata_type': 'add_cms_event_collection_info',
+            'metadata_type': 'add_cms_miniaod_event_collection_info',
+            'name': 'Muon',
+            'include_files': ['DataFormats/PatCandidates/interface/Muon.h'],
+            'container_type': 'pat::MuonCollection',
+            'contains_collection': True,
+            'element_type': 'pat::Muon',
+            'element_pointer': False,
+        }
+    ]
+    result = process_metadata(metadata)
+    assert len(result) == 1
+    s = result[0]
+    assert isinstance(s, EventCollectionSpecification)
+    assert s.backend_name == 'cms_miniaod'
+    assert s.name == 'Muon'
+    assert s.include_files == ['DataFormats/PatCandidates/interface/Muon.h']
+    assert isinstance(s.container_type, cms_miniaod_event_collection_collection)
+    assert s.container_type.element_type.type == 'pat::Muon'
+    assert s.container_type.type == 'pat::MuonCollection'
+
+
+def test_md_cms_aod_collection_extra():
+    'Make a CMS AOD collection container'
+    metadata = [
+        {
+            'metadata_type': 'add_cms_aod_event_collection_info',
             'name': 'Vertex',
             'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
             'container_type': 'reco::VertexCollection',
@@ -481,11 +508,30 @@ def test_md_cms_collection_extra():
         process_metadata(metadata)
 
 
-def test_md_cms_collection_no_element_type():
-    'Make a CMS collection container badly'
+def test_md_cms_miniaod_collection_extra():
+    'Make a CMS miniAOD collection container'
     metadata = [
         {
-            'metadata_type': 'add_cms_event_collection_info',
+            'metadata_type': 'add_cms_miniaod_event_collection_info',
+            'name': 'Muon',
+            'include_files': ['DataFormats/PatCandidates/interface/Muon.h'],
+            'container_type': 'pat::MuonCollection',
+            'contains_collection': True,
+            'element_type': 'pat::Muon',
+            'element_pointer': False,
+            'fork_it_over': True,
+        }
+    ]
+
+    with pytest.raises(ValueError):
+        process_metadata(metadata)
+
+
+def test_md_cms_aod_collection_no_element_type():
+    'Make a CMS aod collection container badly'
+    metadata = [
+        {
+            'metadata_type': 'add_cms_aod_event_collection_info',
             'name': 'Vertex',
             'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
             'container_type': 'reco::VertexCollection',
@@ -498,14 +544,47 @@ def test_md_cms_collection_no_element_type():
         process_metadata(metadata)
 
 
-def test_md_cms_collection_element_type_needed():
-    'Make a CMS collection container badly'
+def test_md_cms_miniaod_collection_no_element_type():
+    'Make a CMS miniAOD collection container badly'
     metadata = [
         {
-            'metadata_type': 'add_cms_event_collection_info',
+            'metadata_type': 'add_cms_miniaod_event_collection_info',
+            'name': 'Muon',
+            'include_files': ['DataFormats/PatCandidates/interface/Muon.h'],
+            'container_type': 'pat::MuonCollection',
+            'contains_collection': False,
+            'element_type': 'pat::Muon',
+            'element_pointer': False,
+        }
+    ]
+    with pytest.raises(ValueError):
+        process_metadata(metadata)
+
+
+def test_md_cms_aod_collection_element_type_needed():
+    'Make a CMS aod collection container badly'
+    metadata = [
+        {
+            'metadata_type': 'add_cms_aod_event_collection_info',
             'name': 'Vertex',
             'include_files': ['DataFormats/VertexReco/interface/Vertex.h'],
             'container_type': 'reco::VertexCollection',
+            'contains_collection': True,
+            'element_pointer': False,
+        }
+    ]
+    with pytest.raises(ValueError):
+        process_metadata(metadata)
+
+
+def test_md_cms_miniaod_collection_element_type_needed():
+    'Make a CMS miniaod collection container badly'
+    metadata = [
+        {
+            'metadata_type': 'add_cms_miniaod_event_collection_info',
+            'name': 'Muon',
+            'include_files': ['DataFormats/PatCandidates/interface/Muon.h'],
+            'container_type': 'pat::MuonCollection',
             'contains_collection': True,
             'element_pointer': False,
         }

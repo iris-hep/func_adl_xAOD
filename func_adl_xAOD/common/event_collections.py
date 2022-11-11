@@ -77,7 +77,7 @@ class event_collection_coder(ABC):
         r.include_files += md.include_files
         r.link_libraries += md.libraries
 
-        r.running_code += self.get_running_code(md.container_type)
+        self.get_running_code_CPPCodeValue(r, md)
         r.result = 'result'
 
         if issubclass(type(md.container_type), event_collection_collection_container):
@@ -85,10 +85,16 @@ class event_collection_coder(ABC):
         else:
             r.result_rep = lambda scope: crep.cpp_variable(unique_name(md.name.lower()), scope=scope, cpp_type=md.container_type)
 
-        # Replace it as the function that is going to get called.
+        # Replace it as a function that is going to get called.
         call_node.func = r  # type: ignore
-
         return call_node
+
+    def get_running_code_CPPCodeValue(self, cpv: cpp_ast.CPPCodeValue, md: EventCollectionSpecification):
+        r'''
+        Put the running code information stored in EventCollectionSpecification into CPPCodeValue. Can be
+        overridden to store extra information(such as variable declarations).
+        '''
+        cpv.running_code = self.get_running_code(md.container_type)
 
     @abstractmethod
     def get_running_code(self, container_type: Union[event_collection_container, event_collection_collection_container]) -> List[str]:

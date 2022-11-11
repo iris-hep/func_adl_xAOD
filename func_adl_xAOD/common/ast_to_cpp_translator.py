@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Type, Union, cast
 import func_adl_xAOD.common.cpp_ast as cpp_ast
 import func_adl_xAOD.common.cpp_representation as crep
 import func_adl_xAOD.common.cpp_types as ctyp
-import func_adl_xAOD.common.math_utils  # NOQA
 import func_adl_xAOD.common.result_ttree as rh
 import func_adl_xAOD.common.statement as statement
 from func_adl.ast.call_stack import argument_stack, stack_frame
