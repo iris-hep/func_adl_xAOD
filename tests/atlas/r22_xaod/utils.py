@@ -6,7 +6,7 @@ import awkward as ak
 import pandas as pd
 import uproot
 from func_adl.object_stream import ObjectStream
-from func_adl_xAOD.atlas.r22_xaod.executor import atlas_r22_xaod_executor
+from func_adl_xAOD.atlas.xaod.executor import atlas_xaod_executor
 from func_adl_xAOD.atlas.xaod.query_ast_visitor import (
     atlas_xaod_query_ast_visitor,
 )
@@ -19,8 +19,8 @@ class atlas_xaodr22_dummy_executor(dummy_executor):
     def __init__(self):
         super().__init__()
 
-    def get_executor_obj(self) -> atlas_r22_xaod_executor:
-        return atlas_r22_xaod_executor()
+    def get_executor_obj(self) -> atlas_xaod_executor:
+        return atlas_xaod_executor()
 
     def get_visitor_obj(self) -> atlas_xaod_query_ast_visitor:
         return atlas_xaod_query_ast_visitor()
@@ -46,8 +46,8 @@ class AtlasXAODR22LocalFile(LocalFile):
     def raise_docker_exception(self, message: str):
         raise AtlasXAODR22DockerException(message)
 
-    def get_executor_obj(self) -> atlas_r22_xaod_executor:
-        return atlas_r22_xaod_executor()
+    def get_executor_obj(self) -> atlas_xaod_executor:
+        return atlas_xaod_executor()
 
 
 async def exe_from_qastle(q: str):
