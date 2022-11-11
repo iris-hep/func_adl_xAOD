@@ -944,7 +944,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         crep.set_rep(
             node,
             crep.cpp_value(
-                '"{node.s}"',
+                f'"{node.s}"',
                 self._gc.current_scope(),
                 ctyp.terminal("string"),
             ),
