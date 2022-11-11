@@ -271,7 +271,7 @@ def test_truth_particles_awk():
         f_single.Select(lambda e: e.TruthParticles("TruthParticles").Count())
     )
     print(training_df)
-    assert len(training_df[b"col1"]) == 10
+    assert len(training_df["col1"]) == 10
 
 
 def test_1D_array():
@@ -282,8 +282,8 @@ def test_1D_array():
         )
     )
     print(training_df)
-    assert len(training_df[b"col1"]) == 10
-    assert len(training_df[b"col1"][0]) == 9  # type: ignore
+    assert len(training_df["col1"]) == 10
+    assert len(training_df["col1"][0]) == 9  # type: ignore
 
 
 def test_2D_array():
@@ -298,9 +298,9 @@ def test_2D_array():
         )
     )
     print(training_df)
-    assert len(training_df[b"col1"]) == 10
-    assert len(training_df[b"col1"][0]) == 9  # type: ignore
-    assert len(training_df[b"col1"][0][0]) == 9  # type: ignore
+    assert len(training_df["col1"]) == 10
+    assert len(training_df["col1"][0]) == 9  # type: ignore
+    assert len(training_df["col1"][0][0]) == 9  # type: ignore
 
 
 def test_2D_nested_where():
@@ -336,6 +336,6 @@ def test_2D_nested_where():
     )
 
     print(training_df)
-    a = training_df[b"col1"]
+    a = training_df["col1"]
     assert len(a) == 10
     assert len(a[0]) == 1  # type: ignore
