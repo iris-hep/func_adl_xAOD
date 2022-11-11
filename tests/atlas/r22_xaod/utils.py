@@ -7,13 +7,15 @@ import pandas as pd
 import uproot
 from func_adl.object_stream import ObjectStream
 from func_adl_xAOD.atlas.xaod.executor import atlas_xaod_executor
-from func_adl_xAOD.atlas.xaod.query_ast_visitor import atlas_xaod_query_ast_visitor
+from func_adl_xAOD.atlas.xaod.query_ast_visitor import (
+    atlas_xaod_query_ast_visitor,
+)
 from func_adl_xAOD.common.cpp_representation import cpp_sequence, cpp_variable, set_rep
 from func_adl_xAOD.common.util_scope import top_level_scope
 from tests.utils.base import LocalFile, dataset, dummy_executor  # type: ignore
 
 
-class atlas_xaod_dummy_executor(dummy_executor):
+class atlas_xaodr22_dummy_executor(dummy_executor):
     def __init__(self):
         super().__init__()
 
@@ -24,25 +26,25 @@ class atlas_xaod_dummy_executor(dummy_executor):
         return atlas_xaod_query_ast_visitor()
 
 
-class atlas_xaod_dataset(dataset):
+class atlas_xaodr22_dataset(dataset):
     def __init__(self, qastle_roundtrip=False):
         super().__init__(qastle_roundtrip=qastle_roundtrip)
 
     def get_dummy_executor_obj(self) -> dummy_executor:
-        return atlas_xaod_dummy_executor()
+        return atlas_xaodr22_dummy_executor()
 
 
-class AtlasXAODDockerException(Exception):
+class AtlasXAODR22DockerException(Exception):
     def __init__(self, message):
         Exception.__init__(self, message)
 
 
-class AtlasXAODLocalFile(LocalFile):
+class AtlasXAODR22LocalFile(LocalFile):
     def __init__(self, local_files: Union[Path, List[Path]]):
-        super().__init__("atlas/analysisbase:21.2.234", "query.cxx", local_files)
+        super().__init__("atlas/analysisbase:22.2.96", "query.cxx", local_files)
 
     def raise_docker_exception(self, message: str):
-        raise AtlasXAODDockerException(message)
+        raise AtlasXAODR22DockerException(message)
 
     def get_executor_obj(self) -> atlas_xaod_executor:
         return atlas_xaod_executor()
@@ -63,7 +65,7 @@ async def exe_from_qastle(q: str):
     set_rep(file, cpp_sequence(iterator, iterator, top_level_scope()))
 
     # Use the dummy executor to process this, and return it.
-    exe = atlas_xaod_dummy_executor()
+    exe = atlas_xaodr22_dummy_executor()
     exe.evaluate(a)
     return exe
 

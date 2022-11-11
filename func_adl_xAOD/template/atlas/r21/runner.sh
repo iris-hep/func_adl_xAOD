@@ -4,7 +4,7 @@
 # everyone above us knows what happened.
 set -e
 
-# Meant to be invokved in an ATLAS R21 analysis container.
+# Meant to be invokved in an ATLAS R22 analysis container.
 # This follows the tutorial from https://atlassoftwaredocs.web.cern.ch/ABtutorial/release_setup/
 
 # Parse the command line arguments. Our defaults
