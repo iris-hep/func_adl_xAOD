@@ -1,15 +1,15 @@
 import re
+from math import sin
 
 import pytest
 from func_adl import Range
+
 from func_adl_xAOD.atlas.xaod.executor import atlas_xaod_executor
+from func_adl_xAOD.common.math_utils import DeltaR
 from tests.atlas.xaod.utils import atlas_xaod_dataset, exe_from_qastle  # type: ignore
 from tests.utils.general import get_lines_of_code, print_lines  # type: ignore
-from tests.utils.locators import (
-    find_line_numbers_with,  # type: ignore
-    find_line_with,
-    find_open_blocks,
-)
+from tests.utils.locators import find_line_numbers_with  # type: ignore
+from tests.utils.locators import find_line_with, find_open_blocks
 
 # Tests that make sure the xaod executor is working correctly
 
@@ -1150,8 +1150,8 @@ def test_metadata_returned_collection_double_ptr():
 def test_executor_forgets_blocks():
     "An executor must be able to run twice, and forget between"
 
-    from tests.utils.base import dataset, dummy_executor
     from func_adl_xAOD.atlas.xaod.query_ast_visitor import atlas_xaod_query_ast_visitor
+    from tests.utils.base import dataset, dummy_executor
 
     our_exe = atlas_xaod_executor()
 
