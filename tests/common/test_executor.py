@@ -1,6 +1,7 @@
 import ast
+from dataclasses import dataclass
 from func_adl_xAOD.atlas.xaod.query_ast_visitor import atlas_xaod_query_ast_visitor
-from typing import Callable, List
+from typing import Any, Callable, Dict, List
 from func_adl_xAOD.common.event_collections import (
     EventCollectionSpecification,
     event_collection_coder,
@@ -19,8 +20,8 @@ class dummy_event_collection_coder(event_collection_coder):
 
 
 class do_nothing_executor(executor):
-    def __init__(self):
-        super().__init__([], "stuff.sh", "dude", {})
+    def __init__(self, extended_md: Dict[str, Any] = {}):
+        super().__init__([], "stuff.sh", "dude", {}, extended_md)
 
     def get_visitor_obj(self) -> query_ast_visitor:
         return atlas_xaod_query_ast_visitor()
@@ -212,16 +213,25 @@ def test_include_files():
     assert exe.header_include_files == ["file.hpp"]
 
 
-def test_docker_md():
-    "Make sure docker info is properly recorded"
+def test_extended_md():
+    "Make sure we can add extended md parsing"
+
+    @dataclass
+    class MyMD:
+        "My metadata"
+
+        name: str
+        value: str
 
     a1 = parse_statement(
         "Select(MetaData(ds, {"
-        '"metadata_type": "docker",'
-        '"image": "crazy_fork:latest",'
+        '"metadata_type": "my_md",'
+        '"name": "crazy_fork:latest",'
         '}), lambda e: e.crazy("fork").pT())'
     )
 
-    exe = do_nothing_executor()
+    exe = do_nothing_executor({"my_md": MyMD("t1", "t2")})
     _ = exe.apply_ast_transformations(a1)
-    assert exe.docker_image == "crazy_fork:latest"
+    md = exe.extended_md("my_md")
+    assert len(md) == 1
+    assert md[0].name == "crazy_fork:latest"
