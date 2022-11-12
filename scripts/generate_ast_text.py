@@ -16,32 +16,53 @@ class ast_translator_ds(EventDataset):
 
 
 def as_ast_lang_query_0():
-    'Extract jet pt of all jets'
-    r = ast_translator_ds() \
-        .SelectMany("lambda e: e.Jets('')") \
-        .Select("lambda j: j.pt()") \
-        .AsROOTTTree("junk.root", 'analysis', ['jet_pt']) \
+    "Extract jet pt of all jets"
+    r = (
+        ast_translator_ds()
+        .SelectMany(lambda e: e.Jets(""))
+        .Select(lambda j: j.pt())
+        .AsROOTTTree("junk.root", "analysis", ["jet_pt"])
         .value()
+    )
     return r
 
 
 def as_ast_lang_query_1():
-    'Generate a real query that works on our 10 event root file'
-    r = ast_translator_ds() \
-        .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets")') \
-        .Select('lambda j: j.pt()/1000.0') \
-        .AsROOTTTree("junk.root", "analysis", ['JetPt']) \
+    "Generate a real query that works on our 10 event root file"
+    r = (
+        ast_translator_ds()
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+        .Select(lambda j: j.pt() / 1000.0)
+        .AsROOTTTree("junk.root", "analysis", ["JetPt"])
         .value()
+    )
     return r
 
 
 def as_ast_lang_query_2():
-    'Marc needed this to run some performance tests.'
-    r = ast_translator_ds() \
-        .Select('lambda e: (e.Electrons("Electrons"), e.Muons("Muons"))') \
-        .Select('lambda e: (e[0].Select(lambda ele: ele.e()), e[0].Select(lambda ele: ele.pt()), e[0].Select(lambda ele: ele.phi()), e[0].Select(lambda ele: ele.eta()), e[1].Select(lambda mu: mu.e()), e[1].Select(lambda mu: mu.pt()), e[1].Select(lambda mu: mu.phi()), e[1].Select(lambda mu: mu.eta()))') \
-        .AsROOTTTree('dude.root', 'forkme', ['e_E', 'e_pt', 'e_phi', 'e_eta', 'mu_E', 'mu_pt', 'mu_phi', 'mu_eta']) \
+    "Marc needed this to run some performance tests."
+    r = (
+        ast_translator_ds()
+        .Select(lambda e: (e.Electrons("Electrons"), e.Muons("Muons")))
+        .Select(
+            lambda e: (
+                e[0].Select(lambda ele: ele.e()),
+                e[0].Select(lambda ele: ele.pt()),
+                e[0].Select(lambda ele: ele.phi()),
+                e[0].Select(lambda ele: ele.eta()),
+                e[1].Select(lambda mu: mu.e()),
+                e[1].Select(lambda mu: mu.pt()),
+                e[1].Select(lambda mu: mu.phi()),
+                e[1].Select(lambda mu: mu.eta()),
+            )
+        )
+        .AsROOTTTree(
+            "dude.root",
+            "forkme",
+            ["e_E", "e_pt", "e_phi", "e_eta", "mu_E", "mu_pt", "mu_phi", "mu_eta"],
+        )
         .value()
+    )
     return r
 
 

@@ -45,8 +45,8 @@ def generate_test_jet_fetch(cache_dir: Path):
     """
     return (
         hash_event_dataset(cache_dir)
-        .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets")')
-        .Select("lambda j: j.pt()/1000.0")
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+        .Select(lambda j: j.pt() / 1000.0)
         .value()
     )
 
@@ -57,8 +57,8 @@ def generate_test_jet_fetch_bad(cache_dir: Path):
     """
     return (
         hash_event_dataset(cache_dir)
-        .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets")')
-        .Select("lambda j: j.ptt()/1000.0")
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+        .Select(lambda j: j.ptt() / 1000.0)
         .value()
     )
 

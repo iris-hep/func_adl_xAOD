@@ -43,7 +43,7 @@ def test_dict_output_fail_expansion():
 def test_per_event_item():
     r = (
         atlas_xaod_dataset()
-        .Select('lambda e: e.EventInfo("EventInfo").runNumber()')
+        .Select(lambda e: e.EventInfo("EventInfo").runNumber())
         .value()
     )
     vs = r.QueryVisitor._gc._class_vars
@@ -55,7 +55,7 @@ def test_per_jet_item():
     # The following statement should be a straight sequence, not an array.
     r = (
         atlas_xaod_dataset()
-        .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt())')
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()))
         .value()
     )
     # Check to see if there mention of push_back anywhere.
@@ -128,9 +128,7 @@ def test_builtin_abs_function():
     # The following statement should be a straight sequence, not an array.
     r = (
         atlas_xaod_dataset()
-        .SelectMany(
-            'lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: abs(j.pt()))'
-        )
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: abs(j.pt())))
         .value()
     )
     # Check to see if there mention of push_back anywhere.
@@ -144,9 +142,7 @@ def test_builtin_sin_function_no_math_import():
     # The following statement should be a straight sequence, not an array.
     r = (
         atlas_xaod_dataset()
-        .SelectMany(
-            'lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: sin(j.pt()))'
-        )
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: sin(j.pt())))
         .value()
     )
     # Check to see if there mention of push_back anywhere.
@@ -176,7 +172,9 @@ def test_ifexpr():
     r = (
         atlas_xaod_dataset(qastle_roundtrip=True)
         .SelectMany(
-            'lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: 1.0 if j.pt() > 10.0 else 2.0)'
+            lambda e: e.Jets("AntiKt4EMTopoJets").Select(
+                lambda j: 1.0 if j.pt() > 10.0 else 2.0
+            )
         )
         .value()
     )
@@ -192,8 +190,8 @@ def test_per_jet_item_with_where():
     # The following statement should be a straight sequence, not an array.
     r = (
         atlas_xaod_dataset()
-        .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets")')
-        .Where("lambda j: j.pt()>40.0")
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+        .Where(lambda j: j.pt() > 40.0)
         .Select(lambda j: {"JetPts": j.pt()})  # type: ignore
         .value()
     )
@@ -208,9 +206,9 @@ def test_and_clause_in_where():
     # The following statement should be a straight sequence, not an array.
     r = (
         atlas_xaod_dataset()
-        .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets")')
-        .Where("lambda j: j.pt()>40.0 and j.eta()<2.5")
-        .Select("lambda j: j.pt()")
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+        .Where(lambda j: j.pt() > 40.0 and j.eta() < 2.5)
+        .Select(lambda j: j.pt())
         .value()
     )
     # Make sure that the tree Fill is at the same level as the _JetPts2 getting set.
@@ -225,9 +223,9 @@ def test_or_clause_in_where():
     # The following statement should be a straight sequence, not an array.
     r = (
         atlas_xaod_dataset()
-        .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets")')
-        .Where("lambda j: j.pt()>40.0 or j.eta()<2.5")
-        .Select("lambda j: j.pt()")
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+        .Where(lambda j: j.pt() > 40.0 or j.eta() < 2.5)
+        .Select(lambda j: j.pt())
         .value()
     )
     # Make sure that the tree Fill is at the same level as the _JetPts2 getting set.
@@ -243,8 +241,8 @@ def test_nested_lambda_argument_name_with_monad():
     # Need both the monad and the "e" reused to get this error!
     r = (
         atlas_xaod_dataset()
-        .Select('lambda e: (e.Electrons("Electrons"), e.Muons("Muons"))')
-        .Select("lambda e: e[0].Select(lambda e: e.E())")
+        .Select(lambda e: (e.Electrons("Electrons"), e.Muons("Muons")))
+        .Select(lambda e: e[0].Select(lambda e: e.E()))
         .value()
     )
     lines = get_lines_of_code(r)
@@ -260,7 +258,7 @@ def test_dict_simple_reference():
         .Select(
             lambda e: {"e_list": e.Electrons("Electrons"), "m_list": e.Muons("Muons")}
         )
-        .Select("lambda e: e.e_list.Select(lambda e: e.E())")
+        .Select(lambda e: e.e_list.Select(lambda e: e.E()))
         .value()
     )
     lines = get_lines_of_code(r)
@@ -293,8 +291,8 @@ def test_result_awkward():
     # The following statement should be a straight sequence, not an array.
     r = (
         atlas_xaod_dataset()
-        .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets")')
-        .Select("lambda j: j.pt()")
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+        .Select(lambda j: j.pt())
         .value()
     )
     # Make sure that the tree Fill is at the same level as the _JetPts2 getting set.
@@ -308,7 +306,10 @@ def test_per_jet_item_with_event_level():
     r = (
         atlas_xaod_dataset()
         .Select(
-            'lambda e: (e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()), e.EventInfo("EventInfo").runNumber())'
+            lambda e: (
+                e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()),
+                e.EventInfo("EventInfo").runNumber(),
+            )
         )
         .SelectMany(
             lambda ji: ji[0].Select(
@@ -331,13 +332,13 @@ def test_per_jet_item_with_event_level():
 
 def test_func_sin_call():
     atlas_xaod_dataset().Select(
-        'lambda e: sin(e.EventInfo("EventInfo").runNumber())'
+        lambda e: sin(e.EventInfo("EventInfo").runNumber())
     ).value()
 
 
 def test_per_jet_item_as_call():
-    atlas_xaod_dataset().SelectMany('lambda e: e.Jets("bogus")').Select(
-        "lambda j: j.pt()"
+    atlas_xaod_dataset().SelectMany(lambda e: e.Jets("bogus")).Select(
+        lambda j: j.pt()
     ).value()
 
 
@@ -346,7 +347,9 @@ def test_Select_is_an_array_with_where():
     r = (
         atlas_xaod_dataset()
         .Select(
-            'lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()/1000.0).Where(lambda jpt: jpt > 10.0)'
+            lambda e: e.Jets("AntiKt4EMTopoJets")
+            .Select(lambda j: j.pt() / 1000.0)
+            .Where(lambda jpt: jpt > 10.0)
         )
         .value()
     )
@@ -363,7 +366,7 @@ def test_Select_is_an_array():
     # The following statement should be a straight sequence, not an array.
     r = (
         atlas_xaod_dataset()
-        .Select('lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt())')
+        .Select(lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()))
         .value()
     )
     # Check to see if there mention of push_back anywhere.
@@ -380,7 +383,9 @@ def test_Select_1D_array_with_Where():
     r = (
         atlas_xaod_dataset()
         .Select(
-            'lambda e: e.Jets("AntiKt4EMTopoJets").Where(lambda j1: j1.pt() > 10).Select(lambda j: j.pt())'
+            lambda e: e.Jets("AntiKt4EMTopoJets")
+            .Where(lambda j1: j1.pt() > 10)
+            .Select(lambda j: j.pt())
         )
         .value()
     )
@@ -401,7 +406,7 @@ def test_Select_is_not_an_array():
     # The following statement should be a straight sequence, not an array.
     r = (
         atlas_xaod_dataset()
-        .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt())')
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()))
         .value()
     )
     # Check to see if there mention of push_back anywhere.
@@ -418,7 +423,10 @@ def test_Select_Multiple_arrays():
     r = (
         atlas_xaod_dataset()
         .Select(
-            'lambda e: (e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()/1000.0),e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.eta()))'
+            lambda e: (
+                e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt() / 1000.0),
+                e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.eta()),
+            )
         )
         .value()
     )
@@ -435,9 +443,12 @@ def test_Select_Multiple_arrays_2_step():
     # The following statement should be a straight sequence, not an array.
     r = (
         atlas_xaod_dataset()
-        .Select('lambda e: e.Jets("AntiKt4EMTopoJets")')
+        .Select(lambda e: e.Jets("AntiKt4EMTopoJets"))
         .Select(
-            "lambda jets: (jets.Select(lambda j: j.pt()/1000.0),jets.Select(lambda j: j.eta()))"
+            lambda jets: (
+                jets.Select(lambda j: j.pt() / 1000.0),
+                jets.Select(lambda j: j.eta()),
+            )
         )
         .value()
     )
@@ -462,7 +473,9 @@ def test_Select_of_2D_array():
     r = (
         atlas_xaod_dataset()
         .Select(
-            'lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: e.Electrons("Electrons").Select(lambda e: e.pt()))'
+            lambda e: e.Jets("AntiKt4EMTopoJets").Select(
+                lambda j: e.Electrons("Electrons").Select(lambda e: e.pt())
+            )
         )
         .value()
     )
@@ -487,7 +500,11 @@ def test_Select_of_2D_with_where():
     r = (
         atlas_xaod_dataset()
         .Select(
-            'lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: e.Electrons("Electrons").Where(lambda ele: ele.pt() > 10).Select(lambda e: e.pt()))'
+            lambda e: e.Jets("AntiKt4EMTopoJets").Select(
+                lambda j: e.Electrons("Electrons")
+                .Where(lambda ele: ele.pt() > 10)
+                .Select(lambda e: e.pt())
+            )
         )
         .value()
     )
@@ -509,7 +526,11 @@ def test_Select_of_3D_array():
     r = (
         atlas_xaod_dataset()
         .Select(
-            'lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: e.Electrons("Electrons").Select(lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt())))'
+            lambda e: e.Jets("AntiKt4EMTopoJets").Select(
+                lambda j: e.Electrons("Electrons").Select(
+                    lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt())
+                )
+            )
         )
         .value()
     )
@@ -530,7 +551,9 @@ def test_Select_of_2D_array_with_tuple():
     # at least not yet. Make sure error is reasonable.
     with pytest.raises(Exception) as e:
         atlas_xaod_dataset().Select(
-            'lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: (j.pt()/1000.0, j.eta()))'
+            lambda e: e.Jets("AntiKt4EMTopoJets").Select(
+                lambda j: (j.pt() / 1000.0, j.eta())
+            )
         ).value()
 
     assert "data structures" in str(e.value)
@@ -541,7 +564,9 @@ def test_SelectMany_of_tuple_is_not_array():
     r = (
         atlas_xaod_dataset()
         .SelectMany(
-            'lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: (j.pt()/1000.0, j.eta()))'
+            lambda e: e.Jets("AntiKt4EMTopoJets").Select(
+                lambda j: (j.pt() / 1000.0, j.eta())
+            )
         )
         .value()
     )
@@ -573,7 +598,7 @@ def test_generate_binary_operator_pow():
     # Make sure the pow operator works correctly - that it doesn't cause a crash in generation.
     r = (
         atlas_xaod_dataset()
-        .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()**2)')
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt() ** 2))
         .value()
     )
     lines = get_lines_of_code(r)
@@ -587,7 +612,7 @@ def test_generate_binary_operator_unsupported():
     # Make sure an unsupported binary operator triggers an exception
     with pytest.raises(Exception) as e:
         atlas_xaod_dataset().SelectMany(
-            'lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()//2)'
+            lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt() // 2)
         ).value()
 
     assert "FloorDiv" in str(e)
@@ -612,7 +637,7 @@ def test_generate_unary_not():
     r = (
         atlas_xaod_dataset()
         .SelectMany(
-            'lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: not (j.pt() > 50.0))'
+            lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: not (j.pt() > 50.0))
         )
         .value()
     )
@@ -626,10 +651,21 @@ def test_per_jet_with_matching():
     r = (
         atlas_xaod_dataset()
         .Select(
-            'lambda e: (e.Jets("AntiKt4EMTopoJets"),e.TruthParticles("TruthParticles").Where(lambda tp1: tp1.pdgId() == 35))'
+            lambda e: (
+                e.Jets("AntiKt4EMTopoJets"),
+                e.TruthParticles("TruthParticles").Where(lambda tp1: tp1.pdgId() == 35),
+            )
         )
         .SelectMany(
-            "lambda ev: ev[0].Select(lambda j1: (j1, ev[1].Where(lambda tp2: DeltaR(tp2.eta(), tp2.phi(), j1.eta(), j1.phi()) < 0.4)))"
+            lambda ev: ev[0].Select(
+                lambda j1: (
+                    j1,
+                    ev[1].Where(
+                        lambda tp2: DeltaR(tp2.eta(), tp2.phi(), j1.eta(), j1.phi())
+                        < 0.4
+                    ),
+                )
+            )
         )
         .Select(
             lambda ji: {
@@ -653,10 +689,21 @@ def test_per_jet_with_matching_and_zeros():
     r = (
         atlas_xaod_dataset()
         .Select(
-            'lambda e: (e.Jets("AntiKt4EMTopoJets"),e.TruthParticles("TruthParticles").Where(lambda tp1: tp1.pdgId() == 35))'
+            lambda e: (
+                e.Jets("AntiKt4EMTopoJets"),
+                e.TruthParticles("TruthParticles").Where(lambda tp1: tp1.pdgId() == 35),
+            )
         )
         .SelectMany(
-            "lambda ev: ev[0].Select(lambda j1: (j1, ev[1].Where(lambda tp2: DeltaR(tp2.eta(), tp2.phi(), j1.eta(), j1.phi()) < 0.4)))"
+            lambda ev: ev[0].Select(
+                lambda j1: (
+                    j1,
+                    ev[1].Where(
+                        lambda tp2: DeltaR(tp2.eta(), tp2.phi(), j1.eta(), j1.phi())
+                        < 0.4
+                    ),
+                )
+            )
         )
         .Select(
             lambda ji: {
@@ -682,19 +729,32 @@ def test_per_jet_with_Count_matching():
     # is missed when calculating the y() component (for some reason). This bug may not be in the executor, but, rather, may
     # be in the function simplifier.
     # Also, if the "else" doesn't include a "first" thing, then things seem to work just fine too.
-    #    .Where('lambda jall: jall[0].pt() > 40.0') \
     r = (
         atlas_xaod_dataset()
         .Select(
-            'lambda e: (e.Jets("AntiKt4EMTopoJets"),e.TruthParticles("TruthParticles").Where(lambda tp1: tp1.pdgId() == 35))'
+            lambda e: (
+                e.Jets("AntiKt4EMTopoJets"),
+                e.TruthParticles("TruthParticles").Where(lambda tp1: tp1.pdgId() == 35),
+            )
         )
         .SelectMany(
-            "lambda ev: ev[0].Select(lambda j1: (j1, ev[1].Where(lambda tp2: DeltaR(tp2.eta(), tp2.phi(), j1.eta(), j1.phi()) < 0.4)))"
+            lambda ev: ev[0].Select(
+                lambda j1: (
+                    j1,
+                    ev[1].Where(
+                        lambda tp2: DeltaR(tp2.eta(), tp2.phi(), j1.eta(), j1.phi())
+                        < 0.4
+                    ),
+                )
+            )
         )
         .Select(
-            "lambda ji: (ji[0].pt(), 0 if ji[1].Count()==0 else ji[1].First().prodVtx().y())"
+            lambda ji: (
+                ji[0].pt(),
+                0 if ji[1].Count() == 0 else ji[1].First().prodVtx().y(),
+            )
         )
-        .Where("lambda jall: jall[0] > 40.0")
+        .Where(lambda jall: jall[0] > 40.0)
         .value()
     )
     lines = get_lines_of_code(r)
@@ -708,15 +768,31 @@ def test_per_jet_with_delta():
     r = (
         atlas_xaod_dataset()
         .Select(
-            'lambda e: (e.Jets("AntiKt4EMTopoJets"),e.TruthParticles("TruthParticles").Where(lambda tp1: tp1.pdgId() == 35))'
+            lambda e: (
+                e.Jets("AntiKt4EMTopoJets"),
+                e.TruthParticles("TruthParticles").Where(lambda tp1: tp1.pdgId() == 35),
+            )
         )
         .SelectMany(
-            "lambda ev: ev[0].Select(lambda j1: (j1, ev[1].Where(lambda tp2: DeltaR(tp2.eta(), tp2.phi(), j1.eta(), j1.phi()) < 0.4)))"
+            lambda ev: ev[0].Select(
+                lambda j1: (
+                    j1,
+                    ev[1].Where(
+                        lambda tp2: DeltaR(tp2.eta(), tp2.phi(), j1.eta(), j1.phi())
+                        < 0.4
+                    ),
+                )
+            )
         )
         .Select(
-            "lambda ji: (ji[0].pt(), 0 if ji[1].Count()==0 else abs(ji[1].First().prodVtx().x()-ji[1].First().decayVtx().x()))"
+            lambda ji: (
+                ji[0].pt(),
+                0
+                if ji[1].Count() == 0
+                else abs(ji[1].First().prodVtx().x() - ji[1].First().decayVtx().x()),
+            )
         )
-        .Where("lambda jall: jall[0] > 40.0")
+        .Where(lambda jall: jall[0] > 40.0)
         .value()
     )
     lines = get_lines_of_code(r)
@@ -731,10 +807,21 @@ def test_per_jet_with_matching_and_zeros_and_sum():
     r = (
         atlas_xaod_dataset()
         .Select(
-            'lambda e: (e.Jets("AntiKt4EMTopoJets"),e.TruthParticles("TruthParticles").Where(lambda tp1: tp1.pdgId() == 35))'
+            lambda e: (
+                e.Jets("AntiKt4EMTopoJets"),
+                e.TruthParticles("TruthParticles").Where(lambda tp1: tp1.pdgId() == 35),
+            )
         )
         .SelectMany(
-            "lambda ev: ev[0].Select(lambda j1: (j1, ev[1].Where(lambda tp2: DeltaR(tp2.eta(), tp2.phi(), j1.eta(), j1.phi()) < 0.4)))"
+            lambda ev: ev[0].Select(
+                lambda j1: (
+                    j1,
+                    ev[1].Where(
+                        lambda tp2: DeltaR(tp2.eta(), tp2.phi(), j1.eta(), j1.phi())
+                        < 0.4
+                    ),
+                )
+            )
         )
         .Select(
             lambda ji: {
@@ -759,9 +846,18 @@ def test_electron_and_muon_with_tuple():
     # Marc's long query.
     r = (
         atlas_xaod_dataset()
-        .Select('lambda e: (e.Electrons("Electrons"), e.Muons("Muons"))')
+        .Select(lambda e: (e.Electrons("Electrons"), e.Muons("Muons")))
         .Select(
-            "lambda e: (e[0].Select(lambda ele: ele.E()), e[0].Select(lambda ele: ele.pt()), e[0].Select(lambda ele: ele.phi()), e[0].Select(lambda ele: ele.eta()), e[1].Select(lambda mu: mu.E()), e[1].Select(lambda mu: mu.pt()), e[1].Select(lambda mu: mu.phi()), e[1].Select(lambda mu: mu.eta()))"
+            lambda e: (
+                e[0].Select(lambda ele: ele.E()),
+                e[0].Select(lambda ele: ele.pt()),
+                e[0].Select(lambda ele: ele.phi()),
+                e[0].Select(lambda ele: ele.eta()),
+                e[1].Select(lambda mu: mu.E()),
+                e[1].Select(lambda mu: mu.pt()),
+                e[1].Select(lambda mu: mu.phi()),
+                e[1].Select(lambda mu: mu.eta()),
+            )
         )
         .value()
     )
@@ -775,9 +871,18 @@ def test_electron_and_muon_with_tuple_qastle():
     # Marc's long query.
     r = (
         atlas_xaod_dataset(qastle_roundtrip=True)
-        .Select('lambda e: (e.Electrons("Electrons"), e.Muons("Muons"))')
+        .Select(lambda e: (e.Electrons("Electrons"), e.Muons("Muons")))
         .Select(
-            "lambda e: (e[0].Select(lambda ele: ele.E()), e[0].Select(lambda ele: ele.pt()), e[0].Select(lambda ele: ele.phi()), e[0].Select(lambda ele: ele.eta()), e[1].Select(lambda mu: mu.E()), e[1].Select(lambda mu: mu.pt()), e[1].Select(lambda mu: mu.phi()), e[1].Select(lambda mu: mu.eta()))"
+            lambda e: (
+                e[0].Select(lambda ele: ele.E()),
+                e[0].Select(lambda ele: ele.pt()),
+                e[0].Select(lambda ele: ele.phi()),
+                e[0].Select(lambda ele: ele.eta()),
+                e[1].Select(lambda mu: mu.E()),
+                e[1].Select(lambda mu: mu.pt()),
+                e[1].Select(lambda mu: mu.phi()),
+                e[1].Select(lambda mu: mu.eta()),
+            )
         )
         .value()
     )
@@ -791,9 +896,18 @@ def test_electron_and_muon_with_list():
     # Marc's long query.
     r = (
         atlas_xaod_dataset()
-        .Select('lambda e: [e.Electrons("Electrons"), e.Muons("Muons")]')
+        .Select(lambda e: [e.Electrons("Electrons"), e.Muons("Muons")])
         .Select(
-            "lambda e: [e[0].Select(lambda ele: ele.E()), e[0].Select(lambda ele: ele.pt()), e[0].Select(lambda ele: ele.phi()), e[0].Select(lambda ele: ele.eta()), e[1].Select(lambda mu: mu.E()), e[1].Select(lambda mu: mu.pt()), e[1].Select(lambda mu: mu.phi()), e[1].Select(lambda mu: mu.eta())]"
+            lambda e: [
+                e[0].Select(lambda ele: ele.E()),
+                e[0].Select(lambda ele: ele.pt()),
+                e[0].Select(lambda ele: ele.phi()),
+                e[0].Select(lambda ele: ele.eta()),
+                e[1].Select(lambda mu: mu.E()),
+                e[1].Select(lambda mu: mu.pt()),
+                e[1].Select(lambda mu: mu.phi()),
+                e[1].Select(lambda mu: mu.eta()),
+            ]
         )
         .value()
     )
@@ -807,9 +921,18 @@ def test_electron_and_muon_with_list_qastle():
     # Marc's long query.
     r = (
         atlas_xaod_dataset(qastle_roundtrip=True)
-        .Select('lambda e: [e.Electrons("Electrons"), e.Muons("Muons")]')
+        .Select(lambda e: [e.Electrons("Electrons"), e.Muons("Muons")])
         .Select(
-            "lambda e: [e[0].Select(lambda ele: ele.E()), e[0].Select(lambda ele: ele.pt()), e[0].Select(lambda ele: ele.phi()), e[0].Select(lambda ele: ele.eta()), e[1].Select(lambda mu: mu.E()), e[1].Select(lambda mu: mu.pt()), e[1].Select(lambda mu: mu.phi()), e[1].Select(lambda mu: mu.eta())]"
+            lambda e: [
+                e[0].Select(lambda ele: ele.E()),
+                e[0].Select(lambda ele: ele.pt()),
+                e[0].Select(lambda ele: ele.phi()),
+                e[0].Select(lambda ele: ele.eta()),
+                e[1].Select(lambda mu: mu.E()),
+                e[1].Select(lambda mu: mu.pt()),
+                e[1].Select(lambda mu: mu.phi()),
+                e[1].Select(lambda mu: mu.eta()),
+            ]
         )
         .value()
     )

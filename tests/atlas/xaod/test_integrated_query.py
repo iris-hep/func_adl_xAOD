@@ -77,8 +77,8 @@ async def test_two_simultaneous_runs():
 def test_flatten_array():
     # A very simple flattening of arrays
     training_df = as_pandas(
-        f_single.SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets")').Select(
-            "lambda j: j.pt()/1000.0"
+        f_single.SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets")).Select(
+            lambda j: j.pt() / 1000.0
         )
     )
     assert abs(training_df.iloc[0]["col1"] - 52.02462890625) < 0.001  # type: ignore ()
