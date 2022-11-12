@@ -23,7 +23,6 @@ from func_adl_xAOD.common.event_collections import (
 )
 from func_adl_xAOD.common.executor import executor
 from func_adl_xAOD.common.meta_data import (
-    DockerSpecification,
     InjectCodeBlock,
     JobScriptSpecification,
     generate_script_block,
