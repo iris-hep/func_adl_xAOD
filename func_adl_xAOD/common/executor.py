@@ -11,7 +11,7 @@ from func_adl_xAOD.common.meta_data import (
 import os
 import sys
 from abc import ABC, abstractmethod
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 from pathlib import Path
 import itertools
 
@@ -96,6 +96,7 @@ class executor(ABC):
         runner_name: str,
         template_dir_name: str,
         method_names: Dict[str, Callable[[ast.Call], ast.Call]],
+        extended_md: Dict[str, Any] = {},
     ):
         self._file_names = file_names
         self._runner_name = runner_name
@@ -103,6 +104,18 @@ class executor(ABC):
         self._method_names = method_names
         self._job_option_blocks = []
         self._inject_blocks: List[InjectCodeBlock] = []
+        self._extended_md = extended_md
+        self._found_extended_md: Dict[str, List[Any]] = defaultdict(list)
+
+    def extended_md(self, name: str) -> List[Any]:
+        "Return all the extended for a given key"
+        if name not in self._found_extended_md:
+            return []
+        return self._found_extended_md[name]
+
+    def add_extended_md(self, extended_md: Dict[str, Any]):
+        "Add extended metadata to the executor"
+        self._extended_md.update(extended_md)
 
     def _copy_template_file(self, j2_env, info, template_file, final_dir: Path):
         "Copy a file to a final directory"
@@ -123,6 +136,7 @@ class executor(ABC):
         # Reset out object
         self._job_option_blocks = []
         self._inject_blocks = []
+        self._extended_md = {}
 
         # Reset the type system
         import func_adl_xAOD.common.cpp_types as ctyp
@@ -136,11 +150,17 @@ class executor(ABC):
         """
         # Do tuple resolutions. This might eliminate a whole bunch fo code!
         a, meta_data = extract_metadata(a)
-        cpp_functions = process_metadata(meta_data)
+        cpp_functions = process_metadata(meta_data, self._extended_md)
         a = change_extension_functions_to_calls(a)
         a = aggregate_node_transformer().visit(a)
         a = simplify_chained_calls().visit(a)
         a = find_known_functions().visit(a)
+
+        # Pull out any extended metadata
+        extended_md_types = {type(x): k for k, x in self._extended_md.items()}
+        for item in cpp_functions:
+            if type(item) in extended_md_types.keys():
+                self._found_extended_md[extended_md_types[type(item)]].append(item)
 
         # Any C++ custom code needs to be threaded into the ast
         method_names = dict(self._method_names)
@@ -193,7 +213,7 @@ class executor(ABC):
 
     @property
     def instance_initialization(self) -> List[str]:
-        "Return the list of initialization of instances for the query.cpp file"
+        "Return the list of initialziation of instances for the query.cpp file"
         return self._ib_fetch("instance_initialization")
 
     @property

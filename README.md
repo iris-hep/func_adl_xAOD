@@ -194,6 +194,15 @@ A few things to note:
 - Include files always use the double-quote: `#include "file1.hpp"`
 - The name of the code block is not used anywhere, and it must be unique. If two code blocks are submitted with the same name but different contents it will generate an error.
 
+#### Docker Image
+
+This metadata can only be used if you are running against a local file (e.g. using `xAODDataset` or similar). It allows you to configure which image you want to run against.
+
+| Key | Description | Example |
+| ------------ | ------------ | --------------|
+| metadata_type | The metadata type | `"inject_code"` |
+| image | The docker image and tag to run | `"atlas/analysisbase:21.2.195"` |
+
 ### Output Formats
 
 The `xAOD` code only renders the `func_adl` expression as a ROOT file. The ROOT file contains a simple `TTree` in its root directory.
