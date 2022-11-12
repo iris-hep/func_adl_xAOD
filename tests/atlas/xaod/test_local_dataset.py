@@ -30,7 +30,12 @@ def docker_mock(mocker):
     "Mock the docker object"
     m = mocker.MagicMock(spec=python_on_whales.docker)
 
+    global docker_mock_args
+    docker_mock_args = []
+
     def parse_arg(*args, **kwargs):
+        global docker_mock_args
+        docker_mock_args = args
         v = kwargs["volumes"]
         data_s = [d for d in v if d[1] == "/results"]
         assert len(data_s) == 1
@@ -59,7 +64,7 @@ def docker_mock_fail(mocker):
     return m
 
 
-def test_run(docker_mock):
+def test_run(docker_mock, tmp_path):
     """Test a simple run using docker mock"""
     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
     from func_adl_xAOD.atlas.xaod import xAODDataset
@@ -72,6 +77,23 @@ def test_run(docker_mock):
     )
 
     assert len(r) == 1
+
+
+def test_run_docker_md(docker_mock):
+    """Test a simple run using docker mock"""
+    # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
+    from func_adl_xAOD.atlas.xaod import xAODDataset
+
+    (
+        xAODDataset(f_location)
+        .MetaData({"metadata_type": "docker", "image": "crazy/atlas:latest"})
+        .Select(lambda e: e.EventInfo("EventInfo").runNumber())
+        .AsROOTTTree("junk.root", "my_tree", ["eventNumber"])
+        .value()
+    )
+
+    global docker_mock_args
+    assert docker_mock_args[0] == "crazy/atlas:latest"
 
 
 def test_string_file(docker_mock):

@@ -2,7 +2,7 @@
 # is needed to.
 import ast
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 from func_adl_xAOD.common.meta_data import (
     InjectCodeBlock,
     JobScriptSpecification,
@@ -112,6 +112,10 @@ class executor(ABC):
         if name not in self._found_extended_md:
             return []
         return self._found_extended_md[name]
+
+    def add_extended_md(self, extended_md: Dict[str, Any]):
+        "Add extended metadata to the executor"
+        self._extended_md.update(extended_md)
 
     def _copy_template_file(self, j2_env, info, template_file, final_dir: Path):
         "Copy a file to a final directory"
