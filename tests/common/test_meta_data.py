@@ -1,4 +1,5 @@
 import ast
+from dataclasses import dataclass
 from typing import Callable, List
 
 import pytest
@@ -840,19 +841,65 @@ def test_md_jb_dep_circle():
     assert "circular" in str(e)
 
 
-def test_md_docker():
-    "Check we can properly add some docker metadata"
+def test_md_extended_present():
+    "Check we can properly add some docker metadata using the extensible interface"
+
+    @dataclass
+    class TestMetadata:
+        name: str
+        value: str
+
     metadata = [
         {
             "metadata_type": "docker",
-            "image": "myImage:tag",
+            "name": "fork",
+            "value": "test",
         }
     ]
-    specs = process_metadata(metadata)
+
+    specs = process_metadata(metadata, {"docker": TestMetadata("t1", "t2")})
     assert len(specs) == 1
     spec = specs[0]
-    assert isinstance(spec, DockerSpecification)
-    assert spec.image == "myImage:tag"
+    assert isinstance(spec, TestMetadata)
+    assert spec.name == "fork"
+    assert spec.value == "test"
+
+
+def test_md_extended_partial_update():
+    "Check we can properly add some docker metadata using the extensible interface"
+
+    @dataclass
+    class TestMetadata:
+        name: str
+        value: str
+
+    metadata = [
+        {
+            "metadata_type": "docker",
+            "name": "fork",
+        }
+    ]
+
+    specs = process_metadata(metadata, {"docker": TestMetadata("t1", "t2")})
+    assert len(specs) == 1
+    spec = specs[0]
+    assert isinstance(spec, TestMetadata)
+    assert spec.name == "fork"
+    assert spec.value == "t2"
+
+
+def test_md_extended_not_present():
+    "Make sure that no metadata is returned if the md isn't present"
+
+    @dataclass
+    class TestMetadata:
+        name: str
+        value: str
+
+    metadata = []
+
+    specs = process_metadata(metadata, {"docker": TestMetadata("t1", "t2")})
+    assert len(specs) == 0
 
 
 # Some integration tests!

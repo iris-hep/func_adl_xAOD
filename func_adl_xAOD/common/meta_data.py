@@ -1,3 +1,4 @@
+from copy import copy
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
 from func_adl_xAOD.common.cpp_types import add_method_type_info, collection, terminal
@@ -42,20 +43,11 @@ class InjectCodeBlock:
     link_libraries: List[str] = field(default_factory=list)
 
 
-@dataclass
-class DockerSpecification:
-    "Specify the docker image/tag name"
-
-    # Name & tag string of the docker image
-    image: str
-
-
 SpecificationTypes = Union[
     CPPCodeSpecification,
     EventCollectionSpecification,
     JobScriptSpecification,
     InjectCodeBlock,
-    DockerSpecification,
 ]
 
 
@@ -81,7 +73,9 @@ def ok_to_add_code_block(spec, cpp_funcs: List[SpecificationTypes]) -> bool:
     return True
 
 
-def process_metadata(md_list: List[Dict[str, Any]]) -> List[SpecificationTypes]:
+def process_metadata(
+    md_list: List[Dict[str, Any]], extended_properties: Dict[str, Any] = {}
+) -> List[SpecificationTypes]:
     """Process a list of metadata, in order.
 
     Args:
@@ -213,8 +207,6 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[SpecificationTypes]:
             container_type = cms_aod_event_collection_collection(
                 md["container_type"], md["element_type"]
             )
-            # container_type = cms_aod_event_collection_collection(md['container_type'], md['element_type']) if md['contains_collection'] \
-            #     else cms_aod_event_collection_container(md['container_type'])
 
             spec = EventCollectionSpecification(
                 "cms_aod", md["name"], md["include_files"], container_type, []
@@ -253,10 +245,11 @@ def process_metadata(md_list: List[Dict[str, Any]]) -> List[SpecificationTypes]:
                 "cms_miniaod", md["name"], md["include_files"], container_type, []
             )
             cpp_funcs.append(spec)
-        elif md_type == "docker":
-            # We have a docker specification. Add it to the list of docker specifications
-            spec = DockerSpecification(md["image"])
-            cpp_funcs.append(spec)
+        elif md_type in extended_properties:
+            r = copy(extended_properties[md_type])
+            for k in (all_k for all_k in md.keys() if all_k != "metadata_type"):
+                setattr(r, k, md[k])
+            cpp_funcs.append(r)
         else:
             raise ValueError(f"Unknown metadata type ({md_type})")
 
