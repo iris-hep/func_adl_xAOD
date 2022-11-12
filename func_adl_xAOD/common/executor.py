@@ -45,7 +45,7 @@ class _cpp_source_emitter:
         if ll == "}":
             self._indent_level -= 1
 
-        self._lines_of_query_code += ["{0}{1}".format("  " * self._indent_level, ll)]
+        self._lines_of_query_code += [f"{'  ' * self._indent_level}{ll}"]
 
         if ll == "{":
             self._indent_level += 1
