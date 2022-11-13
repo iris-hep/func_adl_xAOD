@@ -6,9 +6,15 @@ from tests.atlas.xaod.utils import atlas_xaod_dataset
 
 def test_get_attribute_float():
     # The following statement should be a straight sequence, not an array.
-    r = atlas_xaod_dataset() \
-        .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.getAttributeFloat("emf"))') \
+    r = (
+        atlas_xaod_dataset()
+        .SelectMany(
+            lambda e: e.Jets("AntiKt4EMTopoJets").Select(
+                lambda j: j.getAttributeFloat("emf")
+            )
+        )
         .value()
+    )
     # Check to see if there mention of push_back anywhere.
     lines = get_lines_of_code(r)
     print_lines(lines)
@@ -18,19 +24,23 @@ def test_get_attribute_float():
 
 def test_get_attribute_float_wrong_args():
     with pytest.raises(Exception) as e:
-        atlas_xaod_dataset() \
-            .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.getAttributeFloat())') \
-            .value()
+        atlas_xaod_dataset().SelectMany(
+            lambda e: e.Jets("AntiKt4EMTopoJets").Select(
+                lambda j: j.getAttributeFloat()
+            )
+        ).value()
 
-    assert 'getAttribute' in str(e.value)
+    assert "getAttribute" in str(e.value)
 
 
 def test_get_attribute_vector_float():
     # The following statement should be a straight sequence, not an array.
-    r = atlas_xaod_dataset() \
-        .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets")') \
-        .SelectMany('lambda j: j.getAttributeVectorFloat("emf")') \
+    r = (
+        atlas_xaod_dataset()
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+        .SelectMany(lambda j: j.getAttributeVectorFloat("emf"))
         .value()
+    )
     # Check to see if there mention of push_back anywhere.
     lines = get_lines_of_code(r)
     print_lines(lines)
@@ -40,8 +50,10 @@ def test_get_attribute_vector_float():
 
 def test_get_attribute():
     with pytest.raises(Exception) as e:
-        atlas_xaod_dataset() \
-            .SelectMany('lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.getAttribute("emf"))') \
-            .value()
+        atlas_xaod_dataset().SelectMany(
+            lambda e: e.Jets("AntiKt4EMTopoJets").Select(
+                lambda j: j.getAttribute("emf")
+            )
+        ).value()
 
     assert "getAttributeFloat" in str(e.value)
