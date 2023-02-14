@@ -235,13 +235,15 @@ class LocalDataset(EventDataset, ABC):
 
         lg.log(level, f"Docker image and tag: {docker_image}")
         lg.log(level, "Docker Output: ")
-        _dump_split_string(running_string, lambda l: lg.log(level, f"  {l}"))
+        _dump_split_string(running_string, lambda line: lg.log(level, f"  {line}"))
 
         for file in local_run_dir.glob("*"):
             if file.is_file() and (file.suffix != ".root"):
                 lg.log(level, f"{file.name}:")
                 with file.open("r") as f:
-                    _dump_split_string(f.read(), lambda l: lg.log(level, f"  {l}"))
+                    _dump_split_string(
+                        f.read(), lambda line: lg.log(level, f"  {line}")
+                    )
 
 
 def _dump_split_string(s: str, dump: Callable[[str], None]):
