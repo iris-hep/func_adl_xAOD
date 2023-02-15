@@ -61,9 +61,9 @@ setup(
         "local": ["python-on-whales"],
     },
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        # "Development Status :: 3 - Alpha",
         # "Development Status :: 4 - Beta",
-        # "Development Status :: 5 - Production/Stable",
+        "Development Status :: 5 - Production/Stable",
         # "Development Status :: 6 - Mature",
         "Intended Audience :: Developers",
         "Intended Audience :: Information Technology",
@@ -75,7 +75,6 @@ setup(
         "func_adl_xAOD": [
             "template/atlas/r21/*",
             "template/cms/r5/*",
-            "template/atlas/r22/*",
         ],
     },
     platforms="Any",
