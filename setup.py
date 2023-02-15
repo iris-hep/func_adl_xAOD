@@ -33,7 +33,7 @@ setup(
     license="TBD",
     test_suite="tests",
     install_requires=[
-        "requests~=2.0",
+        "requests",
         "retry",
         "jinja2",
         "qastle",
