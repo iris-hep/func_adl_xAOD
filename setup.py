@@ -34,7 +34,7 @@ setup(
     test_suite="tests",
     install_requires=[
         "requests~=2.0",
-        "retry~=0.9",
+        "retry",
         "jinja2",
         "qastle",
         f"func_adl{version_func_adl}",
