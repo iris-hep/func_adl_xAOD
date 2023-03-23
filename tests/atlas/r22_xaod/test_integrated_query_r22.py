@@ -5,7 +5,11 @@ import os
 
 import pytest
 from func_adl_xAOD.common.math_utils import DeltaR  # NOQA
-from tests.atlas.r22_xaod.config import f_single, run_long_running_tests
+from tests.atlas.r22_xaod.config import (
+    f_single,
+    run_long_running_tests,
+    f_single_physlite,
+)
 from tests.atlas.r22_xaod.utils import as_pandas
 
 # These are *long* tests and so should not normally be run. Each test can take of order 30 seconds or so!!
@@ -33,7 +37,7 @@ def event_loop():
     loop.close()
 
 
-def test_flatten_array():
+def test_flatten_array_phys():
     # A very simple flattening of arrays
     training_df = as_pandas(
         f_single.SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets")).Select(
@@ -41,4 +45,15 @@ def test_flatten_array():
         )
     )
     assert abs(training_df.iloc[0]["col1"] - 21.733) < 0.001  # type: ignore ()
+    assert int(training_df.iloc[0]["col1"]) != int(training_df.iloc[2]["col1"])  # type: ignore
+
+
+def test_flatten_array_physlite():
+    # A very simple flattening of arrays
+    training_df = as_pandas(
+        f_single_physlite.SelectMany(lambda e: e.Jets("AnalysisJets")).Select(
+            lambda j: j.pt() / 1000.0
+        )
+    )
+    assert abs(training_df.iloc[0]["col1"] - 94.9130625) < 0.001  # type: ignore ()
     assert int(training_df.iloc[0]["col1"]) != int(training_df.iloc[2]["col1"])  # type: ignore
