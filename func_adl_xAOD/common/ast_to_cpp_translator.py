@@ -697,7 +697,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
                 crep.set_rep(call_node, r)
 
     def visit_Attribute(self, node: ast.Attribute) -> Any:
-
         obj = self.get_rep(node.value)
         variable = node.attr
         if not isinstance(obj, crep.cpp_value):
@@ -790,7 +789,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             node (ast.BinOp): The binary node to process
 
         """
-        if type(node.op) == ast.Pow:
+        if type(node.op) is ast.Pow:
             left = cast(crep.cpp_value, self.get_rep(node.left))
             right = cast(crep.cpp_value, self.get_rep(node.right))
             best_type = ctyp.terminal("double", False)
@@ -888,7 +887,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         right = cast(crep.cpp_value, self.get_rep(node.comparators[0]))
 
         r = crep.cpp_value(
-            f"({left.as_cpp()}{compare_operations[type(node.ops[0])]}{right.as_cpp()})",
+            f"({left.as_cpp()}{compare_operations[type(node.ops[0])]}{right.as_cpp()})",  # type: ignore
             self._gc.current_scope(),
             ctyp.terminal("bool"),
         )
@@ -910,7 +909,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # How we check and short-circuit depends on if we are doing and or or.
         check_expr = (
-            result.as_cpp() if type(node.op) == ast.And else f"!{result.as_cpp()}"
+            result.as_cpp() if type(node.op) is ast.And else f"!{result.as_cpp()}"
         )
         check = crep.cpp_value(
             check_expr, self._gc.current_scope(), cpp_type=ctyp.terminal("bool")
