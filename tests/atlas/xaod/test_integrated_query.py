@@ -5,7 +5,7 @@ import os
 
 import pytest
 from func_adl_xAOD.common.math_utils import DeltaR  # NOQA
-from testfixtures import LogCapture
+from testfixtures import LogCapture  # type: ignore
 from tests.atlas.xaod.config import f_single, run_long_running_tests
 from tests.atlas.xaod.utils import as_awkward, as_pandas, as_pandas_async
 
