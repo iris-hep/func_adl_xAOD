@@ -5,7 +5,7 @@ import os
 
 import pytest
 from func_adl_xAOD.common.math_utils import DeltaR  # NOQA
-from testfixtures import LogCapture
+from testfixtures import LogCapture  # type: ignore
 from tests.atlas.xaod.config import f_single, run_long_running_tests
 from tests.atlas.xaod.utils import as_awkward, as_pandas, as_pandas_async
 
@@ -169,9 +169,11 @@ def test_md_job_options():
 def test_event_info_includes():
     "Make sure event info is pulling in the correct includes"
     training_df = as_pandas(
-        f_single.Select(lambda e: e.EventInfo("EventInfo")).Select(
-            lambda e: e.runNumber()
-        )
+        # fmt: off
+        f_single
+        .Select(lambda e: e.EventInfo("EventInfo"))
+        .Select(lambda e: e.runNumber())
+        # fmt: on
     )
     print(training_df)
     assert len(training_df) == 10

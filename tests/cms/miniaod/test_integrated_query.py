@@ -24,7 +24,11 @@ def turn_on_logging():
 
 def test_select_pt_of_muons():
     training_df = as_pandas(
-        f_single.SelectMany(lambda e: e.Muons("slimmedMuons")).Select(lambda m: m.pt())
+        # fmt: off
+        f_single
+        .SelectMany(lambda e: e.Muons("slimmedMuons"))
+        .Select(lambda m: m.pt())
+        # fmt: on
     )
 
     assert training_df.iloc[0]["col1"] == 12.901309967041016
@@ -34,9 +38,11 @@ def test_select_pt_of_muons():
 
 def test_select_pt_of_electrons():
     training_df = as_pandas(
-        f_single.SelectMany(lambda e: e.Electrons("slimmedElectrons")).Select(
-            lambda m: m.pt()
-        )
+        # fmt: off
+        f_single
+        .SelectMany(lambda e: e.Electrons("slimmedElectrons"))
+        .Select(lambda m: m.pt())
+        # fmt: on
     )
 
     assert training_df.iloc[0]["col1"] == 4.862127780914307
@@ -46,9 +52,11 @@ def test_select_pt_of_electrons():
 
 def test_select_twice_pt_of_global_muons():
     training_df = as_pandas(
-        f_single.SelectMany(lambda e: e.Muons("slimmedMuons")).Select(
-            lambda m: m.pt() * 2
-        )
+        # fmt: off
+        f_single
+        .SelectMany(lambda e: e.Muons("slimmedMuons"))
+        .Select(lambda m: m.pt() * 2)
+        # fmt: on
     )
 
     assert training_df.iloc[0]["col1"] == 25.80261993408203
@@ -58,7 +66,11 @@ def test_select_twice_pt_of_global_muons():
 
 def test_select_eta_of_global_muons():
     training_df = as_pandas(
-        f_single.SelectMany(lambda e: e.Muons("slimmedMuons")).Select(lambda m: m.eta())
+        # fmt: off
+        f_single
+        .SelectMany(lambda e: e.Muons("slimmedMuons"))
+        .Select(lambda m: m.eta())
+        # fmt: on
     )
 
     assert training_df.iloc[0]["col1"] == -1.2982407808303833
@@ -68,9 +80,11 @@ def test_select_eta_of_global_muons():
 
 def test_select_pt_eta_of_global_muons():
     training_df = as_pandas(
-        f_single.SelectMany(lambda e: e.Muons("slimmedMuons")).Select(
-            lambda m: m.pt() + m.eta()
-        )
+        # fmt: off
+        f_single
+        .SelectMany(lambda e: e.Muons("slimmedMuons"))
+        .Select(lambda m: m.pt() + m.eta())
+        # fmt: on
     )
 
     assert training_df.iloc[0]["col1"] == 11.603069186210632
@@ -87,9 +101,10 @@ def test_select_hitpattern_of_global_muons():
             .Select(lambda m: m.globalTrack())
             .Select(lambda m: m.hitPattern())
             .Select(
-                lambda hp: Range(0, hp.numberOfHits(hp.TRACK_HITS)).Select(
-                    lambda i: hp.getHitPattern(hp.TRACK_HITS, i)
-                )
+                # fmt: off
+                lambda hp: Range(0, hp.numberOfHits(hp.TRACK_HITS))
+                .Select(lambda i: hp.getHitPattern(hp.TRACK_HITS, i))
+                # fmt: on
             )
         )
     )
@@ -113,9 +128,11 @@ def test_isnonull_call():
 
 def test_sumChargedHadronPt():
     training_df = as_pandas(
-        f_single.SelectMany(lambda e: e.Muons("slimmedMuons")).Select(
-            lambda m: (m.pfIsolationR04()).sumChargedHadronPt
-        )
+        # fmt: off
+        f_single
+        .SelectMany(lambda e: e.Muons("slimmedMuons"))
+        .Select(lambda m: (m.pfIsolationR04()).sumChargedHadronPt)
+        # fmt: on
     )
     assert training_df.iloc[0]["col1"] == 0.0
     assert training_df.iloc[2]["col1"] == 26.135541915893555
