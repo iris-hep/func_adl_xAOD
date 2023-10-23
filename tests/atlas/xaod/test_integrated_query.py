@@ -169,9 +169,11 @@ def test_md_job_options():
 def test_event_info_includes():
     "Make sure event info is pulling in the correct includes"
     training_df = as_pandas(
-        f_single.Select(lambda e: e.EventInfo("EventInfo")).Select(
-            lambda e: e.runNumber()
-        )
+        # fmt: off
+        f_single
+        .Select(lambda e: e.EventInfo("EventInfo"))
+        .Select(lambda e: e.runNumber())
+        # fmt: on
     )
     print(training_df)
     assert len(training_df) == 10
