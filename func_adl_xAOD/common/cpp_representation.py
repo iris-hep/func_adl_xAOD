@@ -57,7 +57,7 @@ from func_adl_xAOD.common.util_scope import gc_scope, gc_scope_top_level
 
 
 class dummy_ast(ast.AST):
-    'A dummy ast'
+    "A dummy ast"
     _fields = tuple()
 
     def __init__(self, node: cpp_rep_base):
@@ -65,36 +65,41 @@ class dummy_ast(ast.AST):
 
 
 class cpp_rep_base:
-    r'''
+    r"""
     Represents a term or collection in C++ code. Base class for all values, collections, sequences.
 
     This is an abstract class for the most part. Do not override things that aren't needed - that way the system will
     know when the user tries to do something that they shouldn't have.
 
     We know only about our type
-    '''
+    """
 
     def __init__(self):
         pass
 
     def as_ast(self):
-        'Create an AST rep of this guy'
+        "Create an AST rep of this guy"
         return dummy_ast(self)
 
 
 class cpp_value(cpp_rep_base):
-    r'''
+    r"""
     Represents a value. This has a particular value in C++ code that is valid at some C++ scope, or deeper.
-    '''
+    """
 
-    def __init__(self, cpp_expression: str, scope: Optional[Union[gc_scope, gc_scope_top_level]], cpp_type: Optional[ctyp.terminal]):
-        r'''
+    def __init__(
+        self,
+        cpp_expression: str,
+        scope: Optional[Union[gc_scope, gc_scope_top_level]],
+        cpp_type: Optional[ctyp.terminal],
+    ):
+        r"""
         Initialize a C++ value
 
         cpp_expression:         The C++ name that can be emitted to code
         scope:                  The scope at which this value is valid
         cpp_type:               Type that we can deal with
-        '''
+        """
         cpp_rep_base.__init__(self)
         self._scope = scope
         self._expression = cpp_expression
@@ -102,55 +107,67 @@ class cpp_value(cpp_rep_base):
         self._cpp_type = cpp_type
 
     def __str__(self) -> str:
-        return f'{str(self._cpp_type)} value (expression {self._expression})'
+        return f"{str(self._cpp_type)} value (expression {self._expression})"
 
     @property
     def p_depth(self) -> int:
-        'Return the depth of the pointer'
+        "Return the depth of the pointer"
         return self.cpp_type().p_depth
 
     def as_cpp(self) -> str:
         return self._expression
 
     def reset_scope(self, scope: gc_scope):
-        'If scope has not been set, then we can set it'
+        "If scope has not been set, then we can set it"
         # TODO: #116 This feels like a kludge - should we pass around something else and get rid of this?
         if self._scope is None:
             self._scope = scope
         else:
-            raise RuntimeError("Internal Error: Scope is already set - it can't be set to a new value")
+            raise RuntimeError(
+                "Internal Error: Scope is already set - it can't be set to a new value"
+            )
 
     def scope(self) -> Union[gc_scope, gc_scope_top_level]:
-        'Return the scope at which this variable becomes valid.'
+        "Return the scope at which this variable becomes valid."
         if self._scope is not None:
             return self._scope
         else:
-            raise RuntimeError("Internal Error: Asking for the undefined scope of a value.")
+            raise RuntimeError(
+                "Internal Error: Asking for the undefined scope of a value."
+            )
 
     def cpp_type(self) -> ctyp.terminal:
         if self._cpp_type is None:
-            raise RuntimeError(f'Internal Error: Variable {self._expression} does not have an assigned type, but needs one.')
+            raise RuntimeError(
+                f"Internal Error: Variable {self._expression} does not have an assigned type, but needs one."
+            )
         return self._cpp_type
 
     def copy_with_new_scope(self, scope) -> cpp_value:
-        'Make a new version, with just the scope changed'
+        "Make a new version, with just the scope changed"
         new_v = copy.copy(self)
         new_v._scope = scope
         return new_v
 
     def update_type(self, new_type: ctyp.terminal):
-        '''
+        """
         Update to a new type
-        '''
+        """
         self._cpp_type = new_type
 
 
 class cpp_variable(cpp_value):
-    r'''
+    r"""
     A value that can be declared. Refers to a variable.
-    '''
+    """
 
-    def __init__(self, cpp_expression: str, scope: Union[gc_scope, gc_scope_top_level], cpp_type, initial_value: cpp_value = None):
+    def __init__(
+        self,
+        cpp_expression: str,
+        scope: Union[gc_scope, gc_scope_top_level],
+        cpp_type,
+        initial_value: Optional[cpp_value] = None,
+    ):
         cpp_value.__init__(self, cpp_expression, scope, cpp_type)
         self._initial_value = initial_value
 
@@ -164,44 +181,51 @@ class cpp_variable(cpp_value):
 
 
 class cpp_collection(cpp_value):
-    r'''
+    r"""
     Represents a special kind of value - a collection (vector<float>).
-    '''
+    """
 
-    def __init__(self, cpp_expression: str, scope: Union[gc_scope, gc_scope_top_level], collection_type: ctyp.collection):
-        r'''
+    def __init__(
+        self,
+        cpp_expression: str,
+        scope: Union[gc_scope, gc_scope_top_level],
+        collection_type: ctyp.collection,
+    ):
+        r"""
         Initialize a C++ value that can be turned into a sequence if requested.
 
         cpp_expression:         The expression in C++ to refer to this collection.
         scope:                  The scope at which this collection is valid.
         collection_type:        The type of the collection (see cpp_types). It should be a collection
-        '''
+        """
         cpp_value.__init__(self, cpp_expression, scope, collection_type)
 
     def get_element_type(self):
-        'Return the type of the element of the sequence'
+        "Return the type of the element of the sequence"
         return cast(ctyp.collection, self.cpp_type()).element_type
 
     def token_type(self):
-        'Return the type of the token required, such as edm::EDGetTokenT<pat::MuonCollection> for miniAOD file'
+        "Return the type of the token required, such as edm::EDGetTokenT<pat::MuonCollection> for miniAOD file"
         return None
 
 
 class cpp_tuple(cpp_rep_base):
-    r'''
+    r"""
     Represents a special kind of value - a tuple, which is just a container of other values. This
     isn't a regular cpp_value in the sense it can't be directly put into C++ code. It must be
     specially handled by the interpreter.
-    '''
+    """
 
-    def __init__(self, list_of_values: tuple, scope: Union[gc_scope, gc_scope_top_level]):
-        '''
+    def __init__(
+        self, list_of_values: tuple, scope: Union[gc_scope, gc_scope_top_level]
+    ):
+        """
         A Tuple holds a list of different types
 
         list_of_values:         Iterator that will give us all the cpp_xxx.
         scope:                  Scope where this is valid
         cpp_type:               An instance of cpp_types.tuple to specify the type.
-        '''
+        """
         cpp_rep_base.__init__(self)
         self._values = list_of_values
         self._scope = scope
@@ -214,10 +238,10 @@ class cpp_tuple(cpp_rep_base):
 
 
 class cpp_dict(cpp_rep_base):
-    '''Represents a special kind of value = a dict, which is just a keyed container of other values.
+    """Represents a special kind of value = a dict, which is just a keyed container of other values.
     This isn't a regular cpp_value in the sense it can't directly be put into C++ code. It must
     be specially handled by the interpreter.
-    '''
+    """
 
     def __init__(self, value: dict, scope: Union[gc_scope, gc_scope_top_level]):
         super().__init__()
@@ -233,18 +257,22 @@ class cpp_dict(cpp_rep_base):
 
 
 class cpp_sequence(cpp_rep_base):
-    '''
+    """
     Represents an iterator over a sequence of data. The `sequence_value` points to value of the item in
     the stream, and `iterator_value` points to the iterator itself we are looping over (appears in the
     for statement).
 
     A sequence is a stream of values of a particular type. You can think of it like a generator expression,
     or like a iterator into a C++ vector of some type.
-    '''
+    """
 
-    def __init__(self, sequence_value: Union[cpp_value, cpp_sequence], iterator_value: cpp_value,
-                 scope: Union[gc_scope_top_level, gc_scope]):
-        '''
+    def __init__(
+        self,
+        sequence_value: Union[cpp_value, cpp_sequence],
+        iterator_value: cpp_value,
+        scope: Union[gc_scope_top_level, gc_scope],
+    ):
+        """
         Create a sequence
 
         sequence_value:         The value of the sequence - of the data items that are in sequence.
@@ -254,7 +282,7 @@ class cpp_sequence(cpp_rep_base):
                                 from the of the interator if we are, for example, inside an if statement caused
                                 by a Where (or similar). If the `sequence_value` is an actual value, it will have
                                 the same scope.
-        '''
+        """
         cpp_rep_base.__init__(self)
         self._sequence = sequence_value
         self._iterator = iterator_value
@@ -276,37 +304,37 @@ class cpp_sequence(cpp_rep_base):
         raise RuntimeError("Do not know how to get the cpp rep of a sequence!")
 
     def scope(self) -> Union[gc_scope, gc_scope_top_level]:
-        'Return scope where this sequence was created/valid'
+        "Return scope where this sequence was created/valid"
         return self._scope
 
 
 def set_rep(node: ast.AST, value: cpp_rep_base, scope: Optional[Any] = None):
-    '''
+    """
     Set the representation of a node to a value.
-    '''
+    """
     node.rep = value  # type: ignore
     if scope is not None:
         node.scope = scope  # type: ignore
 
 
 def get_rep(node: ast.AST) -> cpp_rep_base:
-    '''
+    """
     Get the representation of a node.
-    '''
+    """
     return node.rep  # type: ignore
 
 
 # Allow dereference type for anything that is a value of some sort
-DT = TypeVar('DT', bound=cpp_value)
+DT = TypeVar("DT", bound=cpp_value)
 
 
 def dereference_var(v: DT) -> DT:
-    '''
+    """
     If this is a pointer, return the object with the proper type (and a * to dereference it). Otherwise
     just return the object itself.
 
     NOTE: It might just return the object itself, not dereferencing it!
-    '''
+    """
     if not v.cpp_type().is_a_pointer:
         return v
 
@@ -321,7 +349,7 @@ def dereference_var(v: DT) -> DT:
 
 
 def base_type_member_access(v: cpp_value, extra_deref: int = 0) -> str:
-    '''
+    """
     Turn a C++ object into a base reference suitable for
     a member access.
 
@@ -331,12 +359,12 @@ def base_type_member_access(v: cpp_value, extra_deref: int = 0) -> str:
 
     v:            The object to access.
     extra_deref:  The number of extra dereferences to apply.
-    '''
+    """
     result = v.as_cpp()
     depth = extra_deref + v.cpp_type().p_depth
     for _ in range(1, depth):
-        result = f'(*{result})'
+        result = f"(*{result})"
     if depth > 0:
-        return f'{result}->'
+        return f"{result}->"
     else:
-        return f'{result}.'
+        return f"{result}."
