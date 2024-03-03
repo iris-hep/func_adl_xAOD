@@ -65,6 +65,7 @@ def check_accumulator_type(t: ctyp.terminal):
 
 
 def guess_type_from_number(n):
+    """Is the number a integer or a double?"""
     if int(n) == n:
         return ctyp.terminal("int")
     return ctyp.terminal("double")
@@ -421,12 +422,14 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             unique_name("aggResult"),
             accumulator_scope,
             accumulator_type,
-            initial_value=initial_value
-            if initial_value is not None
-            else crep.cpp_value(
-                accumulator_type.default_value(),
-                self._gc.current_scope(),
-                accumulator_type,
+            initial_value=(
+                initial_value
+                if initial_value is not None
+                else crep.cpp_value(
+                    accumulator_type.default_value(),
+                    self._gc.current_scope(),
+                    accumulator_type,
+                )
             ),
         )
         accumulator_scope.declare_variable(accumulator)
