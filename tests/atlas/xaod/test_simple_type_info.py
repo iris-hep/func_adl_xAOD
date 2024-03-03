@@ -8,7 +8,7 @@ from tests.atlas.xaod.utils import atlas_xaod_dataset  # type: ignore
 def test_cant_call_double():
     msg = ""
     try:
-        atlas_xaod_dataset("file://root.root").Select(
+        atlas_xaod_dataset().Select(
             lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt().eta()).Sum()
         ).value()
     except xAODTranslationError as e:
@@ -23,7 +23,7 @@ def test_can_call_prodVtx():
         "prodVtx",
         ctyp.terminal("xAODTruth::TruthVertex", p_depth=1),
     )
-    atlas_xaod_dataset("file://root.root").Select(
+    atlas_xaod_dataset().Select(
         lambda e: e.TruthParticles("TruthParticles")
         .Select(lambda t: t.prodVtx().x())
         .Sum()
@@ -38,7 +38,7 @@ def test_collection_return():
         ctyp.collection(ctyp.terminal("double"), p_depth=1),
     )
     (
-        atlas_xaod_dataset("file://root.root")
+        atlas_xaod_dataset()
         .SelectMany(lambda e: e.TruthParticles("TruthParticles"))
         .SelectMany(lambda t: t.vertexes())
         .value()
