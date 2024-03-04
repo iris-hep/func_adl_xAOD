@@ -12,6 +12,7 @@ from tests.utils.general import get_lines_of_code, print_lines
 
 def test_ast_enum():
     "Test class an enum as a constant"
+    ctyp.define_enum("xAOD.Jet", "Color", ["Red", "Blue"])
 
     q = atlas_xaod_query_ast_visitor()
     r = q.get_rep(ast.parse("xAOD.Jet.Color.Red").body[0].value)  # type: ignore
