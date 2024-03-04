@@ -1,7 +1,7 @@
 import ast
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Type, Union, cast
+from typing import Any, Dict, List, Optional, Type, Union, cast
 
 import func_adl_xAOD.common.cpp_ast as cpp_ast
 import func_adl_xAOD.common.cpp_representation as crep
@@ -317,9 +317,24 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             raise Exception("Expected a cpp value! Internal error")
         return v
 
-    def resolve_id(self, id):
-        "Look up the in our local dict. This takes care of function arguments, etc."
-        return self._arg_stack.lookup_name(id)
+    def resolve_id(self, id: str) -> Optional[ast.AST]:
+        """Return a resolved ast for a particular ID.
+
+        Args:
+            id (str): The ID to look up
+
+        Returns:
+            ast.AST: The matching AST, or None if not found.
+        """
+        r = self._arg_stack.lookup_name(id)
+        if r is not None:
+            return r
+
+        ns = ctyp.get_toplevel_ns(id)
+        if ns is not None:
+            return crep.cpp_namespace(ns).as_ast()
+
+        return None
 
     def make_sequence_from_collection(
         self, rep: crep.cpp_collection
@@ -382,9 +397,10 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             f"Unable to generate a sequence from the given AST. Either there is an internal error, or you are trying to manipulate a {str(rep)} ('{type(rep).__name__}') as a sequence (ast is: {ast.dump(generation_ast)})"
         )
 
-    def visit_Call_Lambda(self, call_node):
+    def visit_Call_Lambda(self, call_node: ast.Call):
         "Call to a lambda function. We propagate the arguments through the function"
 
+        assert isinstance(call_node.func, ast.Lambda)
         with stack_frame(self._arg_stack):
             for c_arg, l_arg in zip(call_node.args, call_node.func.args.args):
                 self._arg_stack.define_name(l_arg.arg, c_arg)
@@ -702,24 +718,43 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
     def visit_Attribute(self, node: ast.Attribute) -> Any:
         obj = self.get_rep(node.value)
         variable = node.attr
-        if not isinstance(obj, crep.cpp_value):
-            raise Exception(
-                f"Do not know how to get member '{variable}' of '{type(obj).__name__}'"
+        if isinstance(obj, crep.cpp_value):
+            m_info = determine_type_mf(obj.cpp_type(), variable)
+            crep.set_rep(
+                node,
+                crep.cpp_value(
+                    f"{crep.base_type_member_access(obj, m_info.deref_depth)}{variable}",
+                    self._gc.current_scope(),
+                    m_info.r_type,
+                ),
             )
-        m_info = determine_type_mf(obj.cpp_type(), variable)
-        crep.set_rep(
-            node,
-            crep.cpp_value(
-                f"{crep.base_type_member_access(obj, m_info.deref_depth)}{variable}",
-                self._gc.current_scope(),
-                m_info.r_type,
-            ),
+            return
+
+        elif isinstance(obj, crep.cpp_namespace):
+            ns = obj.ns.get_ns(variable)
+            if ns is not None:
+                crep.set_rep(node, crep.cpp_namespace(ns))
+                return
+            enum = obj.ns.get_enum(variable)
+            if enum is not None:
+                crep.set_rep(node, crep.cpp_enum(enum))
+                return
+
+        elif isinstance(obj, crep.cpp_enum):
+            en = obj.enum
+            if variable in en.values:
+                crep.set_rep(node, crep.cpp_value(en.value_as_cpp(variable), self._gc.current_scope(), ctyp.terminal(str(en))))
+                return
+
+        raise Exception(
+            f"Do not know how to get member '{variable}' of '{type(obj).__name__} - {obj}'"
         )
 
     def visit_Name(self, name_node: ast.Name):
         "Visiting a name - which should represent something"
         id = self.resolve_id(name_node.id)
-        if isinstance(id, ast.AST):
+        if id is not None:
+            assert isinstance(id, ast.AST)
             crep.set_rep(name_node, self.get_rep(id))
 
     def visit_Subscript(self, node):
