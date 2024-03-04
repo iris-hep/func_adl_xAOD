@@ -82,6 +82,38 @@ class cpp_rep_base:
         return dummy_ast(self)
 
 
+class cpp_namespace(cpp_rep_base):
+    def __init__(self, ns: ctyp.NameSpaceInfo):
+        """Create a representation of a namespace in C++ code"""
+        self._ns = ns
+
+    def __str__(self) -> str:
+        return f"cpp_namespace({self._ns.full_name})"
+
+    def scope(self) -> gc_scope_top_level:
+        return gc_scope_top_level()
+
+    @property
+    def ns(self) -> ctyp.NameSpaceInfo:
+        return self._ns
+
+
+class cpp_enum(cpp_rep_base):
+    def __init__(self, enum: ctyp.ENumInfo):
+        """Create a representation of a enum in C++ code"""
+        self._enum = enum
+
+    def __str__(self) -> str:
+        return f"cpp_enum({self._enum.full_name})"
+
+    def scope(self) -> gc_scope_top_level:
+        return gc_scope_top_level()
+
+    @property
+    def enum(self) -> ctyp.ENumInfo:
+        return self._enum
+
+
 class cpp_value(cpp_rep_base):
     r"""
     Represents a value. This has a particular value in C++ code that is valid at some C++ scope, or deeper.

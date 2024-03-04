@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 
 @dataclass
@@ -200,3 +200,144 @@ def method_type_info(type_string: str, method_name: str) -> Optional[MethodInvok
     if method_name not in g_method_type_dict[type_string]:
         return None
     return g_method_type_dict[type_string][method_name]
+
+
+@dataclass
+class ENumInfo:
+    "Information about an enum"
+
+    # The name of the enum
+    name: str
+
+    # List of the value names it can take on
+    values: List[str]
+
+    # The namespace we are hosted in
+    ns: NameSpaceInfo
+
+    # The full name
+    @property
+    def full_name(self) -> str:
+        return f"{self.ns.full_name}.{self.name}"
+
+    def __str__(self) -> str:
+        return self.full_name
+
+    def value_as_cpp(self, value: str) -> str:
+        """Returns the C++ string for this value. It is assumed value
+        is part of our value list.
+
+        Args:
+            value (str): The value we should use.
+
+        Returns:
+            str: The C++ specification for the type.
+        """
+        return f"{self.ns.full_name}::{value}".replace(".", "::")
+
+
+class NameSpaceInfo:
+    "Information about a namespace"
+
+    def __init__(self, name, hosting_ns: Optional[NameSpaceInfo]):
+        self.ns_name = name
+        self.names_spaces = {}
+        self.enums = {}
+        self.parent_ns = hosting_ns
+
+    ns_name: str
+
+    names_spaces: Dict[str, NameSpaceInfo]
+
+    enums: Dict[str, ENumInfo]
+
+    parent_ns: Optional[NameSpaceInfo] = None
+
+    @property
+    def full_name(self) -> str:
+        "The full name of the namespace"
+        return (
+            f"{self.parent_ns.full_name}.{self.ns_name}"
+            if self.parent_ns is not None
+            else self.ns_name
+        )
+
+    def get_ns(self, ns_name: str) -> Optional[NameSpaceInfo]:
+        "Return the namespace with the given name, or None if it does not exist"
+        return self.names_spaces.get(ns_name, None)
+
+    def get_enum(self, enum_name: str) -> Optional[ENumInfo]:
+        "Return the enum with the given name, or None if it does not exist"
+        return self.enums.get(enum_name, None)
+
+    def __str__(self) -> str:
+        return self.full_name
+
+
+# The top level namespaces we know about
+g_toplevel_ns: Dict[str, NameSpaceInfo] = {}
+
+
+def get_toplevel_ns(ns_name: str) -> Optional[NameSpaceInfo]:
+    """
+    Return the AST for a top level namespace. This is used to resolve
+    the type of a method call.
+    """
+    return g_toplevel_ns.get(ns_name, None)
+
+
+def define_ns(ns_name: str) -> NameSpaceInfo:
+    """Define a namespace.
+
+    `ns_name` can be in the form:
+        - `bogus` - defines a single level namespace
+        - 'bogus.sub' - creates we `NameSpaceInfo` objects, placing the one for
+          `sub` inside the one for `bogus`, which is places in the global ns dict.
+
+    If the namespace is already defined, this function will return the existing
+    namespace.
+
+    Args:
+        ns_name (str): Name of the namespace to define
+
+    Returns:
+        NameSpaceInfo: The defined namespace.
+    """
+    parts = ns_name.split(".")
+    v = g_toplevel_ns.get(parts[0], None)
+    if v is None:
+        v = NameSpaceInfo(parts[0], None)
+        g_toplevel_ns[parts[0]] = v
+    for p in parts[1:]:
+        w = v.get_ns(p)
+        if w is None:
+            w = NameSpaceInfo(p, v)
+            v.names_spaces[p] = w
+        v = w
+    return v
+
+
+def define_enum(ns_name: str, enum_name: str, enum_values: List[str]) -> ENumInfo:
+    """Define a new enum.
+
+    The enum is defined in the `ns_name` namespace, with the name `enum_name` and
+    `enum_values`. The newly created `ENumInfo` object is returned.
+
+    It is an error to try to create the same `enum` twice.
+
+    Args:
+        ns_name (str): The name of the namespace (can contain `.`)
+        enum_name (str): The name of the enum
+        enum_values (List[str]): The list of names the enum is allowed.
+
+    Returns:
+        ENumInfo: _description_
+    """
+    ns = define_ns(ns_name)
+    if enum_name in ns.enums:
+        raise RuntimeError(f"Enum {enum_name} already defined in namespace {ns_name}")
+
+    e = ENumInfo(enum_name, enum_values, ns)
+    ns.enums[enum_name] = e
+
+    return e
