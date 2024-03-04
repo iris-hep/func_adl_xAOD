@@ -8,6 +8,7 @@ from build.lib.func_adl_xAOD.atlas.xaod.query_ast_visitor import (
 )
 from tests.atlas.xaod.utils import atlas_xaod_dataset  # type: ignore
 from tests.utils.general import get_lines_of_code, print_lines
+from tests.utils.locators import find_line_numbers_with
 
 
 def test_ast_enum():
@@ -30,6 +31,7 @@ class xAOD:
 
 def test_enum_return():
     """Test code-gen for a simple enum reference as a result"""
+    ctyp.define_enum("xAOD.Jet", "Color", ["Red", "Blue"])
     ctyp.add_method_type_info(
         "xAOD::Jet",
         "color",
@@ -46,7 +48,8 @@ def test_enum_return():
     lines = get_lines_of_code(r)
     print_lines(lines)
 
-    assert False, "Not implemented"
+    found_lines = find_line_numbers_with("i_obj1->color()==xAOD::Jet::Red", lines)
+    assert len(found_lines) == 1
 
 
 def test_enum_arg():
@@ -55,6 +58,7 @@ def test_enum_arg():
     We test the result of `color` to be `True` because we don't have
     a full type model in this test.
     """
+    ctyp.define_enum("xAOD.Jet", "Color", ["Red", "Blue"])
     ctyp.add_method_type_info(
         "xAOD::Jet",
         "color",
@@ -63,7 +67,7 @@ def test_enum_arg():
     r = (
         atlas_xaod_dataset()
         .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
-        .Where(lambda j: j.color(xAOD.Jet.Color.Red) is True)
+        .Where(lambda j: j.color(xAOD.Jet.Color.Red) == True)
         .Select(lambda j: j.pt())
         .value()
     )
@@ -71,11 +75,13 @@ def test_enum_arg():
     lines = get_lines_of_code(r)
     print_lines(lines)
 
-    assert False, "Not implemented"
+    found_lines = find_line_numbers_with("i_obj1->color(xAOD::Jet::Red)==true", lines)
+    assert len(found_lines) == 1
 
 
 def test_enum_output():
     """Test code-gen for a simple enum reference when it is returned from the client"""
+    ctyp.define_enum("xAOD.Jet", "Color", ["Red", "Blue"])
     ctyp.add_method_type_info(
         "xAOD::Jet",
         "color",
