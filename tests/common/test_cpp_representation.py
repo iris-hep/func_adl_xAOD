@@ -180,11 +180,11 @@ def test_member_access_obj_depth_1():
 
 def test_ns_scope():
     "The NS scope is always top level - defined everywhere"
-    cr = crep.cpp_namespace(ctyp.NameSpaceInfo("bogus"))
+    cr = crep.cpp_namespace(ctyp.NameSpaceInfo("bogus", None))
     assert cr.scope().is_top_level()
 
 
 def test_ns_str():
     "NS should be readable"
-    cr = crep.cpp_namespace(ctyp.NameSpaceInfo("bogus"))
+    cr = crep.cpp_namespace(ctyp.NameSpaceInfo("bogus", None))
     assert str(cr) == "cpp_namespace(bogus)"

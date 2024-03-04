@@ -48,7 +48,7 @@ def test_enum_return():
     lines = get_lines_of_code(r)
     print_lines(lines)
 
-    found_lines = find_line_numbers_with("i_obj1->color()==xAOD::Jet::Red", lines)
+    found_lines = find_line_numbers_with("->color()==xAOD::Jet::Red", lines)
     assert len(found_lines) == 1
 
 
@@ -75,7 +75,7 @@ def test_enum_arg():
     lines = get_lines_of_code(r)
     print_lines(lines)
 
-    found_lines = find_line_numbers_with("i_obj1->color(xAOD::Jet::Red)==true", lines)
+    found_lines = find_line_numbers_with("->color(xAOD::Jet::Red)==true", lines)
     assert len(found_lines) == 1
 
 
@@ -97,4 +97,11 @@ def test_enum_output():
     lines = get_lines_of_code(r)
     print_lines(lines)
 
+    assert False, "Not implemented"
+
+
+def test_enum_from_other_class():
+    """Check to make sure an enum passed as an argument to one class
+    is properly included (e.g. the include files are there!).
+    """
     assert False, "Not implemented"
