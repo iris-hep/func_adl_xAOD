@@ -44,7 +44,7 @@ def test_enum_return():
         .Select(lambda j: j.pt())
         .value()
     )
-    # Make sure that the tree Fill is at the same level as the _JetPts2 getting set.
+
     lines = get_lines_of_code(r)
     print_lines(lines)
 
@@ -71,7 +71,7 @@ def test_enum_arg():
         .Select(lambda j: j.pt())
         .value()
     )
-    # Make sure that the tree Fill is at the same level as the _JetPts2 getting set.
+
     lines = get_lines_of_code(r)
     print_lines(lines)
 
@@ -93,9 +93,12 @@ def test_enum_output():
         .Select(lambda j: j.color())
         .value()
     )
-    # Make sure that the tree Fill is at the same level as the _JetPts2 getting set.
+
     lines = get_lines_of_code(r)
     print_lines(lines)
+
+    # Make sure the fill variable is declared as an integer, and we cast the enum
+    # to an integer before it is sent into the ROOT file.
 
     assert False, "Not implemented"
 
