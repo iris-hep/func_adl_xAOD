@@ -33,8 +33,8 @@ class block:
         for v in self._variables:
             init_value = (
                 ""
-                if not isinstance(v, crep.cpp_variable) or not v.initial_value()
-                else f" ({v.initial_value().as_cpp()})"
+                if not isinstance(v, crep.cpp_variable) or (v.initial_value() is None)
+                else f" ({v.initial_value().as_cpp()})"  # type: ignore
             )
             e.add_line(f"{v.cpp_type()} {v.as_cpp()}{init_value};")
         for s in self._statements:

@@ -67,7 +67,7 @@ def test_enum_arg():
     r = (
         atlas_xaod_dataset()
         .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
-        .Where(lambda j: j.color(xAOD.Jet.Color.Red) == True)
+        .Where(lambda j: j.color(xAOD.Jet.Color.Red) == True)  # noqa
         .Select(lambda j: j.pt())
         .value()
     )
