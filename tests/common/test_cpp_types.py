@@ -6,6 +6,7 @@ def test_int():
     t_int = ctyp.terminal("int")
     assert t_int.p_depth == 0
     assert not t_int.is_a_pointer
+    assert t_int.tree_type.type == "int"
 
 
 def test_int_deref():
@@ -26,6 +27,11 @@ def test_int_pointer_deref():
     t_int = ctyp.terminal("int", p_depth=1)
     t = t_int.get_dereferenced_type()
     assert str(t) == "int"
+
+
+def test_terminal_ttree_type():
+    t_other = ctyp.terminal("xAOD::Jet::Color", tree_type="int")
+    assert t_other.tree_type.type == "int"
 
 
 def test_no_method_type_found():

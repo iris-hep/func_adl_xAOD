@@ -175,6 +175,9 @@ class cpp_value(cpp_rep_base):
             )
         return self._cpp_type
 
+    def has_cpp_type(self) -> bool:
+        return self._cpp_type is not None
+
     def copy_with_new_scope(self, scope) -> cpp_value:
         "Make a new version, with just the scope changed"
         new_v = copy.copy(self)

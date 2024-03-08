@@ -86,9 +86,9 @@ def get_ttree_type(rep):
             raise Exception(
                 "Nested data structures (2D arrays, etc.) in TTree's are not yet supported. Numbers or arrays of numbers only for now."
             )
-        return ctyp.collection(rep.sequence_value().cpp_type())
+        return ctyp.collection(rep.sequence_value().cpp_type().tree_type)
     else:
-        return rep.cpp_type()
+        return rep.cpp_type().tree_type
 
 
 def determine_type_mf(
@@ -743,7 +743,14 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         elif isinstance(obj, crep.cpp_enum):
             en = obj.enum
             if variable in en.values:
-                crep.set_rep(node, crep.cpp_value(en.value_as_cpp(variable), self._gc.current_scope(), ctyp.terminal(str(en))))
+                crep.set_rep(
+                    node,
+                    crep.cpp_value(
+                        en.value_as_cpp(variable),
+                        self._gc.current_scope(),
+                        ctyp.terminal(str(en)),
+                    ),
+                )
                 return
 
         raise Exception(

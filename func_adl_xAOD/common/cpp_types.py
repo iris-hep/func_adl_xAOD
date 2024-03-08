@@ -55,7 +55,11 @@ class terminal:
     "Represents something we cannot see inside, like float, or int, or bool"
 
     def __init__(
-        self, t: Union[str, CPPParsedTypeInfo], p_depth: int = 0, is_const: bool = False
+        self,
+        t: Union[str, CPPParsedTypeInfo],
+        p_depth: int = 0,
+        is_const: bool = False,
+        tree_type: Optional[str] = None,
     ):
         """Create a terminal type - a type that we do not need to see inside
 
@@ -70,6 +74,7 @@ class terminal:
             t (str|CPPParsedTypeInfo): The type to represent
             p_depth (int): How many levels of indirection to get to the type
             is_const (bool): Whether this is a const type
+            tree_type (str): Type to send back as a leaf.
         """
         if isinstance(t, CPPParsedTypeInfo):
             self._type = t.name
@@ -79,6 +84,7 @@ class terminal:
             self._type = t
             self._p_depth = p_depth
             self._is_const = is_const
+        self._tree_type = tree_type
 
     def __str__(self):
         c_str = "const " if self.is_const else ""
@@ -105,6 +111,16 @@ class terminal:
     @property
     def type(self) -> str:
         return self._type
+
+    @property
+    def tree_type(self) -> terminal:
+        return (
+            self
+            if self._tree_type is None
+            else terminal(
+                self._tree_type, p_depth=self._p_depth, is_const=self._is_const
+            )
+        )
 
     def get_dereferenced_type(self) -> terminal:
         "Type after dereferencing it once. Will throw if this type cannot be dereferenced"

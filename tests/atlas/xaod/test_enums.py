@@ -85,7 +85,7 @@ def test_enum_output():
     ctyp.add_method_type_info(
         "xAOD::Jet",
         "color",
-        ctyp.terminal("xAOD::Jet::Color"),
+        ctyp.terminal("xAOD::Jet::Color", tree_type="int"),
     )
     r = (
         atlas_xaod_dataset()
@@ -99,8 +99,15 @@ def test_enum_output():
 
     # Make sure the fill variable is declared as an integer, and we cast the enum
     # to an integer before it is sent into the ROOT file.
-
-    assert False, "Not implemented"
+    # It would be nice to use a enum here, but ROOT doesn't support it, and nor
+    # does awkward.
+    vs = r.QueryVisitor._gc._class_vars
+    assert 1 == len(vs)
+    assert "int" == str(vs[0].cpp_type())
+    n = find_line_numbers_with("static_cast<int>", lines)
+    assert len(n) == 1
+    assert "static_cast<int>(" in lines[n[0]]
+    assert "->color())" in lines[n[0]]
 
 
 def test_enum_from_other_class():
