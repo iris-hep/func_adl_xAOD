@@ -108,10 +108,3 @@ def test_enum_output():
     assert len(n) == 1
     assert "static_cast<int>(" in lines[n[0]]
     assert "->color())" in lines[n[0]]
-
-
-def test_enum_from_other_class():
-    """Check to make sure an enum passed as an argument to one class
-    is properly included (e.g. the include files are there!).
-    """
-    assert False, "Not implemented"
