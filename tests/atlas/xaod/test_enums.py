@@ -3,7 +3,7 @@ from enum import Enum
 
 import func_adl_xAOD.common.cpp_representation as crep
 import func_adl_xAOD.common.cpp_types as ctyp
-from build.lib.func_adl_xAOD.atlas.xaod.query_ast_visitor import (
+from func_adl_xAOD.atlas.xaod.query_ast_visitor import (
     atlas_xaod_query_ast_visitor,
 )
 from tests.atlas.xaod.utils import atlas_xaod_dataset  # type: ignore
