@@ -207,29 +207,33 @@ def test_class_enum_use_inline():
     )
 
     # Define the num class for future reference
-    class ClusterSize(Enum):
-        SW_55ele = 1
-        SW_35ele = 2
-        SW_37ele = 3
-        SW_55gam = 4
-        SW_35gam = 5
-        SW_37gam = 6
-        SW_55Econv = 7
-        SW_35Econv = 8
-        SW_37Econv = 9
-        SW_softe = 10
-        Topo_420 = 11
-        Topo_633 = 12
-        SW_7_11 = 13
-        SuperCluster = 14
-        Tower_01_01 = 15
-        Tower_005_005 = 16
-        Tower_fixed_area = 17
-        CSize_Unknown = 99
+    class xAOD:
+        class CaloCluster_v1:
+            class ClusterSize(Enum):
+                SW_55ele = 1
+                SW_35ele = 2
+                SW_37ele = 3
+                SW_55gam = 4
+                SW_35gam = 5
+                SW_37gam = 6
+                SW_55Econv = 7
+                SW_35Econv = 8
+                SW_37Econv = 9
+                SW_softe = 10
+                Topo_420 = 11
+                Topo_633 = 12
+                SW_7_11 = 13
+                SuperCluster = 14
+                Tower_01_01 = 15
+                Tower_005_005 = 16
+                Tower_fixed_area = 17
+                CSize_Unknown = 99
 
     # Declare the enum class
     ctyp.define_enum(
-        "xAOD.CaloCluster_v1", "ClusterSize", [e.name for e in ClusterSize]
+        "xAOD.CaloCluster_v1",
+        "ClusterSize",
+        [e.name for e in xAOD.CaloCluster_v1.ClusterSize],
     )
 
     # Define the `getConstituentsSignalState` method
@@ -242,8 +246,9 @@ def test_class_enum_use_inline():
     # fmt: off
     training_df = as_pandas(
         f_exot_15.SelectMany(lambda e: e.CaloClusters("egammaClusters"))
-        .Select(lambda c: c.clusterSize() == ClusterSize.SuperCluster.value)
+        .Select(lambda c: c.clusterSize() == xAOD.CaloCluster_v1.ClusterSize.SuperCluster)
     )
+    # TODO: make sure ".value" is an actual error.
     # fmt: on
 
     assert len(training_df) > 0
