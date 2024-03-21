@@ -719,15 +719,19 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         obj = self.get_rep(node.value)
         variable = node.attr
         if isinstance(obj, crep.cpp_value):
-            m_info = determine_type_mf(obj.cpp_type(), variable)
-            crep.set_rep(
-                node,
-                crep.cpp_value(
-                    f"{crep.base_type_member_access(obj, m_info.deref_depth)}{variable}",
-                    self._gc.current_scope(),
-                    m_info.r_type,
-                ),
-            )
+            if isinstance(obj.cpp_type(), ctyp.terminal_enum_value):
+                raise ValueError(f"Do not use `.{variable}` on enum type `{obj.cpp_type().type}` - just use the enum name")
+                pass
+            else:
+                m_info = determine_type_mf(obj.cpp_type(), variable)
+                crep.set_rep(
+                    node,
+                    crep.cpp_value(
+                        f"{crep.base_type_member_access(obj, m_info.deref_depth)}{variable}",
+                        self._gc.current_scope(),
+                        m_info.r_type,
+                    ),
+                )
             return
 
         elif isinstance(obj, crep.cpp_namespace):
@@ -748,7 +752,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
                     crep.cpp_value(
                         en.value_as_cpp(variable),
                         self._gc.current_scope(),
-                        ctyp.terminal(str(en)),
+                        ctyp.terminal_enum_value(en),
                     ),
                 )
                 return

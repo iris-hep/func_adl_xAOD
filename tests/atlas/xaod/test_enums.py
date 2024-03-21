@@ -29,6 +29,18 @@ def test_ast_enum():
     assert r.as_cpp() == "xAOD::Jet::Red"
 
 
+def test_ast_enum_no_value():
+    "Test class an enum as a constant"
+    ctyp.define_enum("xAOD.Jet", "Color", ["Red", "Blue"])
+
+    with pytest.raises(ValueError) as e:
+        q = atlas_xaod_query_ast_visitor()
+        q.get_rep(ast.parse("xAOD.Jet.Color.Red.value").body[0].value)  # type: ignore
+
+    assert "xAOD.Jet.Color" in str(e.value)
+    assert ".value" in str(e.value)
+
+
 class xAOD:
     class Jet:
         class Color(Enum):
@@ -117,7 +129,7 @@ def test_enum_output():
     assert "->color())" in lines[n[0]]
 
 
-@pytest.mark.skipif(not run_long_running_tests, reason="Skipping long running test")
+@run_long_running_tests
 def test_class_enum_use_as_argument():
     """Run an actual return thing that will generate some output that we can
     examine on a test sample.
@@ -185,7 +197,7 @@ def test_class_enum_use_as_argument():
     assert all(training_df.col1 == ClusterSize.SuperCluster.value)
 
 
-@pytest.mark.skipif(not run_long_running_tests, reason="Skipping long running test")
+@run_long_running_tests
 def test_class_enum_use_inline():
     """Use a enum as part of the actual query"""
 
@@ -248,9 +260,8 @@ def test_class_enum_use_inline():
         f_exot_15.SelectMany(lambda e: e.CaloClusters("egammaClusters"))
         .Select(lambda c: c.clusterSize() == xAOD.CaloCluster_v1.ClusterSize.SuperCluster)
     )
-    # TODO: make sure ".value" is an actual error.
     # fmt: on
 
     assert len(training_df) > 0
     print(training_df.col1)
-    assert all(training_df.col1 == True)
+    assert all(training_df.col1 == True)  # noqa

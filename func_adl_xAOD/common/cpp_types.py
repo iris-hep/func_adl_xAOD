@@ -133,6 +133,16 @@ class terminal:
         return new_t
 
 
+class terminal_enum_value(terminal):
+    def __init__(self, en_info: ENumInfo):
+        """Create a terminal that is an enum value.
+
+        Args:
+            t (str): The enum value as a type
+        """
+        super().__init__(str(en_info))
+
+
 class collection(terminal):
     "Represents a collection/list/vector of the same type"
 
