@@ -99,7 +99,11 @@ def process_metadata(
             if "return_type" in md:
                 # Single return type
                 type_info = parse_type(md["return_type"])
-                term = terminal(type_info.name, p_depth=type_info.pointer_depth)
+                term = terminal(
+                    type_info.name,
+                    p_depth=type_info.pointer_depth,
+                    tree_type=md.get("tree_type", None),
+                )
             else:
                 type_info_element = parse_type(md["return_type_element"])
                 type_info_collection = (

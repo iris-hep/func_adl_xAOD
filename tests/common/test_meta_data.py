@@ -82,6 +82,25 @@ def test_md_method_type_double():
     assert t.deref_depth == 0
 
 
+def test_md_method_type_double_tree_type():
+    "Make sure a double can be set"
+    metadata = [
+        {
+            "metadata_type": "add_method_type_info",
+            "type_string": "my_namespace::obj",
+            "method_name": "pT",
+            "return_type": "double",
+            "tree_type": "int",
+        }
+    ]
+
+    process_metadata(metadata)
+
+    t = method_type_info("my_namespace::obj", "pT")
+    assert t is not None
+    assert t.r_type.tree_type.type == "int"
+
+
 def test_md_method_type_double_deref():
     "Make sure a double can be set"
     metadata = [
