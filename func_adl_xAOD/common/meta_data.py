@@ -1,7 +1,12 @@
 from copy import copy
 from func_adl_xAOD.common.event_collections import EventCollectionSpecification
 from func_adl_xAOD.common.cpp_ast import CPPCodeSpecification
-from func_adl_xAOD.common.cpp_types import add_method_type_info, collection, terminal
+from func_adl_xAOD.common.cpp_types import (
+    add_method_type_info,
+    collection,
+    terminal,
+    define_enum,
+)
 from func_adl_xAOD.common.cpp_types import CPPParsedTypeInfo, parse_type
 from typing import Any, Dict, List, Union
 from dataclasses import dataclass, field
@@ -134,9 +139,11 @@ def process_metadata(
                 md["code"],
                 md["result_name"] if "result_name" in md else "result",
                 md["return_type"],
-                bool(md["return_is_collection"])
-                if "return_is_collection" in md
-                else False,
+                (
+                    bool(md["return_is_collection"])
+                    if "return_is_collection" in md
+                    else False
+                ),
                 md["method_object"] if "method_object" in md else None,
                 md["instance_object"] if "instance_object" in md else None,
             )
@@ -245,6 +252,8 @@ def process_metadata(
                 "cms_miniaod", md["name"], md["include_files"], container_type, []
             )
             cpp_funcs.append(spec)
+        elif md_type == "define_enum":
+            define_enum(md["namespace"], md["name"], md["values"])
         elif md_type in extended_properties:
             r = copy(extended_properties[md_type])
             for k in (all_k for all_k in md.keys() if all_k != "metadata_type"):

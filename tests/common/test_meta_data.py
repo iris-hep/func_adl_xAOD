@@ -4,6 +4,7 @@ from typing import Callable, List
 
 import pytest
 
+from func_adl_xAOD.common import cpp_types
 import func_adl_xAOD.common.statement as statement
 from func_adl_xAOD.atlas.xaod.event_collections import (
     atlas_xaod_event_collection_collection,
@@ -899,6 +900,29 @@ def test_md_extended_not_present():
 
     specs = process_metadata(metadata, {"docker": TestMetadata("t1", "t2")})
     assert len(specs) == 0
+
+
+def test_md_define_enum():
+    "Add an enum"
+    metadata = [
+        {
+            "metadata_type": "define_enum",
+            "namespace": "xAOD.Jet",
+            "name": "Color",
+            "values": ["one", "two", "three"],
+        }
+    ]
+
+    process_metadata(metadata)
+
+    ns = cpp_types.get_toplevel_ns("xAOD")
+    assert ns is not None
+    ns_jet = ns.get_ns("Jet")
+    assert ns_jet is not None
+
+    e_info = ns_jet.get_enum("Color")
+    assert e_info is not None
+    assert len(e_info.values) == 3
 
 
 # Some integration tests!
