@@ -184,7 +184,7 @@ Code blocks provide a way to inject various lines of C++ into code. There are a 
 | header_includes | List of files to include in the C++ header file (`query.hpp`). | `["file1.hpp", "file2.hpp"]` |
 | private_members | List of class instance variables to declare (`query.hpp`) | `["int first;", "int second;"]` |
 | instance_initialization | Initializers added to the constructor in the main C++ class file (`query.cpp`) | `["first(10)", "second(10)"]` |
-| ctor_lines | Lines of C++ to add to the body of the constructor (`query.cpp`) | `["second = first * 10;"]`
+| ctor_lines | Lines of C++ to add to the body of the constructor (`query.cpp`) | `["second = first * 10;"]` |
 | link_libraries | Items to add to the `CMake LINK_LIBRARIES` list (`CMakeLists.txt`) | `["TrigDecisionToolLib"]` |
 
 A few things to note:
@@ -222,7 +222,7 @@ Setting up the development environment:
 
 To run tests:
 
-- `pytest -m "not atlas_xaod_runner and not cms_runner"` will run the _fast_ tests.
+- `pytest -m "not atlas_xaod_runner and not cms_runner and not cms_aod_runner and not atlas_r22_xaod_runner and not cms_miniaod_runner"` will run the _fast_ tests.
 - `pytest -m "atlas_xaod_runner"`, `pytest -m "cms_aod_runner"` and `pytest -m "cms_miniaod_runner"`  will run the slow tests for ATLAS xAOD, CMS AOD and CMS miniAOD respectively that require docker installed on your command line. `docker` is involved via pythons `os.system` - so it needs to be available to the test runner.
 - The CI on github is setup to run tests against python `3.7`, `3.8`, and `3.9` (only the non-xaod-runner tests).
 

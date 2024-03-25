@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod  # For declaring abstract base class
 from typing import Any
 
 import func_adl_xAOD.common.cpp_representation as crep
+import func_adl_xAOD.common.cpp_types as ctyp
 
 
 class BlockException(Exception):
@@ -32,8 +33,8 @@ class block:
         for v in self._variables:
             init_value = (
                 ""
-                if not isinstance(v, crep.cpp_variable) or not v.initial_value()
-                else f" ({v.initial_value().as_cpp()})"
+                if not isinstance(v, crep.cpp_variable) or (v.initial_value() is None)
+                else f" ({v.initial_value().as_cpp()})"  # type: ignore
             )
             e.add_line(f"{v.cpp_type()} {v.as_cpp()}{init_value};")
         for s in self._statements:
@@ -153,13 +154,23 @@ class set_var:
         self._value = value_var
 
     def emit(self, e):
-        e.add_line(f"{self._target.as_cpp()} = {self._value.as_cpp()};")
+        do_conversion = (
+            self._target.has_cpp_type()
+            and self._value.has_cpp_type()
+            and self._target.cpp_type().type != self._value.cpp_type().type
+        )
+        if not do_conversion:
+            e.add_line(f"{self._target.as_cpp()} = {self._value.as_cpp()};")
+        else:
+            e.add_line(
+                f"{self._target.as_cpp()} = static_cast<{self._target.cpp_type().type}>({self._value.as_cpp()});"
+            )
 
 
 class push_back:
     "push a variable onto a vector"
 
-    def __init__(self, target_collection, value_var):
+    def __init__(self, target_collection: crep.cpp_value, value_var: crep.cpp_value):
         r"""
         target_col, value_var: representations we will use
         """
@@ -167,7 +178,19 @@ class push_back:
         self._value = value_var
 
     def emit(self, e):
-        e.add_line(f"{self._target.as_cpp()}.push_back({self._value.as_cpp()});")
+        s_type = self._target.cpp_type()
+        assert isinstance(s_type, ctyp.collection)
+        do_conversion = (
+            s_type.element_type is not None
+            and self._value.has_cpp_type()
+            and s_type.element_type.type != self._value.cpp_type().type
+        )
+        if not do_conversion:
+            e.add_line(f"{self._target.as_cpp()}.push_back({self._value.as_cpp()});")
+        else:
+            e.add_line(
+                f"{self._target.as_cpp()}.push_back(static_cast<{s_type.element_type.type}>({self._value.as_cpp()}));"
+            )
 
 
 class container_clear:

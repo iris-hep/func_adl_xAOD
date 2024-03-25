@@ -9,7 +9,8 @@ from .utils import AtlasXAODLocalFile
 run_long_running_tests = pytest.mark.atlas_xaod_runner
 
 # The file we can use in our test. It has only 10 events...
-local_path = 'tests/atlas/xaod/jets_10_events.root'
+local_path = "tests/atlas/xaod/jets_10_events.root"
 f_location = Path(os.path.abspath(local_path))
 f_single = AtlasXAODLocalFile(f_location)
 f_multiple = AtlasXAODLocalFile([f_location, f_location])
+f_exot_15 = AtlasXAODLocalFile(Path("tests/atlas/xaod/exot_15.root").absolute())

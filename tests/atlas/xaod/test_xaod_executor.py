@@ -258,7 +258,7 @@ def test_dict_simple_reference():
         .Select(
             lambda e: {"e_list": e.Electrons("Electrons"), "m_list": e.Muons("Muons")}
         )
-        .Select(lambda e: e.e_list.Select(lambda e: e.E()))
+        .Select(lambda e: e.e_list.Select(lambda e: e.E()))  # type: ignore
         .value()
     )
     lines = get_lines_of_code(r)
@@ -787,9 +787,11 @@ def test_per_jet_with_delta():
         .Select(
             lambda ji: (
                 ji[0].pt(),
-                0
-                if ji[1].Count() == 0
-                else abs(ji[1].First().prodVtx().x() - ji[1].First().decayVtx().x()),
+                (
+                    0
+                    if ji[1].Count() == 0
+                    else abs(ji[1].First().prodVtx().x() - ji[1].First().decayVtx().x())
+                ),
             )
         )
         .Where(lambda jall: jall[0] > 40.0)
