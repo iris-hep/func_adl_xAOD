@@ -57,11 +57,12 @@ class _cpp_source_emitter:
 # The following was copied from: https://www.oreilly.com/library/view/python-cookbook/0596001673/ch04s22.html
 def _find(pathname: str, matchFunc=os.path.isfile):
     assert len(pathname) > 0
-    for dirname in sys.path + ["/usr/local"]:
+    all_paths = sys.path + ["/usr/local", os.path.dirname(__file__) + "/../../"]
+    for dirname in all_paths:
         candidate = os.path.join(dirname, pathname)
         if matchFunc(candidate):
             return candidate
-    all_dirs = ",".join(sys.path + ["/usr/local"])
+    all_dirs = ",".join(all_paths)
     raise RuntimeError(f"Can't find file '{pathname}'. Looked in {all_dirs}")
 
 
@@ -167,10 +168,10 @@ class executor(ABC):
         method_names.update(
             {
                 md.name: (
-                    lambda call_node, md=md: cpp_ast.build_CPPCodeValue(md, call_node)
+                    (lambda call_node, md=md: cpp_ast.build_CPPCodeValue(md, call_node))
+                    if isinstance(md, cpp_ast.CPPCodeSpecification)  # type: ignore
+                    else self.build_collection_callback(md)
                 )
-                if isinstance(md, cpp_ast.CPPCodeSpecification)  # type: ignore
-                else self.build_collection_callback(md)
                 for md in cpp_functions
                 if isinstance(
                     md, (cpp_ast.CPPCodeSpecification, EventCollectionSpecification)
