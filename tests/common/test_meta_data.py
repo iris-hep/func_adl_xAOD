@@ -944,6 +944,21 @@ def test_md_define_enum():
     assert len(e_info.values) == 3
 
 
+def test_md_define_enum_twice():
+    "Add an enum"
+    metadata = [
+        {
+            "metadata_type": "define_enum",
+            "namespace": "xAOD.Jet",
+            "name": "Color",
+            "values": ["one", "two", "three"],
+        }
+    ]
+
+    process_metadata(metadata)
+    process_metadata(metadata)
+
+
 # Some integration tests!
 # We need to setup a whole dummy dataset so we can test this in isolation of CMS and ATLAS
 # code.

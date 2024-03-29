@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass
+import logging
 from typing import Dict, List, Optional, Union
 
 
@@ -361,7 +362,8 @@ def define_enum(ns_name: str, enum_name: str, enum_values: List[str]) -> ENumInf
     """
     ns = define_ns(ns_name)
     if enum_name in ns.enums:
-        raise RuntimeError(f"Enum {enum_name} already defined in namespace {ns_name}")
+        logging.info(f"Enum {enum_name} already defined in namespace {ns_name}")
+        return ns.enums[enum_name]
 
     e = ENumInfo(enum_name, enum_values, ns)
     ns.enums[enum_name] = e
