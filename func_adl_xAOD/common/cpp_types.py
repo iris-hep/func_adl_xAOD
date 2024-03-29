@@ -362,7 +362,9 @@ def define_enum(ns_name: str, enum_name: str, enum_values: List[str]) -> ENumInf
     """
     ns = define_ns(ns_name)
     if enum_name in ns.enums:
-        logging.info(f"Enum {enum_name} already defined in namespace {ns_name}")
+        logging.getLogger(__name__).info(
+            f"Enum {enum_name} already defined in namespace {ns_name}"
+        )
         return ns.enums[enum_name]
 
     e = ENumInfo(enum_name, enum_values, ns)
