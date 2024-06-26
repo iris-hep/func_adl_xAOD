@@ -769,7 +769,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         if id is not None:
             assert isinstance(
                 id, ast.AST
-            ), f"Internal error: expected an AST, got {type(id)}"
+            ), f"Internal error: expected an AST not {type(id)}"
             crep.set_rep(name_node, self.get_rep(id))
 
     def visit_Subscript(self, node):
