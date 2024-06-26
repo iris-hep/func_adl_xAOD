@@ -165,7 +165,7 @@ class LocalDataset(EventDataset, ABC):
             # Build the docker command and run it.
             volumes_to_mount = [
                 (f_spec.output_path, "/scripts", "ro"),
-                (f_spec.output_path, "/results", ""),
+                (f_spec.output_path, "/results", "rw"),
                 (datafile_dir, "/data/", "ro"),
             ]
 
