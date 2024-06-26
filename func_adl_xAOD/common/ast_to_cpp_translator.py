@@ -720,7 +720,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         variable = node.attr
         if isinstance(obj, crep.cpp_value):
             if isinstance(obj.cpp_type(), ctyp.terminal_enum_value):
-                raise ValueError(f"Do not use `.{variable}` on enum type `{obj.cpp_type().type}` - just use the enum name")
+                raise ValueError(
+                    f"Do not use `.{variable}` on enum type `{obj.cpp_type().type}` - just use the enum name"
+                )
                 pass
             else:
                 m_info = determine_type_mf(obj.cpp_type(), variable)
@@ -765,7 +767,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         "Visiting a name - which should represent something"
         id = self.resolve_id(name_node.id)
         if id is not None:
-            assert isinstance(id, ast.AST)
+            assert isinstance(
+                id, ast.AST
+            ), f"Internal error: expected an AST, got {type(id)}"
             crep.set_rep(name_node, self.get_rep(id))
 
     def visit_Subscript(self, node):
