@@ -1,5 +1,6 @@
 # Code to do the testing starts here.
-from tests.utils.locators import find_line_with, find_open_blocks  # type: ignore
+import func_adl_xAOD.common.cpp_types as ctyp
+from tests.utils.locators import find_line_numbers_with, find_line_with, find_next_closing_bracket, find_open_blocks  # type: ignore
 from tests.utils.general import get_lines_of_code, print_lines  # type: ignore
 from tests.atlas.xaod.utils import atlas_xaod_dataset  # type: ignore
 import re
@@ -11,7 +12,7 @@ def test_first_jet_in_event():
     ).value()
 
 
-def test_first_after_selectmany():
+def test_first_after_SelectMany():
     r = (
         atlas_xaod_dataset()
         .Select(
@@ -112,3 +113,44 @@ def test_First_with_dict():
     assert l_eta_r is not None
 
     assert l_pt_r[1] == l_eta_r[1]
+
+
+def test_First_with_inner_loop():
+    "Check we can loop over tracks"
+    ctyp.add_method_type_info(
+        "xAOD::Jet",
+        "Tracks",
+        ctyp.terminal("std::vector<xAODTruth::TruthVertex>", p_depth=1),
+    )
+
+    r = (
+        atlas_xaod_dataset()
+        .Select(lambda e: e.Jets("Anti").First())
+        .Select(lambda j: j.Tracks("fork"))
+        .Select(
+            lambda tracks: {
+                "pt": tracks.Select(lambda t: t.pt()),
+                "eta": tracks.Select(lambda t: t.eta()),
+            }
+        )
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure the eta capture is inside the is first.
+    first_lines = find_line_numbers_with("if (is_first", lines)
+    assert len(first_lines) == 1
+    assert lines[first_lines[0] + 1].strip() == "{"
+    lines_post_if = lines[first_lines[0] + 2 :]  # noqa
+    is_first_closing = find_next_closing_bracket(lines_post_if)
+
+    eta_line = find_line_numbers_with("->eta()", lines_post_if)
+    assert len(eta_line) == 1
+    assert is_first_closing > eta_line[0]
+
+    # Make sure the lookup for the tracks occurs after the is_first test.
+    track_lines = find_line_numbers_with("TrackParticleContainer* result", lines)
+    assert len(track_lines) == 1
+    assert track_lines[0] > first_lines[0]
