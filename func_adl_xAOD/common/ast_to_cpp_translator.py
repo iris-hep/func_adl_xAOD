@@ -524,7 +524,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         else:
             self._gc.set_scope(sv.scope())
         call = ast.Call(
-            func=agg_lambda, args=[accumulator.as_ast(), seq.sequence_value().as_ast()]
+            func=agg_lambda,
+            args=[accumulator.as_ast(), seq.sequence_value().as_ast()],  # type: ignore
+            keywords=[],
         )
         update_lambda = cast(crep.cpp_value, self.get_rep(call))
 
@@ -1237,7 +1239,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # Simulate this as a "call"
         c = ast.Call(
-            func=lambda_unwrap(selection), args=[seq.sequence_value().as_ast()]
+            func=lambda_unwrap(selection),
+            args=[seq.sequence_value().as_ast()],  # type: ignore
+            keywords=[],
         )
         new_sequence_value = cast(crep.cpp_value, self.get_rep(c))
 
@@ -1267,7 +1271,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # We need to "call" the source with the function. So build up a new
         # call, and then visit it.
         c = ast.Call(
-            func=lambda_unwrap(selection), args=[seq.sequence_value().as_ast()]
+            func=lambda_unwrap(selection),
+            args=[seq.sequence_value().as_ast()],  # type: ignore
+            keywords=[],
         )
 
         # Get the collection, and then generate the loop over it.
@@ -1291,7 +1297,11 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # Simulate the filtering call - we want the resulting value to test.
         filter = lambda_unwrap(filter)
-        c = ast.Call(func=filter, args=[seq.sequence_value().as_ast()])
+        c = ast.Call(
+            func=filter,
+            args=[seq.sequence_value().as_ast()],  # type: ignore
+            keywords=[],
+        )
         rep = self.get_rep(c)
 
         # Create an if statement
@@ -1359,12 +1369,13 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         )
 
         c = ast.Call(
-            func=FunctionAST("std::iota", ["numeric"], "void"),
+            func=FunctionAST("std::iota", ["numeric"], "void"),  # type: ignore
             args=[
                 vector_value_begin.as_ast(),
                 vector_value_end.as_ast(),
                 begin_value.as_ast(),
-            ],
+            ],  # type: ignore
+            keywords=[],
         )
 
         self._gc.add_statement(statement.arbitrary_statement(self.get_rep(c).as_cpp()))  # type: ignore
