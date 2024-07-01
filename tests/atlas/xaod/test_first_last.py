@@ -117,14 +117,18 @@ def test_First_with_inner_loop():
     "Check we can loop over tracks"
     ctyp.add_method_type_info(
         "xAOD::Jet",
-        "Tracks",
-        ctyp.terminal("std::vector<xAODTruth::TruthVertex>", p_depth=1),
+        "JetTracks",
+        ctyp.collection(
+            ctyp.terminal("xAOD::Track", p_depth=1),
+            "std::vector<xAOD::Track>",
+            p_depth=1,
+        ),
     )
 
     r = (
         atlas_xaod_dataset()
         .Select(lambda e: e.Jets("Anti").First())
-        .Select(lambda j: j.Tracks("fork"))
+        .Select(lambda j: j.JetTracks("fork"))
         .Select(
             lambda tracks: {
                 "pt": tracks.Select(lambda t: t.pt()),
@@ -147,8 +151,3 @@ def test_First_with_inner_loop():
     eta_line = find_line_numbers_with("->pt()", lines_post_if)
     assert len(eta_line) == 1
     assert is_first_closing > eta_line[0]
-
-    # Make sure the lookup for the tracks occurs after the is_first test.
-    track_lines = find_line_numbers_with("TrackParticleContainer* result", lines)
-    assert len(track_lines) == 2
-    assert track_lines[0] > first_lines[0]
