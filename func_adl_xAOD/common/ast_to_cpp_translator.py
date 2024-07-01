@@ -1394,7 +1394,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         source = args[0]
 
         # Make sure we are in a loop.
-        cs = self._gc.current_scope()
         seq = self.as_sequence(source)
 
         # The First terminal works by protecting the code with a if (first_time) {} block.
