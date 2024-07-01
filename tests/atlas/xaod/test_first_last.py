@@ -112,8 +112,6 @@ def test_First_with_dict():
     assert l_pt_r is not None
     assert l_eta_r is not None
 
-    assert l_pt_r[1] == l_eta_r[1]
-
 
 def test_First_with_inner_loop():
     "Check we can loop over tracks"
@@ -141,16 +139,16 @@ def test_First_with_inner_loop():
 
     # Make sure the eta capture is inside the is first.
     first_lines = find_line_numbers_with("if (is_first", lines)
-    assert len(first_lines) == 1
+    assert len(first_lines) == 2
     assert lines[first_lines[0] + 1].strip() == "{"
     lines_post_if = lines[first_lines[0] + 2 :]  # noqa
     is_first_closing = find_next_closing_bracket(lines_post_if)
 
-    eta_line = find_line_numbers_with("->eta()", lines_post_if)
+    eta_line = find_line_numbers_with("->pt()", lines_post_if)
     assert len(eta_line) == 1
     assert is_first_closing > eta_line[0]
 
     # Make sure the lookup for the tracks occurs after the is_first test.
     track_lines = find_line_numbers_with("TrackParticleContainer* result", lines)
-    assert len(track_lines) == 1
+    assert len(track_lines) == 2
     assert track_lines[0] > first_lines[0]

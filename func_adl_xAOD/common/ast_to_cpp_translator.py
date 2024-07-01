@@ -1161,13 +1161,15 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # What we have is a sequence of the data values we want to fill. The iterator at play
         # here is the scope we want to use to run our Fill() calls to the TTree.
-        scope_fill = v_rep_not_norm.iterator_value().scope()
+        iterator_scope = v_rep_not_norm.iterator_value().scope()
 
         # Clean the data up so it is uniform and the next bit can proceed smoothly.
         # If we don't have a tuple of data to log, turn it into a tuple.
         seq_values = v_rep_not_norm.sequence_value()
         if not isinstance(seq_values, crep.cpp_tuple):
-            seq_values = crep.cpp_tuple((v_rep_not_norm.sequence_value(),), scope_fill)
+            seq_values = crep.cpp_tuple(
+                (v_rep_not_norm.sequence_value(),), iterator_scope
+            )
 
         # Make sure the number of items is the same as the number of columns specified.
         if len(seq_values.values()) != len(column_names):
@@ -1209,7 +1211,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # Make sure that it happens at the proper scope, where what we are after is defined!
         s_orig = self._gc.current_scope()
         for e_rep, e_name in zip(seq_values.values(), var_names):
-            scope_fill = self.code_fill_ttree(e_rep, e_name[1], scope_fill)
+            scope_fill = self.code_fill_ttree(e_rep, e_name[1], iterator_scope)
 
         # The fill statement. This should happen at the scope where the tuple was defined.
         # The scope where this should be done is a bit tricky (note the update above):
@@ -1440,4 +1442,4 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             else sv.copy_with_new_scope(self._gc.current_scope())
         )
 
-        crep.set_rep(node, first_value, cs)
+        crep.set_rep(node, first_value, self._gc.current_scope())
