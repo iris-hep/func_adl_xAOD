@@ -524,7 +524,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         else:
             self._gc.set_scope(sv.scope())
         call = ast.Call(
-            func=agg_lambda, args=[accumulator.as_ast(), seq.sequence_value().as_ast()]
+            func=agg_lambda,
+            args=[accumulator.as_ast(), seq.sequence_value().as_ast()],  # type: ignore
+            keywords=[],
         )
         update_lambda = cast(crep.cpp_value, self.get_rep(call))
 
@@ -1159,13 +1161,15 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # What we have is a sequence of the data values we want to fill. The iterator at play
         # here is the scope we want to use to run our Fill() calls to the TTree.
-        scope_fill = v_rep_not_norm.iterator_value().scope()
+        iterator_scope = v_rep_not_norm.iterator_value().scope()
 
         # Clean the data up so it is uniform and the next bit can proceed smoothly.
         # If we don't have a tuple of data to log, turn it into a tuple.
         seq_values = v_rep_not_norm.sequence_value()
         if not isinstance(seq_values, crep.cpp_tuple):
-            seq_values = crep.cpp_tuple((v_rep_not_norm.sequence_value(),), scope_fill)
+            seq_values = crep.cpp_tuple(
+                (v_rep_not_norm.sequence_value(),), iterator_scope
+            )
 
         # Make sure the number of items is the same as the number of columns specified.
         if len(seq_values.values()) != len(column_names):
@@ -1207,7 +1211,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # Make sure that it happens at the proper scope, where what we are after is defined!
         s_orig = self._gc.current_scope()
         for e_rep, e_name in zip(seq_values.values(), var_names):
-            scope_fill = self.code_fill_ttree(e_rep, e_name[1], scope_fill)
+            scope_fill = self.code_fill_ttree(e_rep, e_name[1], iterator_scope)
 
         # The fill statement. This should happen at the scope where the tuple was defined.
         # The scope where this should be done is a bit tricky (note the update above):
@@ -1237,7 +1241,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # Simulate this as a "call"
         c = ast.Call(
-            func=lambda_unwrap(selection), args=[seq.sequence_value().as_ast()]
+            func=lambda_unwrap(selection),
+            args=[seq.sequence_value().as_ast()],  # type: ignore
+            keywords=[],
         )
         new_sequence_value = cast(crep.cpp_value, self.get_rep(c))
 
@@ -1267,7 +1273,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # We need to "call" the source with the function. So build up a new
         # call, and then visit it.
         c = ast.Call(
-            func=lambda_unwrap(selection), args=[seq.sequence_value().as_ast()]
+            func=lambda_unwrap(selection),
+            args=[seq.sequence_value().as_ast()],  # type: ignore
+            keywords=[],
         )
 
         # Get the collection, and then generate the loop over it.
@@ -1291,7 +1299,11 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # Simulate the filtering call - we want the resulting value to test.
         filter = lambda_unwrap(filter)
-        c = ast.Call(func=filter, args=[seq.sequence_value().as_ast()])
+        c = ast.Call(
+            func=filter,
+            args=[seq.sequence_value().as_ast()],  # type: ignore
+            keywords=[],
+        )
         rep = self.get_rep(c)
 
         # Create an if statement
@@ -1359,12 +1371,13 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         )
 
         c = ast.Call(
-            func=FunctionAST("std::iota", ["numeric"], "void"),
+            func=FunctionAST("std::iota", ["numeric"], "void"),  # type: ignore
             args=[
                 vector_value_begin.as_ast(),
                 vector_value_end.as_ast(),
                 begin_value.as_ast(),
-            ],
+            ],  # type: ignore
+            keywords=[],
         )
 
         self._gc.add_statement(statement.arbitrary_statement(self.get_rep(c).as_cpp()))  # type: ignore
@@ -1381,7 +1394,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         source = args[0]
 
         # Make sure we are in a loop.
-        cs = self._gc.current_scope()
         seq = self.as_sequence(source)
 
         # The First terminal works by protecting the code with a if (first_time) {} block.
@@ -1429,4 +1441,4 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             else sv.copy_with_new_scope(self._gc.current_scope())
         )
 
-        crep.set_rep(node, first_value, cs)
+        crep.set_rep(node, first_value, self._gc.current_scope())
