@@ -1433,6 +1433,22 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             self._gc.set_scope(sv.scope())
         self._gc.add_statement(s)
 
+        # And declare an if statement that will blow if if we don't find a `First`.
+        # And add it as a statement at the outside_block_scope.
+        fail = statement.iftest(
+            crep.cpp_value(
+                f"{is_first.as_cpp()}",
+                self._gc.current_scope(),
+                ctyp.terminal("bool"),
+            )
+        )
+        fail.add_statement(
+            statement.arbitrary_statement(
+                f'throw std::runtime_error("First() called on an empty sequence ({ast.dump(node)})");'
+            )
+        )
+        outside_block_scope.frame_statements(-1).add_statement(fail)
+
         # If we just found the first sequence in a sequence, return that.
         # Otherwise return a new version of the value.
         first_value = (
