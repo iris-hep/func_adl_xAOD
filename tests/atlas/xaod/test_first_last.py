@@ -26,6 +26,25 @@ def test_first_after_SelectMany():
     print_lines(lines)
 
 
+def test_first_failure():
+    r = (
+        atlas_xaod_dataset()
+        .Select(lambda e: e.Jets("bogus").Select(lambda j: j.pt()).First())
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    fail_line = find_line_numbers_with("if (is_first", lines)
+    assert len(fail_line) == 2
+
+    lines_after_fail = lines[fail_line[1] :]  # noqa
+    i = find_next_closing_bracket(lines_after_fail)
+    remaining_lines = lines_after_fail[i + 1 :]  # noqa
+    assert len(remaining_lines) == 0
+
+
 def test_first_after_where():
     # Part of testing that First puts its outer settings in the right place.
     # This also tests First on a collection of objects that hasn't been pulled a part
@@ -143,7 +162,7 @@ def test_First_with_inner_loop():
 
     # Make sure the eta capture is inside the is first.
     first_lines = find_line_numbers_with("if (is_first", lines)
-    assert len(first_lines) == 2
+    assert len(first_lines) == 4
     assert lines[first_lines[0] + 1].strip() == "{"
     lines_post_if = lines[first_lines[0] + 2 :]  # noqa
     is_first_closing = find_next_closing_bracket(lines_post_if)

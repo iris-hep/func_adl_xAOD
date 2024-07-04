@@ -289,7 +289,7 @@ def test_sequence_with_where_first():
     lines = get_lines_of_code(r)
     print_lines(lines)
     l_first = find_line_numbers_with("if (is_first", lines)
-    assert 1 == len(l_first)
+    assert 2 == len(l_first)
     active_blocks = find_open_blocks(lines[: l_first[0]])
     assert 1 == ["for" in a for a in active_blocks].count(True)
     l_agg = find_line_with("+1", lines)
