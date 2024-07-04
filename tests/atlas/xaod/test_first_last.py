@@ -162,7 +162,7 @@ def test_First_with_inner_loop():
 
     # Make sure the eta capture is inside the is first.
     first_lines = find_line_numbers_with("if (is_first", lines)
-    assert len(first_lines) == 2
+    assert len(first_lines) == 4
     assert lines[first_lines[0] + 1].strip() == "{"
     lines_post_if = lines[first_lines[0] + 2 :]  # noqa
     is_first_closing = find_next_closing_bracket(lines_post_if)
