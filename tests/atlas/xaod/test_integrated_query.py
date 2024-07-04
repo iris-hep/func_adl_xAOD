@@ -237,6 +237,24 @@ def test_first_object_in_event():
     assert int(training_df.iloc[0]["col1"]) == 52  # type: ignore
 
 
+def test_no_first_object_in_event(caplog):
+    "Make sure a failed first properly blows its stack"
+    try:
+        as_pandas(
+            f_single.Select(
+                lambda e: e.Jets("AntiKt4EMTopoJets")
+                .Where(lambda j: j.pt() > 1000000000.0)
+                .First()
+                .pt()
+                / 1000.0
+            )
+        )
+    except Exception as e:
+        assert "docker" in str(e)
+
+    assert "caught exception: First() called on an empty sequence" in caplog.text
+
+
 def test_no_reported_statistics():
     "Look at the log file and report if it contains a statistics line"
 
