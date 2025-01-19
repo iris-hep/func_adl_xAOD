@@ -167,7 +167,7 @@ def test_md_job_options():
 
 
 def test_event_info_includes():
-    "Make sure event info is pulling in the correct includes"
+    "Make sure event info is pulling in the correct include files"
     training_df = as_pandas(
         # fmt: off
         f_single
