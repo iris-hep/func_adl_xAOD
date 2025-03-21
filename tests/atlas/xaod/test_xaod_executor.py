@@ -186,6 +186,20 @@ def test_ifexpr():
     assert "if " in lines[0]
 
 
+def test_constant():
+    r = (
+        atlas_xaod_dataset(qastle_roundtrip=True)
+        .Select(lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: 1.0))
+        .value()
+    )
+    # Make sure that a test around 10.0 occurs.
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    push_line = [index for index, line in enumerate(lines) if "push_back(1.0)" in line]
+    assert len(push_line) == 1
+    assert lines[push_line[0] + 1].strip() == "}"
+
+
 def test_per_jet_item_with_where():
     # The following statement should be a straight sequence, not an array.
     r = (
@@ -275,6 +289,27 @@ def test_dict_simple_reference_prop_lookup():
         atlas_xaod_dataset()
         .Select(
             lambda e: {"e_list": e.Electrons("Electrons"), "m_list": e.Muons("Muons")}
+        )
+        .Select(lambda e: e["e_list"].Select(lambda e: e.E()))
+        .value()
+    )
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    l_push = find_line_with("push_back", lines)
+    assert "->E()" in lines[l_push]
+    r = find_line_with("muon", lines, throw_if_not_found=False)
+    assert r == -1
+
+
+def test_dict_code_not_used_not_generated():
+    "Dictionary references should be resolved automatically"
+    r = (
+        atlas_xaod_dataset()
+        .Select(
+            lambda e: {
+                "e_list": e.Electrons("Electrons"),
+                "m_list": e.Muons("Muons").First().pt() + 33,
+            }
         )
         .Select(lambda e: e["e_list"].Select(lambda e: e.E()))
         .value()
