@@ -337,7 +337,7 @@ def test_dict_ref_twice():
     )
     lines = get_lines_of_code(r)
     print_lines(lines)
-    l_push = find_line_numbers_with("electrons0", lines)
+    l_push = find_line_numbers_with("electrons", lines)
     assert len([ln for ln in l_push if "for (auto" in lines[ln]]) == 2
 
 
