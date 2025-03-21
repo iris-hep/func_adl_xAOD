@@ -301,6 +301,27 @@ def test_dict_simple_reference_prop_lookup():
     assert r == -1
 
 
+def test_dict_code_not_used_not_generated():
+    "Dictionary references should be resolved automatically"
+    r = (
+        atlas_xaod_dataset()
+        .Select(
+            lambda e: {
+                "e_list": e.Electrons("Electrons"),
+                "m_list": e.Muons("Muons").First().pt() + 33,
+            }
+        )
+        .Select(lambda e: e["e_list"].Select(lambda e: e.E()))
+        .value()
+    )
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    l_push = find_line_with("push_back", lines)
+    assert "->E()" in lines[l_push]
+    r = find_line_with("muon", lines, throw_if_not_found=False)
+    assert r == -1
+
+
 def test_dict_ref_twice():
     "Dictionary references should be ok with being referenced twice"
     r = (
