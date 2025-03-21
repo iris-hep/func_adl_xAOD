@@ -301,6 +301,52 @@ def test_dict_simple_reference_prop_lookup():
     assert r == -1
 
 
+def test_dict_ref_twice():
+    "Dictionary references should be ok with being referenced twice"
+    r = (
+        atlas_xaod_dataset()
+        .Select(lambda e: {"e_list": e.Electrons("Electrons")})
+        .Select(
+            lambda e: {
+                "E": e["e_list"].Select(lambda e: e.E()),
+                "pt": e["e_list"].Select(lambda e: e.pt()),
+            }
+        )
+        .value()
+    )
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    l_push = find_line_numbers_with("electrons0", lines)
+    assert len([ln for ln in l_push if "for (auto" in lines[ln]]) == 2
+
+
+def test_dict_ref_confusion():
+    """Found in the wild. The dictionary reference is copied by
+    reference, which results in type resolution happening once - since
+    it is attached to the ast object, and it is... used twice.
+    """
+    r = (
+        atlas_xaod_dataset()
+        .Select(lambda e: {"e_list": e.Electrons("Electrons"), "raw": e})
+        .Select(
+            lambda e: {"e_list": e["e_list"], "e": e["e_list"].First(), "raw": e["raw"]}
+        )
+        .Select(
+            lambda e: {
+                "E_list": [e["e"].E() for _ in e["e_list"]],
+                # "E_list": [
+                #     e["raw"].Electrons("Electrons").First().E() for _ in e["e_list"]
+                # ],
+            }
+        )
+        .value()
+    )
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    l_push = find_line_numbers_with("for (auto", lines)
+    assert len(l_push) == 2
+
+
 def test_result_awkward():
     # The following statement should be a straight sequence, not an array.
     r = (
