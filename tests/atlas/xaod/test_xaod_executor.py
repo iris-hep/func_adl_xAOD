@@ -186,6 +186,20 @@ def test_ifexpr():
     assert "if " in lines[0]
 
 
+def test_constant():
+    r = (
+        atlas_xaod_dataset(qastle_roundtrip=True)
+        .Select(lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: 1.0))
+        .value()
+    )
+    # Make sure that a test around 10.0 occurs.
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    push_line = [index for index, line in enumerate(lines) if "push_back(1.0)" in line]
+    assert len(push_line) == 1
+    assert lines[push_line[0] + 1].strip() == "}"
+
+
 def test_per_jet_item_with_where():
     # The following statement should be a straight sequence, not an array.
     r = (
