@@ -144,6 +144,11 @@ def process_metadata(
                 md["result_name"] if "result_name" in md else "result",
                 md["return_type"],
                 (
+                    int(md["return_pointer_depth"])
+                    if "return_pointer_depth" in md
+                    else int(0)
+                ),
+                (
                     bool(md["return_is_collection"])
                     if "return_is_collection" in md
                     else False

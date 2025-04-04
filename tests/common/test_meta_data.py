@@ -648,7 +648,34 @@ def test_md_function_call():
     assert spec.arguments == ["eta1", "phi1", "eta2", "phi2"]
     assert len(spec.code) == 3
     assert spec.result == "result"
+    assert spec.cpp_return_p_depth == 0
     assert spec.cpp_return_type == "double"
+
+
+def test_md_function_call_pointer():
+    "Inject code to run some C++"
+    metadata = [
+        {
+            "metadata_type": "add_cpp_function",
+            "name": "MyDeltaR",
+            "include_files": ["TVector2.h", "math.h"],
+            "arguments": ["eta1", "phi1", "eta2", "phi2"],
+            "code": [
+                "auto d_eta = eta1 - eta2;",
+                "auto d_phi = TVector2::Phi_mpi_pi(phi1-phi2);",
+                "auto result = sqrt(d_eta*d_eta + d_phi*d_phi);",
+            ],
+            "return_type": "double*",
+            "return_pointer_depth": 1,
+        }
+    ]
+
+    specs = process_metadata(metadata)
+    assert len(specs) == 1
+    spec = specs[0]
+    assert isinstance(spec, CPPCodeSpecification)
+    assert spec.cpp_return_p_depth == 1
+    assert spec.cpp_return_type == "double*"
 
 
 def test_md_method_call():
