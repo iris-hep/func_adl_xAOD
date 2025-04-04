@@ -7,8 +7,11 @@ from typing import Callable, Dict, List, Optional, cast
 
 import func_adl_xAOD.common.cpp_types as ctyp
 import func_adl_xAOD.common.statement as statements
-from func_adl_xAOD.common.cpp_representation import (cpp_collection, cpp_value,
-                                                     cpp_variable)
+from func_adl_xAOD.common.cpp_representation import (
+    cpp_collection,
+    cpp_value,
+    cpp_variable,
+)
 from func_adl_xAOD.common.cpp_vars import unique_name
 from func_adl_xAOD.common.util_scope import gc_scope
 
@@ -18,15 +21,15 @@ from func_adl_xAOD.common.util_scope import gc_scope
 method_names = {}
 
 
-class CPPCodeValue (ast.AST):
-    r'''
+class CPPCodeValue(ast.AST):
+    r"""
     Represents a C++ bit of code that returns a value. Like a function call or a member call.
     Use the be-fore the wire visit phase of processing to look for a pattern that needs
     to generate AST code, like a method call. Then place this AST in place of the function.
-    The back-end will then do the rendering useing the information included below.
+    The back-end will then do the rendering using the information included below.
 
     TODO: This should be a dataclass!
-    '''
+    """
 
     def __init__(self):
         # Files that need to be included at the top of the generated C++ file
@@ -83,7 +86,7 @@ class CPPCodeSpecification:
     result: str
 
     # The type of the result variable, or if a collection, of the values
-    cpp_return_type: str
+    cpp_return_type: ctyp.CPPParsedTypeInfo
 
     # True if this is a collection return type. In that case, the collection is expected
     # to obey vector like semantics
@@ -97,7 +100,7 @@ class CPPCodeSpecification:
 
 
 def build_CPPCodeValue(spec: CPPCodeSpecification, call_node: ast.Call) -> ast.Call:
-    '''
+    """
     Given the specification for a C++ code block, invoked as a function in our AST, replace
     the call node with a cpp spec callback AST so the C++ code is properly inserted into the
     call stream.
@@ -113,16 +116,22 @@ def build_CPPCodeValue(spec: CPPCodeSpecification, call_node: ast.Call) -> ast.C
 
     Returns:
         [type]: The C++ ast that can easily be emitted as code
-    '''
+    """
 
     if len(call_node.args) != len(spec.arguments):
-        raise ValueError(f"The call of {spec.name}({', '.join(spec.arguments)}) has insufficient arguments ({len(call_node.args)}).")
+        raise ValueError(
+            f"The call of {spec.name}({', '.join(spec.arguments)}) has insufficient arguments ({len(call_node.args)})."
+        )
 
     if isinstance(call_node.func, ast.Attribute) and spec.method_object is None:
-        raise ValueError(f"The {spec.name} is a function, but it is invoked like a method.")
+        raise ValueError(
+            f"The {spec.name} is a function, but it is invoked like a method."
+        )
 
     if isinstance(call_node.func, ast.Name) and spec.method_object is not None:
-        raise ValueError(f"The {spec.name} is a method, but it is invoked like a function.")
+        raise ValueError(
+            f"The {spec.name} is a method, but it is invoked like a function."
+        )
 
     # Create an AST to hold onto all of this.
     r = CPPCodeValue()
@@ -138,9 +147,13 @@ def build_CPPCodeValue(spec: CPPCodeSpecification, call_node: ast.Call) -> ast.C
     if spec.cpp_return_is_collection:
         r.result_rep = lambda scope: cpp_collection(unique_name(spec.name), scope=scope, collection_type=ctyp.collection(ctyp.terminal(spec.cpp_return_type)))  # type: ignore
     else:
-        r.result_rep = lambda scope: cpp_variable(unique_name(spec.name), scope=scope, cpp_type=ctyp.terminal(spec.cpp_return_type))
+        r.result_rep = lambda scope: cpp_variable(
+            unique_name(spec.name),
+            scope=scope,
+            cpp_type=ctyp.terminal(spec.cpp_return_type),
+        )
 
-    # If this is a mehtod, copy the info over to generate the obj reference.
+    # If this is a method, copy the info over to generate the obj reference.
     if spec.method_object is not None:
         r.replacement_instance_obj = (spec.method_object, call_node.func.value.id)  # type: ignore
 
@@ -149,26 +162,27 @@ def build_CPPCodeValue(spec: CPPCodeSpecification, call_node: ast.Call) -> ast.C
 
 
 class cpp_ast_finder(ast.NodeTransformer):
-    r'''
+    r"""
     Look through the complete ast and replace method calls that are to a C++ plug in with a c++ ast
     node.
-    '''
+    """
+
     def __init__(self, method_names: Dict[str, Callable[[ast.Call], ast.Call]]):
         self._method_names = method_names
 
     def try_call(self, name, node):
-        'Try to use name to do the call. Returns (ok, result) monad'
+        "Try to use name to do the call. Returns (ok, result) monad"
         if name in self._method_names:
             cpp_call_ast = self._method_names[name](node)
             return (cpp_call_ast is not None, cpp_call_ast)
         return (False, None)
 
     def visit_Call(self, node):
-        r'''
+        r"""
         Looking for a member call of a particular name. We rewrite that as
         another name.
         WARNING: currently the namespace is global, so the parent type doesn't matter!
-        '''
+        """
 
         # Make sure all parts of this AST are visited properly before we attempt to
         # understand the call.
@@ -189,7 +203,7 @@ class cpp_ast_finder(ast.NodeTransformer):
 
 
 def process_ast_node(visitor, gc, call_node: ast.Call):
-    r'''Inject the proper code into the output stream to deal with this C++ code.
+    r"""Inject the proper code into the output stream to deal with this C++ code.
 
     We expect this to be run on the back-end of the system.
 
@@ -199,7 +213,7 @@ def process_ast_node(visitor, gc, call_node: ast.Call):
 
     Result:
     representation - A value that represents the output
-    '''
+    """
 
     # We write everything into a new scope to prevent conflicts. So we have to declare the result ahead of time.
     cpp_ast_node = cast(CPPCodeValue, call_node.func)
@@ -217,7 +231,14 @@ def process_ast_node(visitor, gc, call_node: ast.Call):
     # against, if any.
     repl_list = []
     if cpp_ast_node.replacement_instance_obj is not None:
-        repl_list += [(cpp_ast_node.replacement_instance_obj[0], visitor.resolve_id(cpp_ast_node.replacement_instance_obj[1]).rep.as_cpp())]
+        repl_list += [
+            (
+                cpp_ast_node.replacement_instance_obj[0],
+                visitor.resolve_id(
+                    cpp_ast_node.replacement_instance_obj[1]
+                ).rep.as_cpp(),
+            )
+        ]
 
     # Process the arguments that are getting passed to the function
     for arg, dest in zip(cpp_ast_node.args, call_node.args):
@@ -234,7 +255,7 @@ def process_ast_node(visitor, gc, call_node: ast.Call):
             l_s = l_s.replace(src, str(dest))
         blk.add_statement(statements.arbitrary_statement(l_s))
 
-    # Emit the instance declaration and intialization code.
+    # Emit the instance declaration and initialization code.
     for i in cpp_ast_node.fields:
         l_s = i[1]
         gc.declare_class_variable(i[0])
@@ -245,7 +266,12 @@ def process_ast_node(visitor, gc, call_node: ast.Call):
 
     # Set the result and close the scope
     assert cpp_ast_node.result is not None
-    blk.add_statement(statements.set_var(result_rep, cpp_value(cpp_ast_node.result, gc.current_scope(), result_rep.cpp_type())))
+    blk.add_statement(
+        statements.set_var(
+            result_rep,
+            cpp_value(cpp_ast_node.result, gc.current_scope(), result_rep.cpp_type()),
+        )
+    )
     gc.pop_scope()
 
     return result_rep

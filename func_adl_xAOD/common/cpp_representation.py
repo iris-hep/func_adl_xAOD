@@ -58,6 +58,7 @@ from func_adl_xAOD.common.util_scope import gc_scope, gc_scope_top_level
 
 class dummy_ast(ast.AST):
     "A dummy ast"
+
     _fields = tuple()
 
     def __init__(self, node: cpp_rep_base):
@@ -314,7 +315,7 @@ class cpp_sequence(cpp_rep_base):
         iterator_value:         The iterator that is incremented to get the next value in the sequence. The
                                 iterators scope is defined where it was created.
         scope:                  The scope at which this sequence is declared. Note that this may be different
-                                from the of the interator if we are, for example, inside an if statement caused
+                                from the of the iterator if we are, for example, inside an if statement caused
                                 by a Where (or similar). If the `sequence_value` is an actual value, it will have
                                 the same scope.
         """

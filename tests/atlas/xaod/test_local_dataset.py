@@ -92,7 +92,7 @@ def test_run_docker_md(docker_mock):
         .value()
     )
 
-    global docker_mock_args
+    global docker_mock_args  # noqa
     assert docker_mock_args[0] == "crazy/atlas:latest"
 
 

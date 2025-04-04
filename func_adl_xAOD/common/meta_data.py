@@ -142,7 +142,7 @@ def process_metadata(
                 md["arguments"],
                 md["code"],
                 md["result_name"] if "result_name" in md else "result",
-                md["return_type"],
+                parse_type(md["return_type"]),
                 (
                     bool(md["return_is_collection"])
                     if "return_is_collection" in md
