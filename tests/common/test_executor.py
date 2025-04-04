@@ -7,7 +7,7 @@ from func_adl_xAOD.common.event_collections import (
     event_collection_coder,
     event_collection_container,
 )
-from func_adl_xAOD.common.cpp_ast import CPPCodeValue
+from func_adl_xAOD.common.cpp_ast import CPPCodeValue, cpp_variable
 from func_adl_xAOD.common.cpp_types import method_type_info
 
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
@@ -113,7 +113,7 @@ def test_metadata_cpp_code_unneeded():
     assert isinstance(call_obj, ast.Name)
 
 
-def test_metadata_cpp_code_method():
+def test_metadata_cpp_code_method(mocker):
     "Run a method"
 
     a1 = parse_statement(
@@ -139,6 +139,49 @@ def test_metadata_cpp_code_method():
 
     call_obj = new_a1.args[1].body.func  # type: ignore
     assert isinstance(call_obj, CPPCodeValue)
+
+    # Check that the terminal type that is created is "ok".
+    scope_mock = mocker.Mock()
+    assert call_obj.result_rep is not None
+    r = call_obj.result_rep(scope_mock)
+    assert isinstance(r, cpp_variable)
+    assert r.cpp_type().type == "double"
+    assert r.p_depth == 0
+
+
+def test_metadata_cpp_code_method_pointer(mocker):
+    "Run method with a pointer"
+
+    a1 = parse_statement(
+        "Select(MetaData(ds, {"
+        '"metadata_type": "add_cpp_function",'
+        '"name": "MyDeltaR",'
+        '"include_files": [],'
+        '"arguments": [],'
+        '"code": ['
+        '   "static int holder = 10;",'
+        '   "auto result = &holder;"'
+        "],"
+        '"method_object": "obj_j",'
+        '"instance_object": "xAOD::Jet_v1",'
+        '"return_type": "double*",'
+        "}), lambda e: e.MyDeltaR())",
+    )
+
+    new_a1 = do_nothing_executor().apply_ast_transformations(a1)
+
+    assert "CPPCodeValue" in ast.dump(new_a1)
+
+    call_obj = new_a1.args[1].body.func  # type: ignore
+    assert isinstance(call_obj, CPPCodeValue)
+
+    # Check that the terminal type that is created is "ok".
+    scope_mock = mocker.Mock()
+    assert call_obj.result_rep is not None
+    r = call_obj.result_rep(scope_mock)
+    assert isinstance(r, cpp_variable)
+    assert r.cpp_type().type == "double"
+    assert r.p_depth == 1
 
 
 def test_metadata_cpp_code_capture():
