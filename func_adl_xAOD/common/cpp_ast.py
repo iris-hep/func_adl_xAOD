@@ -26,7 +26,7 @@ class CPPCodeValue(ast.AST):
     Represents a C++ bit of code that returns a value. Like a function call or a member call.
     Use the be-fore the wire visit phase of processing to look for a pattern that needs
     to generate AST code, like a method call. Then place this AST in place of the function.
-    The back-end will then do the rendering useing the information included below.
+    The back-end will then do the rendering using the information included below.
 
     TODO: This should be a dataclass!
     """
@@ -255,7 +255,7 @@ def process_ast_node(visitor, gc, call_node: ast.Call):
             l_s = l_s.replace(src, str(dest))
         blk.add_statement(statements.arbitrary_statement(l_s))
 
-    # Emit the instance declaration and intialization code.
+    # Emit the instance declaration and initialization code.
     for i in cpp_ast_node.fields:
         l_s = i[1]
         gc.declare_class_variable(i[0])
