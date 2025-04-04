@@ -648,8 +648,7 @@ def test_md_function_call():
     assert spec.arguments == ["eta1", "phi1", "eta2", "phi2"]
     assert len(spec.code) == 3
     assert spec.result == "result"
-    assert spec.cpp_return_p_depth == 0
-    assert spec.cpp_return_type == "double"
+    assert spec.cpp_return_type.name == "double"
 
 
 def test_md_function_call_pointer():
@@ -674,8 +673,8 @@ def test_md_function_call_pointer():
     assert len(specs) == 1
     spec = specs[0]
     assert isinstance(spec, CPPCodeSpecification)
-    assert spec.cpp_return_p_depth == 1
-    assert spec.cpp_return_type == "double*"
+    assert spec.cpp_return_type.pointer_depth == 1
+    assert spec.cpp_return_type.name == "double"
 
 
 def test_md_method_call():
