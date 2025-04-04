@@ -2,6 +2,7 @@
 import ast
 from typing import Callable, Dict
 import func_adl_xAOD.common.cpp_ast as cpp_ast
+from func_adl_xAOD.common.cpp_types import parse_type
 
 
 DeltaRSpec = cpp_ast.CPPCodeSpecification(
@@ -14,8 +15,7 @@ DeltaRSpec = cpp_ast.CPPCodeSpecification(
         "auto result = sqrt(d_eta*d_eta + d_phi*d_phi);",
     ],
     "result",
-    "double",
-    0,
+    parse_type("double"),
 )
 
 

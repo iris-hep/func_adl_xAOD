@@ -86,10 +86,7 @@ class CPPCodeSpecification:
     result: str
 
     # The type of the result variable, or if a collection, of the values
-    cpp_return_type: str
-
-    # The pointer depth. 0 means no indirection needed.
-    cpp_return_p_depth: int
+    cpp_return_type: ctyp.CPPParsedTypeInfo
 
     # True if this is a collection return type. In that case, the collection is expected
     # to obey vector like semantics
