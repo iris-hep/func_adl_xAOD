@@ -393,8 +393,8 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             return r
 
         # If it isn't a sequence or a collection, then something has gone wrong.
-        raise Exception(
-            f"Unable to generate a sequence from the given AST. Either there is an internal error, or you are trying to manipulate a {str(rep)} ('{type(rep).__name__}') as a sequence (ast is: {ast.dump(generation_ast)})"
+        raise ValueError(
+            f"Unable to generate a sequence from the given AST. Either there is an internal error, or you are trying to manipulate a {str(rep)} ('{type(rep).__name__}') as a sequence (ast is: {ast.unparse(generation_ast)})"
         )
 
     def visit_Call_Lambda(self, call_node: ast.Call):
