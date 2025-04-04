@@ -60,7 +60,7 @@ def add_function_mapping(python_name, cpp_name, include_files, return_type):
     include_files: any include files that should be included in the C++ source. Can also be a single string.
     return_type: C++ return type
     """
-    global functions_to_replace
+    global functions_to_replace  # noqa
     functions_to_replace[python_name] = cpp_function(
         cpp_name,
         (
