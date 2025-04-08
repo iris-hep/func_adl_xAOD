@@ -87,3 +87,22 @@ def test_get_rep_hidden():
     assert 10 == g.get_rep("dude")
     g.pop_scope()
     assert 5 == g.get_rep("dude")
+
+
+def test_add_include():
+    g = generated_code()
+    g.add_include("example_include")
+    assert "example_include" in g.include_files()
+
+    g.add_include("example_include")
+    assert len(g.include_files()) == 1
+
+
+def test_add_link_library():
+    g = generated_code()
+
+    g.add_link_library("example_library")
+    assert "example_library" in g.link_libraries()
+
+    g.add_link_library("example_library")
+    assert len(g.link_libraries()) == 1
