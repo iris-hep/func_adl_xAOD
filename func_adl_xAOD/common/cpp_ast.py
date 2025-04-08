@@ -3,6 +3,7 @@
 # This is one mechanism to allow for a leaky abstraction.
 import ast
 from dataclasses import dataclass
+import re
 from typing import Callable, Dict, List, Optional, cast
 
 import func_adl_xAOD.common.cpp_types as ctyp
@@ -252,7 +253,7 @@ def process_ast_node(visitor, gc, call_node: ast.Call):
     for s in cpp_ast_node.running_code:
         l_s = s
         for src, dest in repl_list:
-            l_s = l_s.replace(src, str(dest))
+            l_s = re.sub(rf"\b{re.escape(src)}\b", str(dest), l_s)
         blk.add_statement(statements.arbitrary_statement(l_s))
 
     # Emit the instance declaration and initialization code.
@@ -260,7 +261,7 @@ def process_ast_node(visitor, gc, call_node: ast.Call):
         l_s = i[1]
         gc.declare_class_variable(i[0])
         for src, dest in repl_list:
-            l_s = l_s.replace(src, str(dest))
+            l_s = re.sub(rf"\b{re.escape(src)}\b", str(dest), l_s)
         token_set_var = statements.set_var(i[0], cpp_value(l_s, None, None))
         gc.add_book_statement(token_set_var)
 
