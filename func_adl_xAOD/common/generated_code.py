@@ -65,13 +65,15 @@ class generated_code:
             below.add_statement(st)
 
     def add_include(self, path):
-        self._include_files += [path]
+        if path not in self._include_files:
+            self._include_files += [path]
 
     def include_files(self):
         return self._include_files
 
     def add_link_library(self, library: str):
-        self._link_libraries += [library]
+        if library not in self._link_libraries:
+            self._link_libraries += [library]
 
     def link_libraries(self) -> List[str]:
         return self._link_libraries
