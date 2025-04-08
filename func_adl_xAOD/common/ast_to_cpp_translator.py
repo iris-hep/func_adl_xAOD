@@ -277,7 +277,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             ast_ttree = function_call(
                 "ResultTTree",
                 [
-                    node,
+                    node,  # type: ignore
                     col_names,
                     ast.parse(f'"{self._prefix}_tree"').body[0].value,  # type: ignore
                     ast.parse(f'"{self._prefix}_output"').body[0].value,  # type: ignore
@@ -292,7 +292,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             ast_ttree = function_call(
                 "ResultTTree",
                 [
-                    node,
+                    node,  # type: ignore
                     ast.parse('"col1"').body[0].value,  # type: ignore
                     ast.parse(f'"{self._prefix}_tree"').body[0].value,  # type: ignore
                     ast.parse(f'"{self._prefix}_output"').body[0].value,  # type: ignore
