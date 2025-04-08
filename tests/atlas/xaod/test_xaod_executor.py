@@ -1,3 +1,4 @@
+import ast
 import re
 from math import sin
 
@@ -1238,6 +1239,76 @@ def test_executor_forgets_blocks():
     )
 
     our_exe.add_to_replacement_dict()
+
+
+def test_add_cpp_block():
+    "Make sure a block of code added and called gets inserted correctly"
+    from func_adl import func_adl_callable
+
+    def jet_clean_llp_callback(s, a: ast.Call):
+        new_s = s.MetaData(
+            {
+                "metadata_type": "add_cpp_function",
+                "name": "jet_clean_llp",
+                "code": ["bool result = _Cleaning_llp->keep(*jet);\n"],
+                "result": "result",
+                "include_files": [],
+                "arguments": ["jet"],
+                "return_type": "bool",
+            }
+        )
+        return new_s, a
+
+    @func_adl_callable(jet_clean_llp_callback)
+    def jet_clean_llp(j) -> bool: ...  # noqa
+
+    r = (
+        atlas_xaod_dataset()
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+        .Where(lambda j: jet_clean_llp(j))
+        .Select(lambda j: j.pt() * 2)
+        .value()
+    )
+    # Check to see if there mention of push_back anywhere.
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    value_ref = find_line_numbers_with("_Cleaning_llp->keep(*i_", lines)
+    assert len(value_ref) == 1
+
+
+def test_add_cpp_block_arg_name_confusion():
+    "Make sure code replacement is done correctly"
+    from func_adl import func_adl_callable
+
+    def jet_clean_llp_callback(s, a: ast.Call):
+        new_s = s.MetaData(
+            {
+                "metadata_type": "add_cpp_function",
+                "name": "jet_clean_llp",
+                "code": ["bool result = _m_jetCleaning_llp_result->keep(*jet);\n"],
+                "result": "result",
+                "include_files": [],
+                "arguments": ["jet"],
+                "return_type": "bool",
+            }
+        )
+        return new_s, a
+
+    @func_adl_callable(jet_clean_llp_callback)
+    def jet_clean_llp(j) -> bool: ...  # noqa
+
+    r = (
+        atlas_xaod_dataset()
+        .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
+        .Where(lambda j: jet_clean_llp(j))
+        .Select(lambda j: j.pt() * 2)
+        .value()
+    )
+    # Check to see if there mention of push_back anywhere.
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    value_ref = find_line_numbers_with("_m_jetCleaning_llp_result->keep(*i_", lines)
+    assert len(value_ref) == 1
 
 
 def test_event_collection_too_many_arg():
