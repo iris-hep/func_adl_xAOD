@@ -651,7 +651,7 @@ def test_generate_binary_operator_unsupported():
             lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt() // 2)
         ).value()
 
-    assert "FloorDiv" in str(e)
+    assert "//" in str(e)
 
 
 def test_generate_unary_operations():
