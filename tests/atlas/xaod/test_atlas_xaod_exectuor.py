@@ -80,7 +80,9 @@ def test_bad_ast_no_call_to_name(tmp_path):
     # Get the ast to play with
     q = query_as_ast()
     a = ast.Call(
-        func=ast.Attribute(value=ast.Constant(10), attr="fork"), args=[q.query_ast]
+        func=ast.Attribute(value=ast.Constant(10), attr="fork"),
+        args=[q.query_ast],
+        keywords=[],
     )
 
     exe = atlas_xaod_executor()

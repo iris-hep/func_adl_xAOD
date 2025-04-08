@@ -201,7 +201,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # If it didn't work, this is an internal error. But make the error message a bit nicer.
         if not hasattr(node, "rep"):
             raise Exception(
-                f'Internal Error: attempted to get C++ representation for AST node "{ast.dump(node)}", but failed.'
+                f'Internal Error: attempted to get C++ representation for AST node "{ast.unparse(node)}", but failed.'
             )
 
         return crep.get_rep(node)
@@ -712,7 +712,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             r = FuncADLNodeVisitor.visit_Call(self, call_node)
             if r is None and not hasattr(call_node, "rep"):
                 raise Exception(
-                    f"Do not know how to call '{ast.dump(call_node.func, annotate_fields=False)}'"
+                    f"Do not know how to call '{ast.unparse(call_node.func)}'"
                 )
             if r is not None:
                 crep.set_rep(call_node, r)
@@ -858,7 +858,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         else:
             raise Exception(
-                f"Do not know how to translate Binary operator {ast.dump(node.op)}!"
+                f"Do not know how to translate Binary operator {ast.unparse(node)}!"
             )
 
     def visit_BinOp(self, node: ast.BinOp):
@@ -886,7 +886,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
     def visit_UnaryOp(self, node: ast.UnaryOp):
         if type(node.op) not in _known_unary_operators:
             raise Exception(
-                f"Do not know how to translate Unary operator {ast.dump(node.op)}!"
+                f"Do not know how to translate Unary operator {ast.unparse(node.op)}!"
             )
 
         operand = cast(crep.cpp_value, self.get_rep(node.operand))
@@ -1444,7 +1444,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         )
         fail.add_statement(
             statement.arbitrary_statement(
-                f'throw std::runtime_error("First() called on an empty sequence ({ast.dump(node)})");'
+                f'throw std::runtime_error("First() called on an empty sequence ({ast.unparse(node)})");'
             )
         )
         outside_block_scope.frame_statements(-1).add_statement(fail)

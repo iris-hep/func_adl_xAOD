@@ -81,11 +81,11 @@ def _is_format_request(a: ast.AST) -> bool:
     """
     if not isinstance(a, ast.Call):
         raise ValueError(
-            f"A func_adl ast must start with a function call. This does not: {ast.dump(a)}"
+            f"A func_adl ast must start with a function call. This does not: {ast.unparse(a)}"
         )
     if not isinstance(a.func, ast.Name):
         raise ValueError(
-            f"A func_adl ast must start with a function call to something like Select or AsROOTTTree. This does not: {ast.dump(a)}"
+            f"A func_adl ast must start with a function call to something like Select or AsROOTTTree. This does not: {ast.unparse(a)}"
         )
     return a.func.id == "ResultTTree"
 
