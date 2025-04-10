@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "func_adl_xAOD"
+version = "0.0.0-alpha.10"
+description = "Functional Analysis Description Language backend for accessing ATLAS xAOD files."
+readme = "README.md"
+authors = [{ name = "G. Watts (IRIS-HEP/UW Seattle)", email = "gwatts@uw.edu" }]
+maintainers = [
+    { name = "Gordon Watts (IRIS-HEP/UW Seattle)", email = "gwatts@uw.edu" },
+]
+license = { text = "MIT" }
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Software Development",
+    "Topic :: Utilities",
+]
+dependencies = ["requests", "retry", "jinja2", "qastle", "func_adl>3.4"]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=3.9",
+    "pytest-asyncio",
+    "pytest-mock",
+    "pytest-cov",
+    "coverage",
+    "flake8",
+    "autopep8",
+    "twine",
+    "testfixtures",
+    "wheel",
+    "asyncmock",
+    "pandas",
+    "uproot",
+    "awkward",
+    "black",
+]
+local = ["python-on-whales"]
+
+[tool.hatch.version]
+path = "func_adl_xAOD/version.txt"
+
+[tool.hatch.build.targets.sdist]
+include = ["README.md", "/func_adl_xAOD"]
+
+[tool.hatch.build.targets.wheel]
+include = ["README.md", "/func_adl_xAOD"]
