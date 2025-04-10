@@ -52,8 +52,7 @@ jobs:
   test-with-docker:
     strategy:
       matrix:
-        platform: [ubuntu-latest, windows-latest]
-        # platform: [ubuntu-latest, macOS-latest, windows-latest]
+        platform: [ubuntu-latest, macOS-latest, windows-latest]
         python-version: [3.9, "3.10", "3.11", "3.12"]
     runs-on: ${{ matrix.platform }}
     needs: flake8
