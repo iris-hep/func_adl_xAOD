@@ -2,7 +2,9 @@ name: CI/CD
 
 on:
   push:
-  pull_request:
+    branches:
+      - master  # Only run on push to master
+  pull_request:  # Run on all pull requests
   # Run daily at 0:01 UTC
   schedule:
     - cron: "1 0 * * 0"
