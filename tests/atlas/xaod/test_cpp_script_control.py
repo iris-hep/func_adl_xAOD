@@ -99,7 +99,7 @@ class docker_runner:
 
         # Docker command
         results_dir = tempfile.TemporaryDirectory()
-        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; /scripts/{info.main_script} {cmd_options}"'
+        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; source /scripts/{info.main_script} {cmd_options}"'
         result = os.system(docker_cmd)
         if result != 0:
             raise docker_run_error(f"nope, that didn't work {result}!")
