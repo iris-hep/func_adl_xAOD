@@ -77,7 +77,7 @@ class docker_runner:
         "Run the script as a compile"
 
         results_dir = tempfile.TemporaryDirectory()
-        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; /scripts/{info.main_script} -c"'
+        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; chmod +x /scripts/{info.main_script}; -c"'
         result = os.system(docker_cmd)
         if result != 0:
             raise docker_run_error(f"nope, that didn't work {result}!")
@@ -99,7 +99,7 @@ class docker_runner:
 
         # Docker command
         results_dir = tempfile.TemporaryDirectory()
-        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; /scripts/{info.main_script} {cmd_options}"'
+        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; chmod +x /scripts/{info.main_script}; /scripts/{info.main_script} {cmd_options}"'
         result = os.system(docker_cmd)
         if result != 0:
             raise docker_run_error(f"nope, that didn't work {result}!")
@@ -121,7 +121,7 @@ class docker_running_container:
         "Get the docker command up and running"
         data_dir = self._files[0].parent
         self._results_dir = tempfile.TemporaryDirectory()
-        docker_cmd = f'docker run --name test_func_xAOD --rm -d -v {self._code_dir}:/scripts:ro -v {str(self._results_dir.name)}:/results -v {data_dir.absolute()}:/data:ro atlas/analysisbase:21.2.234 /bin/bash -c "while [ 1 ] ; do sleep 1; echo hi ; done"'
+        docker_cmd = f'docker run --name test_func_xAOD --rm -d -v {self._code_dir}:/scripts:ro -v {str(self._results_dir.name)}:/results -v {data_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 /bin/bash -c "while [ 1 ] ; do sleep 1; echo hi ; done"'
         r = os.system(docker_cmd)
         if r != 0:
             raise Exception(f"Unable to start docker deamon: {r}")
@@ -189,7 +189,8 @@ def run_docker(
         initial_args = f"{add_position_argument_at_start} "
 
     # Docker command
-    docker_cmd = f"docker run --rm -v {code_dir}:/scripts:ro {mount_output_options} -v {base_dir.absolute()}:/data:ro atlas/analysisbase:21.2.234 /scripts/{info.main_script} {initial_args} {cmd_options}"
+    assert Path(code_dir).exists()
+    docker_cmd = f'docker run --rm -v {code_dir}:/scripts:rw {mount_output_options} -v {base_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 bash -c "ls -l /; ls -l /scripts; source /scripts/{info.main_script} {initial_args} {cmd_options}"'
     result = os.system(docker_cmd)
     if result != 0:
         raise docker_run_error(f"nope, that didn't work {result}!")
