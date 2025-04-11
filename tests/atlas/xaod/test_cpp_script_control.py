@@ -77,7 +77,7 @@ class docker_runner:
         "Run the script as a compile"
 
         results_dir = tempfile.TemporaryDirectory()
-        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; source /scripts/{info.main_script} -c"'
+        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; chmod +x /scripts/{info.main_script}; -c"'
         result = os.system(docker_cmd)
         if result != 0:
             raise docker_run_error(f"nope, that didn't work {result}!")
@@ -99,7 +99,7 @@ class docker_runner:
 
         # Docker command
         results_dir = tempfile.TemporaryDirectory()
-        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; source /scripts/{info.main_script} {cmd_options}"'
+        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; chmod +x /scripts/{info.main_script}; /scripts/{info.main_script} {cmd_options}"'
         result = os.system(docker_cmd)
         if result != 0:
             raise docker_run_error(f"nope, that didn't work {result}!")
@@ -189,7 +189,7 @@ def run_docker(
         initial_args = f"{add_position_argument_at_start} "
 
     # Docker command
-    docker_cmd = f"docker run --rm -v {code_dir}:/scripts:ro {mount_output_options} -v {base_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 source /scripts/{info.main_script} {initial_args} {cmd_options}"
+    docker_cmd = f"docker run --rm -v {code_dir}:/scripts:ro {mount_output_options} -v {base_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 /scripts/{info.main_script} {initial_args} {cmd_options}"
     result = os.system(docker_cmd)
     if result != 0:
         raise docker_run_error(f"nope, that didn't work {result}!")
