@@ -14,7 +14,7 @@ from func_adl_xAOD.atlas.xaod.executor import atlas_xaod_executor
 
 from .config import local_path, run_long_running_tests
 
-pytestmark = run_long_running_tests
+# pytestmark = run_long_running_tests
 
 ExecutorInfo = namedtuple("ExecutorInfo", "main_script output_filename")
 
@@ -121,7 +121,7 @@ class docker_running_container:
         "Get the docker command up and running"
         data_dir = self._files[0].parent
         self._results_dir = tempfile.TemporaryDirectory()
-        docker_cmd = f'docker run --name test_func_xAOD --rm -d -v {self._code_dir}:/scripts:ro -v {str(self._results_dir.name)}:/results -v {data_dir.absolute()}:/data:ro atlas/analysisbase:21.2.234 /bin/bash -c "while [ 1 ] ; do sleep 1; echo hi ; done"'
+        docker_cmd = f'docker run --name test_func_xAOD --rm -d -v {self._code_dir}:/scripts:ro -v {str(self._results_dir.name)}:/results -v {data_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 /bin/bash -c "while [ 1 ] ; do sleep 1; echo hi ; done"'
         r = os.system(docker_cmd)
         if r != 0:
             raise Exception(f"Unable to start docker deamon: {r}")
@@ -189,7 +189,7 @@ def run_docker(
         initial_args = f"{add_position_argument_at_start} "
 
     # Docker command
-    docker_cmd = f"docker run --rm -v {code_dir}:/scripts:ro {mount_output_options} -v {base_dir.absolute()}:/data:ro atlas/analysisbase:21.2.234 /scripts/{info.main_script} {initial_args} {cmd_options}"
+    docker_cmd = f"docker run --rm -v {code_dir}:/scripts:ro {mount_output_options} -v {base_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 /scripts/{info.main_script} {initial_args} {cmd_options}"
     result = os.system(docker_cmd)
     if result != 0:
         raise docker_run_error(f"nope, that didn't work {result}!")
