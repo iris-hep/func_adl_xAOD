@@ -189,8 +189,7 @@ def run_docker(
         initial_args = f"{add_position_argument_at_start} "
 
     # Docker command
-    os.chmod(os.path.join(code_dir, info.main_script), 0o755)
-    docker_cmd = f'docker run --rm -v {code_dir}:/scripts {mount_output_options} -v {base_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 bash -c "chmod a+x /scripts/{info.main_script}; /scripts/{info.main_script} {initial_args} {cmd_options}"'
+    docker_cmd = f'docker run --rm -v {code_dir}:/scripts:rw {mount_output_options} -v {base_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 bash -c "chmod a+x /scripts/{info.main_script}; /scripts/{info.main_script} {initial_args} {cmd_options}"'
     result = os.system(docker_cmd)
     if result != 0:
         raise docker_run_error(f"nope, that didn't work {result}!")
