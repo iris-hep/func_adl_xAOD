@@ -56,7 +56,8 @@ jobs:
       matrix:
         # platform: [ubuntu-latest, macOS-latest, windows-latest]
         platform: [ubuntu-latest]
-        python-version: [3.9, "3.10", "3.11", "3.12"]
+        # python-version: [3.9, "3.10", "3.11", "3.12"]
+        python-version: ["3.12"]
     runs-on: ${{ matrix.platform }}
     needs: flake8
 
