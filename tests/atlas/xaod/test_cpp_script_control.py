@@ -14,7 +14,7 @@ from func_adl_xAOD.atlas.xaod.executor import atlas_xaod_executor
 
 from .config import local_path, run_long_running_tests
 
-# pytestmark = run_long_running_tests
+pytestmark = run_long_running_tests
 
 ExecutorInfo = namedtuple("ExecutorInfo", "main_script output_filename")
 
