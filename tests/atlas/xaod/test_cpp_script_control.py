@@ -119,17 +119,17 @@ class docker_running_container:
 
     def __enter__(self):
         "Get the docker command up and running"
-        data_dir = self._files[0].parent
         self._results_dir = tempfile.TemporaryDirectory()
-        code_dir = Path(self._code_dir)
-        code_dir.chmod(code_dir.stat().st_mode | 0o555)
         results_dir = Path(self._results_dir.name)
         results_dir.chmod(0x777)
+        code_dir = Path(self._code_dir)
+        code_dir.chmod(code_dir.stat().st_mode | 0o555)
+        data_dir = self._files[0].parent
         data_dir.chmod(data_dir.stat().st_mode | 0o555)
         docker_cmd = f'docker run --name test_func_xAOD --rm -d -v {code_dir}:/scripts:ro -v {str(results_dir)}:/results -v {data_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 /bin/bash -c "while [ 1 ] ; do sleep 1; echo hi ; done"'
         r = os.system(docker_cmd)
         if r != 0:
-            raise Exception(f"Unable to start docker deamon: {r}")
+            raise Exception(f"Unable to start docker deamon: {r} - {docker_cmd}")
         return docker_runner("test_func_xAOD", self._results_dir.name)
 
     def __exit__(self, type, value, traceback):
