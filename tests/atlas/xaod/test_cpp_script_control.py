@@ -302,6 +302,8 @@ def test_good_cpp_compile_and_run_2_files(cache_directory):
         runner.run(info, [Path(local_path)])
         out_file = Path(runner.results_dir) / info.output_filename
         assert out_file.exists()
+        os.system(f"ls -l {out_file.parent}")
+        os.system(f"ls -l {out_file.parent.parent}")
         out_file.chmod(0o777)
         out_file.unlink()
         runner.run(info, [Path(local_path)])
