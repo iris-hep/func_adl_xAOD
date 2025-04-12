@@ -189,6 +189,7 @@ def run_docker(
         initial_args = f"{add_position_argument_at_start} "
 
     # Docker command
+    os.system("ls -l /tmp")
     docker_cmd = f'docker run --rm -v {code_dir.absolute()}:/scripts:ro {mount_output_options} -v {base_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 bash -c "ls -l /;/scripts/{info.main_script} {initial_args} {cmd_options}"'
     result = os.system(docker_cmd)
     if result != 0:
