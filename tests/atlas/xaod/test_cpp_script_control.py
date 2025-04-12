@@ -126,7 +126,7 @@ class docker_running_container:
         code_dir.chmod(code_dir.stat().st_mode | 0o555)
         data_dir = self._files[0].parent
         data_dir.chmod(data_dir.stat().st_mode | 0o555)
-        docker_cmd = f'docker run --name test_func_xAOD --rm -d -v {code_dir}:/scripts:ro -v {str(results_dir)}:/results -v {data_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 /bin/bash -c "chmod a+rx /scripts; while [ 1 ] ; do sleep 1; echo hi ; done"'
+        docker_cmd = f'docker run --name test_func_xAOD --rm -d -v {code_dir}:/scripts:ro -v {str(results_dir)}:/results -v {data_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 /bin/bash -c "while [ 1 ] ; do sleep 1; echo hi ; done"'
         r = os.system(docker_cmd)
         if r != 0:
             raise Exception(f"Unable to start docker deamon: {r} - {docker_cmd}")
