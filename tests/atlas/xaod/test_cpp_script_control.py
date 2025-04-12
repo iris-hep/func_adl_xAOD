@@ -185,7 +185,7 @@ def run_docker(
         mount_output_options = (
             f"-v {str(results_path)}:{output_dir}" if mount_output else ""
         )
-        results_path.chmod(Path(results_path).stat().st_mode | 0o555)
+        results_path.chmod(Path(results_path).stat().st_mode | 0o777)
 
     # Add an argument at the start?
     initial_args = ""
