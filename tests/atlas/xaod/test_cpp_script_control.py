@@ -195,7 +195,7 @@ def run_docker(
             os.chmod(os.path.join(root, dir_name), 0o755)
         for file_name in files:
             os.chmod(os.path.join(root, file_name), 0o755)
-    docker_cmd = f'docker run --rm -v {code_dir}:/scripts:rw {mount_output_options} -v {base_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 bash -c "ls -l /; ls -l /scripts; source /scripts/{info.main_script} {initial_args} {cmd_options}"'
+    docker_cmd = f'docker run --rm -v {code_dir}:/scripts:rw {mount_output_options} -v {base_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 bash -c "sudo \\"chmod a+rx /scripts\\"; ls -l /; ls -l /scripts; source /scripts/{info.main_script} {initial_args} {cmd_options}"'
     result = os.system(docker_cmd)
     if result != 0:
         raise docker_run_error(f"nope, that didn't work {result}!")
