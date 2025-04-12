@@ -136,7 +136,7 @@ class docker_running_container:
 
 def run_docker(
     info: ExecutorInfo,
-    code_dir: str,
+    code_dir: Path,
     files: List[str],
     data_file_on_cmd_line: bool = False,
     compile_only: bool = False,
@@ -160,7 +160,7 @@ def run_docker(
     if data_file_on_cmd_line:
         cmd_options += f"-d /data/{filename} "
     else:
-        with open(os.path.join(code_dir, "filelist.txt"), "w") as f_out:
+        with (code_dir / "filelist.txt").open("w") as f_out:
             f_out.writelines([f"/data/{filename}"])
 
     # Compile or run only?
@@ -189,16 +189,10 @@ def run_docker(
         initial_args = f"{add_position_argument_at_start} "
 
     # Docker command
-    assert Path(code_dir).exists()
-    for root, dirs, files in os.walk(code_dir):
-        for dir_name in dirs:
-            os.chmod(os.path.join(root, dir_name), 0o755)
-        for file_name in files:
-            os.chmod(os.path.join(root, file_name), 0o755)
-    docker_cmd = f'docker run --rm -v {code_dir}:/scripts:rw {mount_output_options} -v {base_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 bash -c "sudo \\"chmod a+rx /scripts\\"; ls -l /; ls -l /scripts; source /scripts/{info.main_script} {initial_args} {cmd_options}"'
+    docker_cmd = f'docker run --rm -v {code_dir.absolute()}:/scripts:ro {mount_output_options} -v {base_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 bash -c "ls -l /;/scripts/{info.main_script} {initial_args} {cmd_options}"'
     result = os.system(docker_cmd)
     if result != 0:
-        raise docker_run_error(f"nope, that didn't work {result}!")
+        raise docker_run_error(f"nope, that didn't work {result} - {docker_cmd}!")
     return results_dir
 
 
