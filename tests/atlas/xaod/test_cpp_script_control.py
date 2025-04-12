@@ -300,10 +300,12 @@ def test_good_cpp_compile_and_run_2_files(cache_directory):
     with docker_running_container(info, cache_directory, [Path(local_path)]) as runner:
         runner.compile(info)
         runner.run(info, [Path(local_path)])
-        out_file = os.path.join(runner.results_dir, info.output_filename)
-        os.unlink(out_file)
+        out_file = Path(runner.results_dir) / info.output_filename
+        assert out_file.exists()
+        out_file.chmod(0o777)
+        out_file.unlink()
         runner.run(info, [Path(local_path)])
-        assert os.path.exists(out_file)
+        assert out_file.exists()
 
 
 def test_run_with_bad_position_arg(cache_directory):
