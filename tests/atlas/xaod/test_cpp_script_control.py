@@ -77,10 +77,10 @@ class docker_runner:
         "Run the script as a compile"
 
         results_dir = tempfile.TemporaryDirectory()
-        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; chmod +x /scripts/{info.main_script}; -c"'
+        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; chmod +x /scripts/{info.main_script}; /scripts/{info.main_script} -c"'
         result = os.system(docker_cmd)
         if result != 0:
-            raise docker_run_error(f"nope, that didn't work {result}!")
+            raise docker_run_error(f"nope, that didn't work {result}! - {docker_cmd}")
         return results_dir
 
     def run(self, info: ExecutorInfo, files: List[Path]):
