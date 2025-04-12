@@ -185,6 +185,7 @@ def run_docker(
         mount_output_options = (
             f"-v {str(results_path)}:{output_dir}" if mount_output else ""
         )
+        # Make sure we can write to this directory!
         results_path.chmod(Path(results_path).stat().st_mode | 0o777)
 
     # Add an argument at the start?
@@ -193,11 +194,8 @@ def run_docker(
         initial_args = f"{add_position_argument_at_start} "
 
     # Docker command
-    os.system("ls -l /tmp")
     code_dir.chmod(code_dir.stat().st_mode | 0o555)
-    os.system("echo after chmod")
-    os.system("ls -l /tmp")
-    docker_cmd = f'docker run --rm {mount_output_options} -v {base_dir.absolute()}:/data:ro -v {code_dir.absolute()}:/scripts:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 bash -c "ls -l /;ls -l /home/atlas;/scripts/{info.main_script} {initial_args} {cmd_options}"'
+    docker_cmd = f"docker run --rm {mount_output_options} -v {base_dir.absolute()}:/data:ro -v {code_dir.absolute()}:/scripts:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 /scripts/{info.main_script} {initial_args} {cmd_options}"
     result = os.system(docker_cmd)
     if result != 0:
         raise docker_run_error(f"nope, that didn't work {result} - {docker_cmd}!")
