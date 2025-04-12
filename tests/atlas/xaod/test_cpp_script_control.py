@@ -179,9 +179,13 @@ def run_docker(
         output_dir = "/results"
 
     results_dir = tempfile.TemporaryDirectory()
-    mount_output_options = (
-        f"-v {str(results_dir.name)}:{output_dir}" if mount_output else ""
-    )
+    mount_output_options = ""
+    if mount_output:
+        results_path = Path(results_dir.name)
+        mount_output_options = (
+            f"-v {str(results_path)}:{output_dir}" if mount_output else ""
+        )
+        results_path.chmod(Path(results_path).stat().st_mode | 0o500)
 
     # Add an argument at the start?
     initial_args = ""
@@ -190,8 +194,7 @@ def run_docker(
 
     # Docker command
     os.system("ls -l /tmp")
-    os.system(f"chmod a+rx {code_dir.absolute()}")
-    os.system(f"chmod a+rx {base_dir.absolute()}")
+    code_dir.chmod(code_dir.stat().st_mode | 0o500)
     os.system("echo after chmod")
     os.system("ls -l /tmp")
     docker_cmd = f'docker run --rm {mount_output_options} -v {base_dir.absolute()}:/data:ro -v {code_dir.absolute()}:/scripts:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 bash -c "ls -l /;ls -l /home/atlas;/scripts/{info.main_script} {initial_args} {cmd_options}"'
