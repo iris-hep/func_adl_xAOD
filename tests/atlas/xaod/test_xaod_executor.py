@@ -276,6 +276,26 @@ def test_where_at_top_level_First_and_count():
     assert 4 == len(lines[i_fill]) - len(lines[i_fill].lstrip())
 
 
+def test_where_top_level_loop_select():
+    "If we put an array selection after a top level loop, make sure if statement is right"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: 1 > 10)
+        .Select(lambda e: [j.pt() for j in e.Jets("hi")])
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_if = find_line_with("1>10", lines)
+    i_if_indent = len(lines[i_if]) - len(lines[i_if].lstrip())
+    i_fill = find_line_with("->Fill()", lines)
+    i_fill_indent = len(lines[i_fill]) - len(lines[i_fill].lstrip())
+    assert i_if_indent < i_fill_indent
+
+
 def test_per_jet_item_with_where():
     # The following statement should be a straight sequence, not an array.
     r = (
