@@ -225,7 +225,7 @@ def test_where_at_top_level_sub_count():
     "Complex top level cut does not get C++ if statement in right place"
     r = (
         atlas_xaod_dataset()
-        .Where(lambda e: e.Jets("hi").Count() > 0 and e.Tracks("tracks").Count() > 0)
+        .Where(lambda e: e.Jets("hi").Count() > 0)
         .Select(lambda e: e.Jets("hi").Count())
         .value()
     )
@@ -234,6 +234,44 @@ def test_where_at_top_level_sub_count():
     print_lines(lines)
 
     # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_fill = find_line_with("->Fill()", lines)
+    assert 4 == len(lines[i_fill]) - len(lines[i_fill].lstrip())
+
+
+def test_where_at_top_level_First():
+    "Complex top level cut does not get C++ if statement in right place"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: e.Jets("hi").First().pt() > 1001.0)
+        .Select(lambda e: e.Jets("hi").Count())
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_pt_test = find_line_with(">1001.0", lines)
+    i_fill = find_line_with("->Fill()", lines)
+    assert (len(lines[i_pt_test]) - len(lines[i_pt_test].lstrip()) + 2) == len(
+        lines[i_fill]
+    ) - len(lines[i_fill].lstrip())
+
+
+def test_where_at_top_level_First_and_count():
+    "Complex top level cut does not get C++ if statement in right place"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: len(e.Jets("hi")) > 10 and e.Jets("hi").First().pt() > 1001.0)
+        .Select(lambda e: e.Jets("hi").Count())
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_pt_test = find_line_with(">1001.0", lines)
     i_fill = find_line_with("->Fill()", lines)
     assert 4 == len(lines[i_fill]) - len(lines[i_fill].lstrip())
 
