@@ -77,11 +77,20 @@ class docker_runner:
         "Run the script as a compile"
 
         results_dir = tempfile.TemporaryDirectory()
-        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; /scripts/{info.main_script} -c"'
+        self.exec(
+            f"cd /home/atlas; chmod +x /scripts/{info.main_script}; /scripts/{info.main_script} -c"
+        )
+        return results_dir
+
+    def exec(self, cmd: str, docker_cmd_modifier: str = ""):
+        "Pass a command to the container to run"
+
+        docker_cmd = (
+            f'docker exec {self._name} {docker_cmd_modifier} /bin/bash -c "{cmd}"'
+        )
         result = os.system(docker_cmd)
         if result != 0:
-            raise docker_run_error(f"nope, that didn't work {result}!")
-        return results_dir
+            raise docker_run_error(f"nope, that didn't work {result}! - {docker_cmd}")
 
     def run(self, info: ExecutorInfo, files: List[Path]):
         "Run the docker command"
@@ -99,10 +108,7 @@ class docker_runner:
 
         # Docker command
         results_dir = tempfile.TemporaryDirectory()
-        docker_cmd = f'docker exec {self._name} /bin/bash -c "cd /home/atlas; /scripts/{info.main_script} {cmd_options}"'
-        result = os.system(docker_cmd)
-        if result != 0:
-            raise docker_run_error(f"nope, that didn't work {result}!")
+        self.exec(f"cd /home/atlas; /scripts/{info.main_script} {cmd_options}")
         return results_dir
 
 
@@ -119,12 +125,17 @@ class docker_running_container:
 
     def __enter__(self):
         "Get the docker command up and running"
-        data_dir = self._files[0].parent
         self._results_dir = tempfile.TemporaryDirectory()
-        docker_cmd = f'docker run --name test_func_xAOD --rm -d -v {self._code_dir}:/scripts:ro -v {str(self._results_dir.name)}:/results -v {data_dir.absolute()}:/data:ro atlas/analysisbase:21.2.234 /bin/bash -c "while [ 1 ] ; do sleep 1; echo hi ; done"'
+        results_dir = Path(self._results_dir.name)
+        results_dir.chmod(results_dir.stat().st_mode | 0o777)
+        code_dir = Path(self._code_dir)
+        code_dir.chmod(code_dir.stat().st_mode | 0o555)
+        data_dir = self._files[0].parent
+        data_dir.chmod(data_dir.stat().st_mode | 0o555)
+        docker_cmd = f'docker run --name test_func_xAOD --rm -d -v {code_dir.absolute()}:/scripts -v {results_dir.absolute()}:/results -v {data_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 /bin/bash -c "while [ 1 ] ; do sleep 1; echo hi ; done"'
         r = os.system(docker_cmd)
         if r != 0:
-            raise Exception(f"Unable to start docker deamon: {r}")
+            raise Exception(f"Unable to start docker deamon: {r} - {docker_cmd}")
         return docker_runner("test_func_xAOD", self._results_dir.name)
 
     def __exit__(self, type, value, traceback):
@@ -136,7 +147,7 @@ class docker_running_container:
 
 def run_docker(
     info: ExecutorInfo,
-    code_dir: str,
+    code_dir: Path,
     files: List[str],
     data_file_on_cmd_line: bool = False,
     compile_only: bool = False,
@@ -160,7 +171,7 @@ def run_docker(
     if data_file_on_cmd_line:
         cmd_options += f"-d /data/{filename} "
     else:
-        with open(os.path.join(code_dir, "filelist.txt"), "w") as f_out:
+        with (code_dir / "filelist.txt").open("w") as f_out:
             f_out.writelines([f"/data/{filename}"])
 
     # Compile or run only?
@@ -179,9 +190,14 @@ def run_docker(
         output_dir = "/results"
 
     results_dir = tempfile.TemporaryDirectory()
-    mount_output_options = (
-        f"-v {str(results_dir.name)}:{output_dir}" if mount_output else ""
-    )
+    mount_output_options = ""
+    if mount_output:
+        results_path = Path(results_dir.name)
+        mount_output_options = (
+            f"-v {str(results_path)}:{output_dir}" if mount_output else ""
+        )
+        # Make sure we can write to this directory!
+        results_path.chmod(Path(results_path).stat().st_mode | 0o777)
 
     # Add an argument at the start?
     initial_args = ""
@@ -189,10 +205,11 @@ def run_docker(
         initial_args = f"{add_position_argument_at_start} "
 
     # Docker command
-    docker_cmd = f"docker run --rm -v {code_dir}:/scripts:ro {mount_output_options} -v {base_dir.absolute()}:/data:ro atlas/analysisbase:21.2.234 /scripts/{info.main_script} {initial_args} {cmd_options}"
+    code_dir.chmod(code_dir.stat().st_mode | 0o555)
+    docker_cmd = f"docker run --rm {mount_output_options} -v {base_dir.absolute()}:/data:ro -v {code_dir.absolute()}:/scripts:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 /scripts/{info.main_script} {initial_args} {cmd_options}"
     result = os.system(docker_cmd)
     if result != 0:
-        raise docker_run_error(f"nope, that didn't work {result}!")
+        raise docker_run_error(f"nope, that didn't work {result} - {docker_cmd}!")
     return results_dir
 
 
@@ -289,10 +306,12 @@ def test_good_cpp_compile_and_run_2_files(cache_directory):
     with docker_running_container(info, cache_directory, [Path(local_path)]) as runner:
         runner.compile(info)
         runner.run(info, [Path(local_path)])
-        out_file = os.path.join(runner.results_dir, info.output_filename)
-        os.unlink(out_file)
+        runner.exec("chmod a+rw /results/ANALYSIS.root")
+        out_file = Path(runner.results_dir) / info.output_filename
+        assert out_file.exists()
+        out_file.unlink()
         runner.run(info, [Path(local_path)])
-        assert os.path.exists(out_file)
+        assert out_file.exists()
 
 
 def test_run_with_bad_position_arg(cache_directory):
