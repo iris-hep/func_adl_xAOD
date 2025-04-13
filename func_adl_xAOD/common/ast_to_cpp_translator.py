@@ -959,7 +959,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
     def visit_BoolOp(self, node):
         """A bool op like And or Or on a set of values
-        This is a bit more complex than just "anding" things as we want to make sure to short-circuit the
+        This is a bit more complex than just "and"-ing things as we want to make sure to short-circuit the
         evaluation if we need to.
         """
 

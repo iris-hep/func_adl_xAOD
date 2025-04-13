@@ -106,12 +106,12 @@ def test_output_datatype_string():
             {
                 "metadata_type": "add_method_type_info",
                 "type_string": "xAOD::Jet",
-                "method_name": "astring",
+                "method_name": "a_string",
                 "return_type": "string",
             }
         )
         .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
-        .Select(lambda j: j.astring())
+        .Select(lambda j: j.a_string())
         .value()
     )
     # Check to see if there mention of push_back anywhere.
@@ -169,7 +169,7 @@ def test_builtin_sin_function_math_import():
     assert "->pt()" in lines[l_abs]
 
 
-def test_ifexpr():
+def test_if_expr():
     r = (
         atlas_xaod_dataset(qastle_roundtrip=True)
         .SelectMany(
@@ -250,8 +250,8 @@ def test_per_jet_item_with_where():
     # Make sure that the tree Fill is at the same level as the _JetPts2 getting set.
     lines = get_lines_of_code(r)
     print_lines(lines)
-    l_jetpt = find_line_with("_JetPts", lines)
-    assert "Fill()" in lines[l_jetpt + 1]
+    l_jet_pt = find_line_with("_JetPts", lines)
+    assert "Fill()" in lines[l_jet_pt + 1]
 
 
 def test_and_clause_in_where():
@@ -371,8 +371,8 @@ def test_result_awkward():
     # Make sure that the tree Fill is at the same level as the _JetPts2 getting set.
     lines = get_lines_of_code(r)
     print_lines(lines)
-    l_jetpt = find_line_with("_col1", lines)
-    assert "Fill()" in lines[l_jetpt + 1]
+    l_jet_pt = find_line_with("_col1", lines)
+    assert "Fill()" in lines[l_jet_pt + 1]
 
 
 def test_per_jet_item_with_event_level():
@@ -396,11 +396,11 @@ def test_per_jet_item_with_event_level():
     )
     lines = get_lines_of_code(r)
     print_lines(lines)
-    l_jetpt = find_line_with("_JetPt", lines)
-    l_runnum = find_line_with("_runNumber", lines)
+    l_jet_pt = find_line_with("_JetPt", lines)
+    l_run_num = find_line_with("_runNumber", lines)
     l_fill = find_line_with("->Fill()", lines)
-    assert l_jetpt + 1 == l_runnum
-    assert l_runnum + 1 == l_fill
+    assert l_jet_pt + 1 == l_run_num
+    assert l_run_num + 1 == l_fill
 
 
 def test_func_sin_call():
@@ -750,10 +750,10 @@ def test_per_jet_with_matching():
     )
     lines = get_lines_of_code(r)
     print_lines(lines)
-    l_jetpt = find_line_with("_JetPts", lines)
+    l_jet_pt = find_line_with("_JetPts", lines)
     l_nllp = find_line_with("_NumLLPs", lines)
     l_fill = find_line_with("->Fill()", lines)
-    assert l_jetpt + 1 == l_nllp
+    assert l_jet_pt + 1 == l_nllp
     assert l_nllp + 1 == l_fill
 
 
@@ -788,10 +788,10 @@ def test_per_jet_with_matching_and_zeros():
     )
     lines = get_lines_of_code(r)
     print_lines(lines)
-    l_jetpt = find_line_with("_JetPts", lines)
+    l_jet_pt = find_line_with("_JetPts", lines)
     l_nllp = find_line_with("_NumLLPs", lines)
     l_fill = find_line_with("->Fill()", lines)
-    assert l_jetpt + 1 == l_nllp
+    assert l_jet_pt + 1 == l_nllp
     assert l_nllp + 1 == l_fill
 
 
@@ -827,7 +827,7 @@ def test_per_jet_with_Count_matching():
                 0 if ji[1].Count() == 0 else ji[1].First().prodVtx().y(),
             )
         )
-        .Where(lambda jall: jall[0] > 40.0)
+        .Where(lambda j_all: j_all[0] > 40.0)
         .value()
     )
     lines = get_lines_of_code(r)
@@ -867,7 +867,7 @@ def test_per_jet_with_delta():
                 ),
             )
         )
-        .Where(lambda jall: jall[0] > 40.0)
+        .Where(lambda j_all: j_all[0] > 40.0)
         .value()
     )
     lines = get_lines_of_code(r)
@@ -909,10 +909,10 @@ def test_per_jet_with_matching_and_zeros_and_sum():
     )
     lines = get_lines_of_code(r)
     print_lines(lines)
-    l_jetpt = find_line_with("_JetPts", lines)
+    l_jet_pt = find_line_with("_JetPts", lines)
     l_nllp = find_line_with("_NumLLPs", lines)
     l_fill = find_line_with("->Fill()", lines)
-    assert l_jetpt + 1 == l_nllp
+    assert l_jet_pt + 1 == l_nllp
     assert l_nllp + 2 == l_fill
 
 
