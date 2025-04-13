@@ -309,8 +309,6 @@ def test_good_cpp_compile_and_run_2_files(cache_directory):
         runner.exec("chmod a+rw /results/ANALYSIS.root")
         out_file = Path(runner.results_dir) / info.output_filename
         assert out_file.exists()
-        os.system(f"ls {out_file.parent}")
-        # out_file.chmod(0o777)
         out_file.unlink()
         runner.run(info, [Path(local_path)])
         assert out_file.exists()
