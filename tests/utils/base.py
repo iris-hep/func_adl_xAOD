@@ -103,7 +103,7 @@ class LocalFile(EventDataset, ABC):
                         datafile_dir = ds_path
                     else:
                         if ds_path != datafile_dir:
-                            raise Exception(
+                            raise RuntimeError(
                                 f"Data files must be from the same directory. Have seen {ds_path} and {datafile_dir} so far."
                             )
 
@@ -139,7 +139,7 @@ class LocalFile(EventDataset, ABC):
                                 f.read(), lambda line: lg.log(level, f"  {line}")
                             )
             if proc.returncode != 0:
-                raise Exception(
+                raise RuntimeError(
                     f"Docker command failed with error {proc.returncode} ({docker_cmd})"
                 )
 

@@ -135,14 +135,14 @@ class docker_running_container:
         docker_cmd = f'docker run --name test_func_xAOD --rm -d -v {code_dir.absolute()}:/scripts -v {results_dir.absolute()}:/results -v {data_dir.absolute()}:/data:ro gitlab-registry.cern.ch/atlas/athena/analysisbase:25.2.42 /bin/bash -c "while [ 1 ] ; do sleep 1; echo hi ; done"'
         r = os.system(docker_cmd)
         if r != 0:
-            raise Exception(f"Unable to start docker deamon: {r} - {docker_cmd}")
+            raise RuntimeError(f"Unable to start docker deamon: {r} - {docker_cmd}")
         return docker_runner("test_func_xAOD", self._results_dir.name)
 
     def __exit__(self, type, value, traceback):
         with self._results_dir:
             r = os.system("docker rm -f test_func_xAOD")
             if r != 0:
-                raise Exception(f"Unable to stop docker container: {r}")
+                raise RuntimeError(f"Unable to stop docker container: {r}")
 
 
 def run_docker(

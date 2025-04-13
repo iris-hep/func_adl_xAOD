@@ -83,7 +83,7 @@ def get_ttree_type(rep):
     "Looking at a rep, figure out how it should get stored in a tree"
     if isinstance(rep, crep.cpp_sequence):
         if not isinstance(rep.sequence_value(), (crep.cpp_value, crep.cpp_sequence)):
-            raise Exception(
+            raise RuntimeError(
                 "Nested data structures (2D arrays, etc.) in TTree's are not yet supported. Numbers or arrays of numbers only for now."
             )
         return ctyp.collection(rep.sequence_value().cpp_type().tree_type)
@@ -200,7 +200,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # If it didn't work, this is an internal error. But make the error message a bit nicer.
         if not hasattr(node, "rep"):
-            raise Exception(
+            raise RuntimeError(
                 f'Internal Error: attempted to get C++ representation for AST node "{ast.unparse(node)}", but failed.'
             )
 
@@ -314,7 +314,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         """
         v = self.get_rep(node, retain_scope)
         if not isinstance(v, crep.cpp_value):
-            raise Exception("Expected a cpp value! Internal error")
+            raise RuntimeError("Expected a cpp value! Internal error")
         return v
 
     def resolve_id(self, id: str) -> Optional[ast.AST]:
@@ -419,7 +419,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # if accumulator_type is None:
         #     sv = seq.sequence_value()
         #     if not isinstance(sv, crep.cpp_value):
-        #         raise Exception("Do not know how to accumulate a sequence!")
+        #         raise RuntimeError("Do not know how to accumulate a sequence!")
         #     accumulator_type = sv.cpp_type()
         if not check_accumulator_type(accumulator_type):
             raise ValueError(
@@ -464,7 +464,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # # Get the sequence we are calling against and the accumulator
         # if not isinstance(node.func, ast.Attribute):
-        #     raise Exception("Wrong type of function")
+        #     raise RuntimeError("Wrong type of function")
         # seq = self.as_sequence(node.func.value)
         # accumulator, accumulator_scope = self._create_accumulator(seq)
 
@@ -631,7 +631,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
                 return self.visit_call_Aggregate_initial(node, args)
 
         # This isn't good!
-        raise Exception(
+        raise RuntimeError(
             "Unknown call to Aggregate. Must be Aggregate(func), Aggregate(const, func), or Aggregate(func, func)"
         )
 
@@ -711,7 +711,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             # Perhaps a method call we can normalize?
             r = FuncADLNodeVisitor.visit_Call(self, call_node)
             if r is None and not hasattr(call_node, "rep"):
-                raise Exception(
+                raise RuntimeError(
                     f"Do not know how to call '{ast.unparse(call_node.func)}'"
                 )
             if r is not None:
@@ -761,7 +761,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
                 )
                 return
 
-        raise Exception(
+        raise RuntimeError(
             f"Do not know how to get member '{variable}' of '{type(obj).__name__} - {obj}'"
         )
 
@@ -778,7 +778,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         "Index into an array. Check types, as tuple indexing can be very bad for us"
         v = self.get_rep(node.value)
         if not isinstance(v, crep.cpp_collection):
-            raise Exception(f"Do not know how to take the index of type '{v.cpp_type()}'")  # type: ignore
+            raise RuntimeError(f"Do not know how to take the index of type '{v.cpp_type()}'")  # type: ignore
 
         index = self.get_rep(node.slice)
         crep.set_rep(node, crep.cpp_value(f"{crep.base_type_member_access(v)}at({index.as_cpp()})", self._gc.current_scope(), cpp_type=v.get_element_type()))  # type: ignore
@@ -857,7 +857,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             crep.set_rep(node, r)
 
         else:
-            raise Exception(
+            raise RuntimeError(
                 f"Do not know how to translate Binary operator {ast.unparse(node)}!"
             )
 
@@ -885,7 +885,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
     def visit_UnaryOp(self, node: ast.UnaryOp):
         if type(node.op) not in _known_unary_operators:
-            raise Exception(
+            raise RuntimeError(
                 f"Do not know how to translate Unary operator {ast.unparse(node.op)}!"
             )
 
@@ -936,7 +936,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
     def visit_Compare(self, node):
         "A compare between two things. Python supports more than that, but not implemented yet."
         if len(node.ops) != 1:
-            raise Exception("Do not support 1 < a < 10 comparisons yet!")
+            raise RuntimeError("Do not support 1 < a < 10 comparisons yet!")
 
         left = cast(crep.cpp_value, self.get_rep(node.left))
         right = cast(crep.cpp_value, self.get_rep(node.comparators[0]))
@@ -1173,7 +1173,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # Make sure the number of items is the same as the number of columns specified.
         if len(seq_values.values()) != len(column_names):
-            raise Exception(
+            raise RuntimeError(
                 f"Number of columns ({len(seq_values.values())}) is not the same as labels ({len(column_names)}) in TTree creation"
             )
 
@@ -1313,7 +1313,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # Protect against sequence of sequences (LOVE type checkers, which caught this as a possibility)
         w_val = seq.sequence_value()
         if isinstance(w_val, crep.cpp_sequence):
-            raise Exception(
+            raise RuntimeError(
                 "Error: A Where clause must evaluate to a value, not a sequence"
             )
         new_sequence_var = w_val.copy_with_new_scope(self._gc.current_scope())
