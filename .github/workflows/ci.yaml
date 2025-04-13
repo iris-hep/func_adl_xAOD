@@ -54,10 +54,8 @@ jobs:
   test-with-docker:
     strategy:
       matrix:
-        # platform: [ubuntu-latest, macOS-latest, windows-latest]
-        platform: [windows-latest]
-        # python-version: [3.9, "3.10", "3.11", "3.12"]
-        python-version: ["3.12"]
+        platform: [ubuntu-latest, macOS-latest, windows-latest]
+        python-version: [3.9, "3.10", "3.11", "3.12"]
     runs-on: ${{ matrix.platform }}
     needs: flake8
 
@@ -73,13 +71,15 @@ jobs:
           pip install git+https://github.com/iris-hep/ast-language.git@e6470deb68529e1885a4bc46f781e2fe43a6f4c8
           pip install --no-cache-dir -e .[test,local]
           pip list
-      - name: Install Docker on macOS
-        if: matrix.platform == 'macOS-latest'
-        run: brew install docker
+      # - name: Install Docker on macOS
+      #   if: matrix.platform == 'macOS-latest'
+      #   run: brew install docker
       - name: Test with pytest
         run: |
           python -m pytest
-          python -m pytest -m "atlas_xaod_runner or atlas_r22_xaod_runner or cms_aod_runner or cms_miniaod_runner"
+          # These now take too long, and macOS and Windows both don't have docker installed
+          # or installed correctly.
+          # python -m pytest -m "atlas_xaod_runner or atlas_r22_xaod_runner or cms_aod_runner or cms_miniaod_runner"
       - name: Report coverage with Codecov
         if: github.event_name == 'push' && matrix.python-version == 3.9 && matrix.platform == 'ubuntu-latest'
         uses: codecov/codecov-action@v3
