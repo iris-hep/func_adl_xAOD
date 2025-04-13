@@ -184,6 +184,7 @@ Code blocks provide a way to inject various lines of C++ into code. There are a 
 | header_includes | List of files to include in the C++ header file (`query.hpp`). | `["file1.hpp", "file2.hpp"]` |
 | private_members | List of class instance variables to declare (`query.hpp`) | `["int first;", "int second;"]` |
 | instance_initialization | Initializers added to the constructor in the main C++ class file (`query.cpp`) | `["first(10)", "second(10)"]` |
+| initialize_lines | C++ code that should be put into the analysis tool's `initialize()` method. | `["a->initialize();"]` |
 | ctor_lines | Lines of C++ to add to the body of the constructor (`query.cpp`) | `["second = first * 10;"]` |
 | link_libraries | Items to add to the `CMake LINK_LIBRARIES` list (`CMakeLists.txt`) | `["TrigDecisionToolLib"]` |
 
