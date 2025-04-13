@@ -1335,3 +1335,11 @@ def test_event_collection_bad_type_arg():
         )
 
     assert "is a string" in str(e)
+
+
+def test_iterate_over_base_sequence():
+    "When you try to export everything, there should be a good message"
+    with pytest.raises(ValueError) as e:
+        (atlas_xaod_dataset().Where(lambda e: True).value())
+
+    assert "trying to dump all variables" in str(e)

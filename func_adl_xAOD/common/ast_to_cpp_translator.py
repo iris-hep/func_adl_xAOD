@@ -88,7 +88,16 @@ def get_ttree_type(rep):
             )
         return ctyp.collection(rep.sequence_value().cpp_type().tree_type)
     else:
-        return rep.cpp_type().tree_type
+        try:
+            return rep.cpp_type().tree_type
+        except Exception as e:
+            if not rep.scope().is_top_level():
+                raise
+            raise ValueError(
+                "It looks like you might be trying to dump all variables in the xAOD - "
+                "`dataset.Where(lambda e: True)` - this is not supported.",
+                e,
+            )
 
 
 def determine_type_mf(
