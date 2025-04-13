@@ -74,7 +74,7 @@ def as_ast_lang(query_number: int) -> str:
     elif query_number == 2:
         return as_ast_lang_query_2()
     else:
-        raise Exception(f"Query number {query_number} is not known")
+        raise RuntimeError(f"Query number {query_number} is not known")
 
 
 if __name__ == "__main__":

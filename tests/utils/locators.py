@@ -4,7 +4,7 @@ def find_line_with(text, lines, throw_if_not_found=True):
         if text in l:
             return index
     if throw_if_not_found:
-        raise Exception(f"Unable to find text '{text}' in any lines in text output")
+        raise RuntimeError(f"Unable to find text '{text}' in any lines in text output")
     return -1
 
 
