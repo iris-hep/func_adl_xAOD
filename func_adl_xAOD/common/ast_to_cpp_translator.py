@@ -1046,23 +1046,6 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         else:
             raise ValueError(f"Unsupported constant type: {type(value)}")
 
-    def visit_NameConstant(self, node: ast.NameConstant):
-        value = node.value
-        if value is True:
-            crep.set_rep(
-                node,
-                crep.cpp_value("true", self._gc.current_scope(), ctyp.terminal("bool")),
-            )
-        elif value is False:
-            crep.set_rep(
-                node,
-                crep.cpp_value(
-                    "false", self._gc.current_scope(), ctyp.terminal("bool")
-                ),
-            )
-        else:
-            raise ValueError(f"Unsupported constant: {value}")
-
     def code_fill_ttree(
         self,
         e_rep: crep.cpp_rep_base,

@@ -27,6 +27,7 @@ class docker_volume_info:
 @dataclass
 class DockerImageSpecification:
     "The image to run for docker"
+
     image: str
 
 
@@ -90,8 +91,8 @@ class LocalDataset(EventDataset, ABC):
 
         # Put everything into the ast so that we can safely be carried over qastle and used in
         # determining a hash key to see when things change.
-        self.query_ast.args.append(ast.Str(s=f"{self._docker_image}"))  # type: ignore
-        self.query_ast.args.append(ast.List(elts=[ast.Str(s=str(f)) for f in self.files]))  # type: ignore
+        self.query_ast.args.append(ast.Constant(value=f"{self._docker_image}"))  # type: ignore
+        self.query_ast.args.append(ast.List(elts=[ast.Constant(value=str(f)) for f in self.files]))  # type: ignore
 
     @abstractmethod
     def get_executor_obj(self) -> executor:

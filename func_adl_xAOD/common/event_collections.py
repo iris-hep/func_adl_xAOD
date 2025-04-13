@@ -16,31 +16,36 @@ class event_collection_container(ctyp.terminal, ABC):
 
     @abstractmethod
     def __str__(self) -> str:
-        '''Return the string representation of this event collection.
+        """Return the string representation of this event collection.
         Helpful for identifying it in ast dumps
 
         Returns:
             str: Description
-        '''
+        """
 
 
 class event_collection_collection_container(ctyp.collection, ABC):
-    def __init__(self, type_name: Union[str, ctyp.CPPParsedTypeInfo],
-                 element_name: Union[str, ctyp.CPPParsedTypeInfo],
-                 p_depth_type: int, p_depth_element: int):
+    def __init__(
+        self,
+        type_name: Union[str, ctyp.CPPParsedTypeInfo],
+        element_name: Union[str, ctyp.CPPParsedTypeInfo],
+        p_depth_type: int,
+        p_depth_element: int,
+    ):
         super().__init__(
             ctyp.terminal(element_name, p_depth=p_depth_element),
-            array_type=type_name, p_depth=p_depth_type
+            array_type=type_name,
+            p_depth=p_depth_type,
         )
 
     @abstractmethod
     def __str__(self) -> str:
-        '''Return the string representation of this event collection.
+        """Return the string representation of this event collection.
         Helpful for identifying it in ast dumps
 
         Returns:
             str: Description
-        '''
+        """
 
 
 @dataclass
@@ -52,57 +57,75 @@ class EventCollectionSpecification:
     include_files: List[str]
 
     # The container information
-    container_type: Union[event_collection_container, event_collection_collection_container]
+    container_type: Union[
+        event_collection_container, event_collection_collection_container
+    ]
 
     # List of libraries (e.g. ['xAODJet'])
     libraries: List[str]
 
 
 class event_collection_coder(ABC):
-    '''Contains code to generate collections accessing code in the backend
-    '''
+    """Contains code to generate collections accessing code in the backend"""
+
     def get_collection(self, md: EventCollectionSpecification, call_node: ast.Call):
-        r'''
+        r"""
         Return a cpp ast for accessing the jet collection with the given arguments.
-        '''
+        """
         # Get the name jet collection to look at.
         if len(call_node.args) != 1:
             raise ValueError(f"Calling {md.name} - only one argument is allowed")
-        if not isinstance(call_node.args[0], ast.Str):
-            raise ValueError(f"Calling {md.name} - only acceptable argument is a string")
+        if not (
+            isinstance(call_node.args[0], ast.Constant)
+            and isinstance(call_node.args[0].value, str)
+        ):
+            raise ValueError(
+                f"Calling {md.name} - only acceptable argument is a string"
+            )
 
         # Fill in the CPP block next.
         r = cpp_ast.CPPCodeValue()
-        r.args = ['collection_name', ]
+        r.args = [
+            "collection_name",
+        ]
         r.include_files += md.include_files
         r.link_libraries += md.libraries
 
         self.get_running_code_CPPCodeValue(r, md)
-        r.result = 'result'
+        r.result = "result"
 
         if issubclass(type(md.container_type), event_collection_collection_container):
             r.result_rep = lambda scope: crep.cpp_collection(unique_name(md.name.lower()), scope=scope, collection_type=md.container_type)  # type: ignore
         else:
-            r.result_rep = lambda scope: crep.cpp_variable(unique_name(md.name.lower()), scope=scope, cpp_type=md.container_type)
+            r.result_rep = lambda scope: crep.cpp_variable(
+                unique_name(md.name.lower()), scope=scope, cpp_type=md.container_type
+            )
 
         # Replace it as a function that is going to get called.
         call_node.func = r  # type: ignore
         return call_node
 
-    def get_running_code_CPPCodeValue(self, cpv: cpp_ast.CPPCodeValue, md: EventCollectionSpecification):
-        r'''
+    def get_running_code_CPPCodeValue(
+        self, cpv: cpp_ast.CPPCodeValue, md: EventCollectionSpecification
+    ):
+        r"""
         Put the running code information stored in EventCollectionSpecification into CPPCodeValue. Can be
         overridden to store extra information(such as variable declarations).
-        '''
+        """
         cpv.running_code = self.get_running_code(md.container_type)
 
     @abstractmethod
-    def get_running_code(self, container_type: Union[event_collection_container, event_collection_collection_container]) -> List[str]:
-        '''Return the code that will extract the collection from the event object
+    def get_running_code(
+        self,
+        container_type: Union[
+            event_collection_container, event_collection_collection_container
+        ],
+    ) -> List[str]:
+        """Return the code that will extract the collection from the event object
 
         Args:
             container_type (event_collection_container): The container to extract.
 
         Returns:
             List[str]: Lines of C++ code to execute to get this out.
-        '''
+        """

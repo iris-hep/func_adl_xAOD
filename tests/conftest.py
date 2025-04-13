@@ -1,4 +1,7 @@
+import asyncio
+
 import pytest
+
 import func_adl_xAOD.common.cpp_types as ctyp
 
 
@@ -10,3 +13,12 @@ def clear_method_type_info():
     yield
     ctyp.g_method_type_dict = {}
     ctyp.g_toplevel_ns = {}
+
+
+@pytest.fixture(autouse=True)
+def get_loop():
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:  # No running loop
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
