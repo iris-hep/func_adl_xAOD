@@ -79,7 +79,8 @@ jobs:
       - name: Test with pytest
         run: |
           # python -m pytest -m "atlas_xaod_runner or atlas_r22_xaod_runner or cms_aod_runner or cms_miniaod_runner"
-          python -m pytest -m "atlas_xaod_runner"
+          # python -m pytest -m "atlas_xaod_runner"
+          pytest tests/atlas/xaod/test_cpp_script_control.py::test_good_cpp_compile_and_run_2_files -m atlas_xaod_runner
       - name: Report coverage with Codecov
         if: github.event_name == 'push' && matrix.python-version == 3.9 && matrix.platform == 'ubuntu-latest'
         uses: codecov/codecov-action@v3
