@@ -316,7 +316,9 @@ class cpp_sequence(cpp_rep_base):
                                 iterators scope is defined where it was created.
         scope:                  The scope at which this sequence is declared. Note that this may be different
                                 from the of the iterator if we are, for example, inside an if statement caused
-                                by a Where (or similar). If the `sequence_value` is an actual value, it will have
+                                by a Where (or similar). In the case of the Where, the sequence scope will be
+                                inside the if statement of the Where, while the iterator will be at the scope of
+                                the original declaration. If the `sequence_value` is an actual value, it will have
                                 the same scope.
         """
         cpp_rep_base.__init__(self)
