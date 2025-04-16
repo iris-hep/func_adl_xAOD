@@ -201,6 +201,21 @@ def test_constant():
     assert lines[push_line[0] + 1].strip() == "}"
 
 
+def test_constant_non_nested():
+    r = (
+        atlas_xaod_dataset(qastle_roundtrip=True)
+        .Select(lambda e: e.Jets("AntiKt4EMTopoJets"))
+        .Select(lambda jets: [1.0 for j in jets])
+        .value()
+    )
+    # Make sure that a test around 10.0 occurs.
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    push_line = [index for index, line in enumerate(lines) if "push_back(1.0)" in line]
+    assert len(push_line) == 1
+    assert lines[push_line[0] + 1].strip() == "}"
+
+
 def test_where_at_top_level():
     "Complex top level cut does not get C++ if statement in right place"
     r = (
@@ -282,6 +297,117 @@ def test_where_top_level_loop_select():
         atlas_xaod_dataset()
         .Where(lambda e: 1 > 10)
         .Select(lambda e: [j.pt() for j in e.Jets("hi")])
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_if = find_line_with("1>10", lines)
+    i_if_indent = len(lines[i_if]) - len(lines[i_if].lstrip())
+    i_fill = find_line_with("->Fill()", lines)
+    i_fill_indent = len(lines[i_fill]) - len(lines[i_fill].lstrip())
+    assert i_if_indent < i_fill_indent
+
+
+def test_where_top_level_loop_select_late_select():
+    "If we put an array selection after a top level loop, make sure if statement is right"
+    r = (
+        atlas_xaod_dataset()
+        .Select(lambda e: [j.pt() for j in e.Jets("hi")])
+        .Where(lambda e: 1 > 10)
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_if = find_line_with("1>10", lines)
+    i_if_indent = len(lines[i_if]) - len(lines[i_if].lstrip())
+    i_fill = find_line_with("->Fill()", lines)
+    i_fill_indent = len(lines[i_fill]) - len(lines[i_fill].lstrip())
+    assert i_if_indent < i_fill_indent
+
+
+def test_where_top_level_select():
+    "If we put an array selection after a top level loop, make sure if statement is right"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: 1 > 10)
+        .Select(lambda e: e.EventInfo("info").run_number)
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_if = find_line_with("1>10", lines)
+    i_if_indent = len(lines[i_if]) - len(lines[i_if].lstrip())
+    i_fill = find_line_with("->Fill()", lines)
+    i_fill_indent = len(lines[i_fill]) - len(lines[i_fill].lstrip())
+    assert i_if_indent < i_fill_indent
+
+
+def test_where_top_level_loop_select_many():
+    "If we put an array selection after a top level loop, make sure if statement is right"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: 1 > 10)
+        .SelectMany(lambda e: e.Jets("hi"))
+        .Select(lambda j: j.pt())
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_if = find_line_with("1>10", lines)
+    i_if_indent = len(lines[i_if]) - len(lines[i_if].lstrip())
+    i_fill = find_line_with("->Fill()", lines)
+    i_fill_indent = len(lines[i_fill]) - len(lines[i_fill].lstrip())
+    assert i_if_indent < i_fill_indent
+
+
+def test_where_top_level_loop_select_dict():
+    "Dict request, with jet pt first, and event info second"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: 1 > 10)
+        .Select(
+            lambda e: {
+                "pt": [j.pt() for j in e.Jets("hi")],
+                "run": e.EventInfo("info").run_number(),
+            }
+        )
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_if = find_line_with("1>10", lines)
+    i_if_indent = len(lines[i_if]) - len(lines[i_if].lstrip())
+    i_fill = find_line_with("->Fill()", lines)
+    i_fill_indent = len(lines[i_fill]) - len(lines[i_fill].lstrip())
+    assert i_if_indent < i_fill_indent
+
+
+def test_where_top_level_loop_select_dict_flipped():
+    "Dict request, with jet pt first, and event info second"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: 1 > 10)
+        .Select(
+            lambda e: {
+                "run": e.EventInfo("info").run_number(),
+                "pt": [j.pt() for j in e.Jets("hi")],
+            }
+        )
         .value()
     )
 
