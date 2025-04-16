@@ -332,7 +332,7 @@ def test_where_top_level_loop_select_late_select():
 
 
 def test_where_top_level_select():
-    "If we put an array selection after a top level loop, make sure if statement is right"
+    "No arrays are harmed in this test"
     r = (
         atlas_xaod_dataset()
         .Where(lambda e: 1 > 10)
