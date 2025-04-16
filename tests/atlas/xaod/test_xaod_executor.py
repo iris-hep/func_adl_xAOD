@@ -106,12 +106,12 @@ def test_output_datatype_string():
             {
                 "metadata_type": "add_method_type_info",
                 "type_string": "xAOD::Jet",
-                "method_name": "astring",
+                "method_name": "a_string",
                 "return_type": "string",
             }
         )
         .SelectMany(lambda e: e.Jets("AntiKt4EMTopoJets"))
-        .Select(lambda j: j.astring())
+        .Select(lambda j: j.a_string())
         .value()
     )
     # Check to see if there mention of push_back anywhere.
@@ -169,7 +169,7 @@ def test_builtin_sin_function_math_import():
     assert "->pt()" in lines[l_abs]
 
 
-def test_ifexpr():
+def test_if_expr():
     r = (
         atlas_xaod_dataset(qastle_roundtrip=True)
         .SelectMany(
@@ -201,6 +201,227 @@ def test_constant():
     assert lines[push_line[0] + 1].strip() == "}"
 
 
+def test_constant_non_nested():
+    r = (
+        atlas_xaod_dataset(qastle_roundtrip=True)
+        .Select(lambda e: e.Jets("AntiKt4EMTopoJets"))
+        .Select(lambda jets: [1.0 for j in jets])
+        .value()
+    )
+    # Make sure that a test around 10.0 occurs.
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+    push_line = [index for index, line in enumerate(lines) if "push_back(1.0)" in line]
+    assert len(push_line) == 1
+    assert lines[push_line[0] + 1].strip() == "}"
+
+
+def test_where_at_top_level():
+    "Complex top level cut does not get C++ if statement in right place"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: e.EventInfo("event_info").run_number > 10)
+        .Select(lambda e: e.Jets("hi").Count())
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_jet = find_line_with("const xAOD::JetContainer* jets", lines)
+    i_fill = find_line_with("->Fill()", lines)
+    assert len(lines[i_jet]) - len(lines[i_jet].lstrip()) == len(lines[i_fill]) - len(
+        lines[i_fill].lstrip()
+    )
+
+
+def test_where_at_top_level_sub_count():
+    "Complex top level cut does not get C++ if statement in right place"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: e.Jets("hi").Count() > 0)
+        .Select(lambda e: e.Jets("hi").Count())
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_fill = find_line_with("->Fill()", lines)
+    assert 4 == len(lines[i_fill]) - len(lines[i_fill].lstrip())
+
+
+def test_where_at_top_level_First():
+    "Complex top level cut does not get C++ if statement in right place"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: e.Jets("hi").First().pt() > 1001.0)
+        .Select(lambda e: e.Jets("hi").Count())
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_pt_test = find_line_with(">1001.0", lines)
+    i_fill = find_line_with("->Fill()", lines)
+    assert (len(lines[i_pt_test]) - len(lines[i_pt_test].lstrip()) + 2) == len(
+        lines[i_fill]
+    ) - len(lines[i_fill].lstrip())
+
+
+def test_where_at_top_level_First_and_count():
+    "Complex top level cut does not get C++ if statement in right place"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: len(e.Jets("hi")) > 10 and e.Jets("hi").First().pt() > 1001.0)
+        .Select(lambda e: e.Jets("hi").Count())
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_pt_test = find_line_with(">1001.0", lines)
+    i_fill = find_line_with("->Fill()", lines)
+    assert 4 == len(lines[i_fill]) - len(lines[i_fill].lstrip())
+
+
+def test_where_top_level_loop_select():
+    "If we put an array selection after a top level loop, make sure if statement is right"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: 1 > 10)
+        .Select(lambda e: [j.pt() for j in e.Jets("hi")])
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_if = find_line_with("1>10", lines)
+    i_if_indent = len(lines[i_if]) - len(lines[i_if].lstrip())
+    i_fill = find_line_with("->Fill()", lines)
+    i_fill_indent = len(lines[i_fill]) - len(lines[i_fill].lstrip())
+    assert i_if_indent < i_fill_indent
+
+
+def test_where_top_level_loop_select_late_select():
+    "If we put an array selection after a top level loop, make sure if statement is right"
+    r = (
+        atlas_xaod_dataset()
+        .Select(lambda e: [j.pt() for j in e.Jets("hi")])
+        .Where(lambda e: 1 > 10)
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_if = find_line_with("1>10", lines)
+    i_if_indent = len(lines[i_if]) - len(lines[i_if].lstrip())
+    i_fill = find_line_with("->Fill()", lines)
+    i_fill_indent = len(lines[i_fill]) - len(lines[i_fill].lstrip())
+    assert i_if_indent < i_fill_indent
+
+
+def test_where_top_level_select():
+    "No arrays are harmed in this test"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: 1 > 10)
+        .Select(lambda e: e.EventInfo("info").run_number)
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_if = find_line_with("1>10", lines)
+    i_if_indent = len(lines[i_if]) - len(lines[i_if].lstrip())
+    i_fill = find_line_with("->Fill()", lines)
+    i_fill_indent = len(lines[i_fill]) - len(lines[i_fill].lstrip())
+    assert i_if_indent < i_fill_indent
+
+
+def test_where_top_level_loop_select_many():
+    "If we put an array selection after a top level loop, make sure if statement is right"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: 1 > 10)
+        .SelectMany(lambda e: e.Jets("hi"))
+        .Select(lambda j: j.pt())
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_if = find_line_with("1>10", lines)
+    i_if_indent = len(lines[i_if]) - len(lines[i_if].lstrip())
+    i_fill = find_line_with("->Fill()", lines)
+    i_fill_indent = len(lines[i_fill]) - len(lines[i_fill].lstrip())
+    assert i_if_indent < i_fill_indent
+
+
+def test_where_top_level_loop_select_dict():
+    "Dict request, with jet pt first, and event info second"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: 1 > 10)
+        .Select(
+            lambda e: {
+                "pt": [j.pt() for j in e.Jets("hi")],
+                "run": e.EventInfo("info").run_number(),
+            }
+        )
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_if = find_line_with("1>10", lines)
+    i_if_indent = len(lines[i_if]) - len(lines[i_if].lstrip())
+    i_fill = find_line_with("->Fill()", lines)
+    i_fill_indent = len(lines[i_fill]) - len(lines[i_fill].lstrip())
+    assert i_if_indent < i_fill_indent
+
+
+def test_where_top_level_loop_select_dict_flipped():
+    "Dict request, with jet pt first, and event info second"
+    r = (
+        atlas_xaod_dataset()
+        .Where(lambda e: 1 > 10)
+        .Select(
+            lambda e: {
+                "run": e.EventInfo("info").run_number(),
+                "pt": [j.pt() for j in e.Jets("hi")],
+            }
+        )
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_if = find_line_with("1>10", lines)
+    i_if_indent = len(lines[i_if]) - len(lines[i_if].lstrip())
+    i_fill = find_line_with("->Fill()", lines)
+    i_fill_indent = len(lines[i_fill]) - len(lines[i_fill].lstrip())
+    assert i_if_indent < i_fill_indent
+
+
 def test_per_jet_item_with_where():
     # The following statement should be a straight sequence, not an array.
     r = (
@@ -213,8 +434,8 @@ def test_per_jet_item_with_where():
     # Make sure that the tree Fill is at the same level as the _JetPts2 getting set.
     lines = get_lines_of_code(r)
     print_lines(lines)
-    l_jetpt = find_line_with("_JetPts", lines)
-    assert "Fill()" in lines[l_jetpt + 1]
+    l_jet_pt = find_line_with("_JetPts", lines)
+    assert "Fill()" in lines[l_jet_pt + 1]
 
 
 def test_and_clause_in_where():
@@ -334,8 +555,8 @@ def test_result_awkward():
     # Make sure that the tree Fill is at the same level as the _JetPts2 getting set.
     lines = get_lines_of_code(r)
     print_lines(lines)
-    l_jetpt = find_line_with("_col1", lines)
-    assert "Fill()" in lines[l_jetpt + 1]
+    l_jet_pt = find_line_with("_col1", lines)
+    assert "Fill()" in lines[l_jet_pt + 1]
 
 
 def test_per_jet_item_with_event_level():
@@ -359,11 +580,11 @@ def test_per_jet_item_with_event_level():
     )
     lines = get_lines_of_code(r)
     print_lines(lines)
-    l_jetpt = find_line_with("_JetPt", lines)
-    l_runnum = find_line_with("_runNumber", lines)
+    l_jet_pt = find_line_with("_JetPt", lines)
+    l_run_num = find_line_with("_runNumber", lines)
     l_fill = find_line_with("->Fill()", lines)
-    assert l_jetpt + 1 == l_runnum
-    assert l_runnum + 1 == l_fill
+    assert l_jet_pt + 1 == l_run_num
+    assert l_run_num + 1 == l_fill
 
 
 def test_func_sin_call():
@@ -713,10 +934,10 @@ def test_per_jet_with_matching():
     )
     lines = get_lines_of_code(r)
     print_lines(lines)
-    l_jetpt = find_line_with("_JetPts", lines)
+    l_jet_pt = find_line_with("_JetPts", lines)
     l_nllp = find_line_with("_NumLLPs", lines)
     l_fill = find_line_with("->Fill()", lines)
-    assert l_jetpt + 1 == l_nllp
+    assert l_jet_pt + 1 == l_nllp
     assert l_nllp + 1 == l_fill
 
 
@@ -751,10 +972,10 @@ def test_per_jet_with_matching_and_zeros():
     )
     lines = get_lines_of_code(r)
     print_lines(lines)
-    l_jetpt = find_line_with("_JetPts", lines)
+    l_jet_pt = find_line_with("_JetPts", lines)
     l_nllp = find_line_with("_NumLLPs", lines)
     l_fill = find_line_with("->Fill()", lines)
-    assert l_jetpt + 1 == l_nllp
+    assert l_jet_pt + 1 == l_nllp
     assert l_nllp + 1 == l_fill
 
 
@@ -790,7 +1011,7 @@ def test_per_jet_with_Count_matching():
                 0 if ji[1].Count() == 0 else ji[1].First().prodVtx().y(),
             )
         )
-        .Where(lambda jall: jall[0] > 40.0)
+        .Where(lambda j_all: j_all[0] > 40.0)
         .value()
     )
     lines = get_lines_of_code(r)
@@ -830,7 +1051,7 @@ def test_per_jet_with_delta():
                 ),
             )
         )
-        .Where(lambda jall: jall[0] > 40.0)
+        .Where(lambda j_all: j_all[0] > 40.0)
         .value()
     )
     lines = get_lines_of_code(r)
@@ -872,10 +1093,10 @@ def test_per_jet_with_matching_and_zeros_and_sum():
     )
     lines = get_lines_of_code(r)
     print_lines(lines)
-    l_jetpt = find_line_with("_JetPts", lines)
+    l_jet_pt = find_line_with("_JetPts", lines)
     l_nllp = find_line_with("_NumLLPs", lines)
     l_fill = find_line_with("->Fill()", lines)
-    assert l_jetpt + 1 == l_nllp
+    assert l_jet_pt + 1 == l_nllp
     assert l_nllp + 2 == l_fill
 
 

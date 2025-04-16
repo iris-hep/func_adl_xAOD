@@ -81,15 +81,16 @@ def test_First_Of_Select_is_not_array():
     lines = get_lines_of_code(r)
     print_lines(lines)
     assert all("push_back" not in ln for ln in lines)
+
+    # The indent of the "fill" should be at the same level as the
+    # test to make sure that the First() ran ok (e.g. is_firstX test).
     l_fill = find_line_with("Fill()", lines)
-    active_blocks = find_open_blocks(lines[:l_fill])
-    assert 3 == [(("for" in a) or ("if" in a)) for a in active_blocks].count(True)
-    l_set = find_line_with("_FirstJetPt", lines)
-    active_blocks = find_open_blocks(lines[:l_set])
-    assert 3 == [(("for" in a) or ("if" in a)) for a in active_blocks].count(True)
-    l_true = find_line_with("(true)", lines)
-    active_blocks = find_open_blocks(lines[:l_true])
-    assert 0 == [(("for" in a) or ("if" in a)) for a in active_blocks].count(True)
+    l_first_tests = find_line_numbers_with("if (is_first", lines)
+    assert len(l_first_tests) == 2
+    l_first_test = l_first_tests[1]
+
+    # Ensure the indent columns in lines[l_fill] and lines[l_first_test] are the same
+    assert lines[l_fill].startswith(" " * (len(lines[l_first_test]) - len(lines[l_first_test].lstrip())))
 
 
 def test_First_Of_Select_After_Where_is_in_right_place():

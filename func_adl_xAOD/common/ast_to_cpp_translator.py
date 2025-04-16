@@ -144,6 +144,41 @@ def _extract_column_names(names_ast: ast.AST) -> List[str]:
     return names
 
 
+def find_fill_scope(a: ast.AST) -> ast.AST:
+    """Returns the ast of the item where we would want to put the fill
+    statement for building an ntuple. Does this by walking the tree and finding
+    the lowest mainline term (e.g. event level scoping).
+
+    Args:
+        a (ast.expr): The full query ast.
+
+    Returns:
+        ast.expr: The ast.Call that represents where the
+                  Fill should be.
+    """
+
+    class find_where(ast.NodeVisitor):
+        def __init__(self):
+            super().__init__()
+            self._node = None
+
+        @property
+        def fill_node(self) -> ast.AST:
+            if self._node is None:
+                raise RuntimeError("Could not find fill node!")
+            return self._node
+
+        def visit_Call(self, node: ast.Call):
+            if isinstance(node.func, ast.Name):
+                if self._node is None and node.func.id in ["Where", "EventDataset", "SelectMany"]:
+                    self._node = node
+            self.generic_visit(node)
+
+    finder = find_where()
+    finder.visit(a)
+    return finder.fill_node
+
+
 class query_ast_visitor(FuncADLNodeVisitor, ABC):
     r"""
     Drive the conversion to C++ from the top level query
@@ -257,21 +292,23 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         if not isinstance(r, crep.cpp_sequence):
             raise ValueError(f"Do not know how to convert {r} into a ROOT file")
 
-        # If this is a dict, then pull out each item and re-assemble into a tuple
-        # which we can feed to the root guy.
+        # We now wrap this in a call to ResultTTree.
         values = r.sequence_value()
         if isinstance(values, crep.cpp_dict):
+            # If this is a dict, then pull out each item and re-assemble into a tuple
+            # which we can feed to the root guy. The ResultTTree call can only
+            # deal with tuples - it can't directly deal with dictionaries!
             values = cast(crep.cpp_dict, values)
             col_values = values.value_dict.values()
             col_names = ast.List(elts=list(values.value_dict.keys()))
             s_tuple = crep.cpp_tuple(tuple(col_values), values.scope())
             tuple_sequence = crep.cpp_sequence(s_tuple, r.iterator_value(), r.scope())  # type: ignore
-            ast_dummy_source = ast.Constant(value=1)
-            crep.set_rep(ast_dummy_source, tuple_sequence)
+            crep.set_rep(node, tuple_sequence)
+            assert isinstance(node, ast.expr)  # making sure that types are correct.
             ast_ttree = function_call(
                 "ResultTTree",
                 [
-                    ast_dummy_source,
+                    node,
                     col_names,
                     ast.parse(f'"{self._prefix}_tree"').body[0].value,  # type: ignore
                     ast.parse(f'"{self._prefix}_output"').body[0].value,  # type: ignore
@@ -959,7 +996,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
     def visit_BoolOp(self, node):
         """A bool op like And or Or on a set of values
-        This is a bit more complex than just "anding" things as we want to make sure to short-circuit the
+        This is a bit more complex than just "and"-ing things as we want to make sure to short-circuit the
         evaluation if we need to.
         """
 
@@ -1202,8 +1239,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         # For each variable we need to save, cache it or push it back, depending.
         # Make sure that it happens at the proper scope, where what we are after is defined!
         s_orig = self._gc.current_scope()
+        scope_fill = self.as_sequence(find_fill_scope(source)).scope()
         for e_rep, e_name in zip(seq_values.values(), var_names):
-            scope_fill = self.code_fill_ttree(e_rep, e_name[1], iterator_scope)
+            self.code_fill_ttree(e_rep, e_name[1], scope_fill)
 
         # The fill statement. This should happen at the scope where the tuple was defined.
         # The scope where this should be done is a bit tricky (note the update above):
