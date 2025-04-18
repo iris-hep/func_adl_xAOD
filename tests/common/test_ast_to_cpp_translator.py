@@ -2,7 +2,6 @@ import ast
 from typing import Callable
 
 from func_adl import ObjectStream
-from pandas.tests.api import test_types
 
 import func_adl_xAOD.common.cpp_representation as crep
 import func_adl_xAOD.common.cpp_types as ctyp

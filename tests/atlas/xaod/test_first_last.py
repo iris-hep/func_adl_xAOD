@@ -1,6 +1,6 @@
 # Code to do the testing starts here.
 import func_adl_xAOD.common.cpp_types as ctyp
-from tests.utils.locators import find_line_numbers_with, find_line_with, find_next_closing_bracket, find_open_blocks  # type: ignore
+from tests.utils.locators import find_line_numbers_with, find_line_with, find_next_closing_bracket  # type: ignore
 from tests.utils.general import get_lines_of_code, print_lines  # type: ignore
 from tests.atlas.xaod.utils import atlas_xaod_dataset  # type: ignore
 import re
@@ -90,7 +90,9 @@ def test_First_Of_Select_is_not_array():
     l_first_test = l_first_tests[1]
 
     # Ensure the indent columns in lines[l_fill] and lines[l_first_test] are the same
-    assert lines[l_fill].startswith(" " * (len(lines[l_first_test]) - len(lines[l_first_test].lstrip())))
+    assert lines[l_fill].startswith(
+        " " * (len(lines[l_first_test]) - len(lines[l_first_test].lstrip()))
+    )
 
 
 def test_First_Of_Select_After_Where_is_in_right_place():

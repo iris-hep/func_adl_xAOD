@@ -286,7 +286,6 @@ def test_where_at_top_level_First_and_count():
     print_lines(lines)
 
     # Make sure we are grabbing the jet container and the fill at the same indent level.
-    i_pt_test = find_line_with(">1001.0", lines)
     i_fill = find_line_with("->Fill()", lines)
     assert 4 == len(lines[i_fill]) - len(lines[i_fill].lstrip())
 
@@ -439,7 +438,7 @@ def test_per_jet_item_with_where():
 
 
 def test_where_in_sub_select():
-    "We have an if statement buried in a loop - make sure pushback is done right"
+    "We have an if statement buried in a loop - make sure push_back is done right"
     r = (
         atlas_xaod_dataset()
         .Select(
