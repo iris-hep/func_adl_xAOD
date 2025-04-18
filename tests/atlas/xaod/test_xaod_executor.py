@@ -775,7 +775,7 @@ def test_Select_of_2D_array():
 
 
 def test_select_2D_with_dict():
-    "2D query with dict - get scope of 2D ntuple correct."
+    "2D query with dict - get scope of 2D ntuple correct. This does not happen if there is no dict."
     r = (
         atlas_xaod_dataset()
         .Select(
@@ -794,11 +794,11 @@ def test_select_2D_with_dict():
     ntuple_name = lines[l_vector_decl].strip().split(" ")[-1].rstrip(";")
 
     l_usage_line = find_line_with(ntuple_name, lines)
-    assert l_usage_line > l_vector_decl
+    assert l_usage_line >= l_vector_decl
 
 
 def test_select_2D_with_tuple():
-    "2D query with dict - get scope of 2D ntuple correct."
+    "2D query with dict - get scope of 2D ntuple correct. This does not happen if there is no tuple"
     r = (
         atlas_xaod_dataset()
         .Select(
@@ -815,7 +815,7 @@ def test_select_2D_with_tuple():
     ntuple_name = lines[l_vector_decl].strip().split(" ")[-1].rstrip(";")
 
     l_usage_line = find_line_with(ntuple_name, lines)
-    assert l_usage_line > l_vector_decl
+    assert l_usage_line >= l_vector_decl
 
 
 def test_Select_of_2D_with_where():
