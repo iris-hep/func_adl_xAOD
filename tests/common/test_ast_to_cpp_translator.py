@@ -2,7 +2,6 @@ import ast
 from typing import Callable
 
 from func_adl import ObjectStream
-from pandas.tests.api import test_types
 
 import func_adl_xAOD.common.cpp_representation as crep
 import func_adl_xAOD.common.cpp_types as ctyp
@@ -55,7 +54,7 @@ def get_ast(r: ObjectStream, t="int", is_collection: bool = False) -> ast.AST:
         )
 
     file = find_EventDataset(r.query_ast)
-    crep.set_rep(file, crep.cpp_sequence(iterator, iterator, top_level_scope()))
+    crep.set_rep(file, crep.cpp_sequence(iterator, iterator, top_level_scope(), file))
 
     return my_executor([], "my_runner", "template_name", {}).apply_ast_transformations(
         r.query_ast

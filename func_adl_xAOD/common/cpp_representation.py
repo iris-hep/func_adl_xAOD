@@ -307,6 +307,7 @@ class cpp_sequence(cpp_rep_base):
         sequence_value: Union[cpp_value, cpp_sequence],
         iterator_value: cpp_value,
         scope: Union[gc_scope_top_level, gc_scope],
+        node: ast.expr,
     ):
         """
         Create a sequence
@@ -320,12 +321,14 @@ class cpp_sequence(cpp_rep_base):
                                 inside the if statement of the Where, while the iterator will be at the scope of
                                 the original declaration. If the `sequence_value` is an actual value, it will have
                                 the same scope.
+        node:                   The AST node associated with this sequence.
         """
         cpp_rep_base.__init__(self)
         self._sequence = sequence_value
         self._iterator = iterator_value
         self._type: Optional[ctyp.collection] = None
         self._scope = scope
+        self._node = node
 
     def sequence_value(self):
         return self._sequence
@@ -344,6 +347,10 @@ class cpp_sequence(cpp_rep_base):
     def scope(self) -> Union[gc_scope, gc_scope_top_level]:
         "Return scope where this sequence was created/valid"
         return self._scope
+
+    def node(self) -> ast.expr:
+        "Node in ast tree where this sequence is defined."
+        return self._node
 
 
 def set_rep(node: ast.AST, value: cpp_rep_base, scope: Optional[Any] = None):

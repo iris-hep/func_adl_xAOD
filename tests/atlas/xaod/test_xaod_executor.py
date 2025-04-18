@@ -286,7 +286,6 @@ def test_where_at_top_level_First_and_count():
     print_lines(lines)
 
     # Make sure we are grabbing the jet container and the fill at the same indent level.
-    i_pt_test = find_line_with(">1001.0", lines)
     i_fill = find_line_with("->Fill()", lines)
     assert 4 == len(lines[i_fill]) - len(lines[i_fill].lstrip())
 
@@ -436,6 +435,29 @@ def test_per_jet_item_with_where():
     print_lines(lines)
     l_jet_pt = find_line_with("_JetPts", lines)
     assert "Fill()" in lines[l_jet_pt + 1]
+
+
+def test_where_in_sub_select():
+    "We have an if statement buried in a loop - make sure push_back is done right"
+    r = (
+        atlas_xaod_dataset()
+        .Select(
+            lambda e: [
+                [t.pt for t in e.Tracks("hi")] for j in e.Jets("hi") if j.pt() > 10
+            ]
+        )
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    # Make sure we are grabbing the jet container and the fill at the same indent level.
+    i_if = find_line_with("pt()>10", lines)
+    i_if_indent = len(lines[i_if]) - len(lines[i_if].lstrip())
+    i_fill = find_line_with(".push_back(ntuple", lines)
+    i_fill_indent = len(lines[i_fill]) - len(lines[i_fill].lstrip())
+    assert i_if_indent < i_fill_indent
 
 
 def test_and_clause_in_where():

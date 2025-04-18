@@ -272,7 +272,9 @@ class executor(ABC):
         iterator = crep.cpp_variable(
             "bogus-do-not-use", top_level_scope(), cpp_type=None
         )
-        crep.set_rep(file, crep.cpp_sequence(iterator, iterator, top_level_scope()))
+        crep.set_rep(
+            file, crep.cpp_sequence(iterator, iterator, top_level_scope(), file)
+        )
 
         # Visit the AST to generate the code structure and find out what the
         # result is going to be.

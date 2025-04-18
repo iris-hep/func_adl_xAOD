@@ -39,7 +39,9 @@ class CMSminiAODDockerException(Exception):
 
 class CMSminiAODLocalFile(LocalFile):
     def __init__(self, local_files: Union[Path, List[Path]]):
-        super().__init__("cmsopendata/cmssw_7_6_7-slc6_amd64_gcc493", "Analyzer.cc", local_files)
+        super().__init__(
+            "cmsopendata/cmssw_7_6_7-slc6_amd64_gcc493", "Analyzer.cc", local_files
+        )
 
     def raise_docker_exception(self, message: str):
         raise CMSminiAODDockerException(message)
@@ -49,16 +51,18 @@ class CMSminiAODLocalFile(LocalFile):
 
 
 async def exe_from_qastle(q: str):
-    'Dummy executor that will return the ast properly rendered. If qastle_roundtrip is true, then we will round trip the ast via qastle first.'
+    "Dummy executor that will return the ast properly rendered. If qastle_roundtrip is true, then we will round trip the ast via qastle first."
     # Round trip qastle if requested.
     import qastle
+
     a = qastle.text_ast_to_python_ast(q).body[0].value
 
     # Setup the rep for this filter
     from func_adl import find_EventDataset
+
     file = find_EventDataset(a)
     iterator = cpp_variable("bogus-do-not-use", top_level_scope(), cpp_type=None)
-    set_rep(file, cpp_sequence(iterator, iterator, top_level_scope()))
+    set_rep(file, cpp_sequence(iterator, iterator, top_level_scope(), file))
 
     # Use the dummy executor to process this, and return it.
     exe = dummy_executor()  # type: ignore
@@ -67,7 +71,7 @@ async def exe_from_qastle(q: str):
 
 
 def load_root_as_pandas(file: Path) -> pd.DataFrame:
-    '''Given the result from a query as a ROOT file path, return
+    """Given the result from a query as a ROOT file path, return
     the contents as a pandas dataframe.
 
     Args:
@@ -75,16 +79,16 @@ def load_root_as_pandas(file: Path) -> pd.DataFrame:
 
     Returns:
         pandas.DataFrame: [description]
-    '''
+    """
     assert isinstance(file, Path)
     assert file.exists()
 
     with uproot.open(file) as input:
-        return input['cms_miniaod_tree'].arrays(library='pd')  # type: ignore
+        return input["cms_miniaod_tree"].arrays(library="pd")  # type: ignore
 
 
 def load_root_as_awkward(file: Path) -> ak.Array:
-    '''Given the result from a query as a ROOT file path, return
+    """Given the result from a query as a ROOT file path, return
     the contents as a pandas dataframe.
 
     Args:
@@ -92,52 +96,54 @@ def load_root_as_awkward(file: Path) -> ak.Array:
 
     Returns:
         pandas.DataFrame: [description]
-    '''
+    """
     assert isinstance(file, Path)
     assert file.exists()
 
     with uproot.open(file) as input:
-        return input['demo/cms_miniaod_tree'].arrays()  # type: ignore
+        return input["demo/cms_miniaod_tree"].arrays()  # type: ignore
 
 
 def as_pandas(o: ObjectStream) -> pd.DataFrame:
-    '''Return a query as a pandas dataframe.
+    """Return a query as a pandas dataframe.
 
     Args:
         o (ObjectStream): The query
 
     Returns:
         pd.DataFrame: The result
-    '''
+    """
     return load_root_as_pandas(o.value())
 
 
 def as_awkward(o: ObjectStream) -> ak.Array:
-    '''Return a query as a pandas dataframe.
+    """Return a query as a pandas dataframe.
 
     Args:
         o (ObjectStream): The query
 
     Returns:
         pd.DataFrame: The result
-    '''
+    """
     return load_root_as_awkward(o.value())
 
 
 async def as_pandas_async(o: ObjectStream) -> pd.DataFrame:
-    '''Return a query as a pandas dataframe.
+    """Return a query as a pandas dataframe.
 
     Args:
         o (ObjectStream): The query
 
     Returns:
         pd.DataFrame: The result
-    '''
+    """
     return load_root_as_pandas(await o.value_async())
 
 
-def ast_parse_with_replacement(ast_string: str, replacements: Dict[str, ast.AST]) -> ast.AST:
-    '''Returns an ast, where any ast.Name elements are replaced by the ast that is in
+def ast_parse_with_replacement(
+    ast_string: str, replacements: Dict[str, ast.AST]
+) -> ast.AST:
+    """Returns an ast, where any ast.Name elements are replaced by the ast that is in
     the dict.
 
     Args:
@@ -146,7 +152,7 @@ def ast_parse_with_replacement(ast_string: str, replacements: Dict[str, ast.AST]
 
     Returns:
         (ast.AST): Ast from the parse, with the names replaced.
-    '''
+    """
     a = ast.parse(ast_string)
 
     class replacer(ast.NodeTransformer):

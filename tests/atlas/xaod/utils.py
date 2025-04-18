@@ -60,7 +60,7 @@ async def exe_from_qastle(q: str):
 
     file = find_EventDataset(a)
     iterator = cpp_variable("bogus-do-not-use", top_level_scope(), cpp_type=None)
-    set_rep(file, cpp_sequence(iterator, iterator, top_level_scope()))
+    set_rep(file, cpp_sequence(iterator, iterator, top_level_scope(), file))
 
     # Use the dummy executor to process this, and return it.
     exe = atlas_xaod_dummy_executor()

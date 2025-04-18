@@ -166,6 +166,7 @@ def test_as_root_as_dict():
         dict_obj,  # type: ignore
         crep.cpp_value("i", gc_scope_top_level(), ctyp.terminal("int")),
         gc_scope_top_level(),
+        node,
     )
     node.rep = sequence  # type: ignore
     as_root = q.get_as_ROOT(node)
@@ -181,6 +182,7 @@ def test_as_root_as_single_column():
         value_obj,
         crep.cpp_value("i", gc_scope_top_level(), ctyp.terminal("int")),
         gc_scope_top_level(),
+        node,
     )
     node.rep = sequence  # type: ignore
     as_root = q.get_as_ROOT(node)
@@ -200,6 +202,7 @@ def test_as_root_as_tuple():
         value_obj,  # type: ignore
         crep.cpp_value("i", gc_scope_top_level(), ctyp.terminal("int")),
         gc_scope_top_level(),
+        node,
     )
     node.rep = sequence  # type: ignore
     as_root = q.get_as_ROOT(node)
