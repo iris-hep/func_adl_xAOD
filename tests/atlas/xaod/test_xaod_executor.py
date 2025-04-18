@@ -774,6 +774,50 @@ def test_Select_of_2D_array():
     assert (l_second_push_active + 1) == l_first_push_active
 
 
+def test_select_2D_with_dict():
+    "2D query with dict - get scope of 2D ntuple correct. This does not happen if there is no dict."
+    r = (
+        atlas_xaod_dataset()
+        .Select(
+            lambda e: {
+                "data": [
+                    [ele.pt() for ele in e.Electrons("hie")] for j in e.Jets("hij")
+                ]
+            }
+        )
+        .value()
+    )
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    l_vector_decl = find_line_with("vector<double>", lines)
+    ntuple_name = lines[l_vector_decl].strip().split(" ")[-1].rstrip(";")
+
+    l_usage_line = find_line_with(ntuple_name, lines)
+    assert l_usage_line >= l_vector_decl
+
+
+def test_select_2D_with_tuple():
+    "2D query with dict - get scope of 2D ntuple correct. This does not happen if there is no tuple"
+    r = (
+        atlas_xaod_dataset()
+        .Select(
+            lambda e: (
+                [[ele.pt() for ele in e.Electrons("hie")] for j in e.Jets("hij")],
+            )
+        )
+        .value()
+    )
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    l_vector_decl = find_line_with("vector<double>", lines)
+    ntuple_name = lines[l_vector_decl].strip().split(" ")[-1].rstrip(";")
+
+    l_usage_line = find_line_with(ntuple_name, lines)
+    assert l_usage_line >= l_vector_decl
+
+
 def test_Select_of_2D_with_where():
     # This should generate a 2D array.
     r = (

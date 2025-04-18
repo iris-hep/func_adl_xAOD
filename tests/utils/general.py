@@ -1,7 +1,7 @@
 from typing import List
 
 
-def get_lines_of_code(executor) -> List[str]:
+def get_lines_of_code_qv(qv) -> List[str]:
     "Return all lines of code"
 
     class dummy_emitter:
@@ -22,10 +22,13 @@ def get_lines_of_code(executor) -> List[str]:
             func(self)
             return self
 
-    qv = executor.QueryVisitor
     d = dummy_emitter()
     qv.emit_query(d)
     return d.Lines
+
+
+def get_lines_of_code(executor) -> List[str]:
+    return get_lines_of_code_qv(executor.QueryVisitor)
 
 
 def print_lines(lines):
