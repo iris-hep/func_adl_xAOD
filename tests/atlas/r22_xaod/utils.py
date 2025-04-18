@@ -62,7 +62,7 @@ async def exe_from_qastle(q: str):
 
     file = find_EventDataset(a)
     iterator = cpp_variable("bogus-do-not-use", top_level_scope(), cpp_type=None)
-    set_rep(file, cpp_sequence(iterator, iterator, top_level_scope()))
+    set_rep(file, cpp_sequence(iterator, iterator, top_level_scope(), file))
 
     # Use the dummy executor to process this, and return it.
     exe = atlas_xaodr22_dummy_executor()
@@ -83,7 +83,7 @@ def load_root_as_pandas(file: Path) -> pd.DataFrame:
     assert isinstance(file, Path)
     assert file.exists()
 
-    with uproot.open(file) as input:
+    with uproot.open(file) as input:  # type: ignore
         return input["atlas_xaod_tree"].arrays(library="pd")  # type: ignore
 
 
@@ -100,7 +100,7 @@ def load_root_as_awkward(file: Path) -> ak.Array:
     assert isinstance(file, Path)
     assert file.exists()
 
-    with uproot.open(file) as input:
+    with uproot.open(file) as input:  # type: ignore
         return input["atlas_xaod_tree"].arrays()  # type: ignore
 
 

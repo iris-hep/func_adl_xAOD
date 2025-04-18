@@ -1,3 +1,4 @@
+import ast
 import func_adl_xAOD.common.cpp_representation as crep
 import func_adl_xAOD.common.cpp_types as ctyp
 import pytest
@@ -72,7 +73,7 @@ def test_sequence_type():
     s_value = crep.cpp_value("0.0", tc, ctyp.terminal("int", False))
     i_value = crep.cpp_value("1.0", tc, ctyp.terminal("object", False))
 
-    seq = crep.cpp_sequence(s_value, i_value, tc)
+    seq = crep.cpp_sequence(s_value, i_value, tc, ast.Name("sequence_name"))
 
     assert seq.sequence_value().cpp_type().type == "int"
 
@@ -82,8 +83,8 @@ def test_sequence_type_2():
     s_value = crep.cpp_value("0.0", tc, ctyp.terminal("int", False))
     i_value = crep.cpp_value("1.0", tc, ctyp.terminal("object", False))
 
-    seq = crep.cpp_sequence(s_value, i_value, tc)
-    seq_array = crep.cpp_sequence(seq, i_value, tc)
+    seq = crep.cpp_sequence(s_value, i_value, tc, ast.Name("sequence_name"))
+    seq_array = crep.cpp_sequence(seq, i_value, tc, ast.Name("sequence_name"))
 
     assert seq_array.sequence_value().cpp_type().type == "std::vector<int>"
 
