@@ -144,7 +144,7 @@ def _extract_column_names(names_ast: ast.AST) -> List[str]:
     return names
 
 
-def find_fill_scope(a: ast.AST) -> ast.AST:
+def find_fill_scope(a: ast.AST) -> ast.expr:
     """Returns the ast of the item where we would want to put the fill
     statement for building an ntuple. Does this by walking the tree and finding
     the lowest mainline term (e.g. event level scoping).
@@ -169,14 +169,21 @@ def find_fill_scope(a: ast.AST) -> ast.AST:
             return self._node
 
         def visit_Call(self, node: ast.Call):
-            if isinstance(node.func, ast.Name):
-                if self._node is None and node.func.id in ["Where", "EventDataset", "SelectMany"]:
+            if self._node is None:
+                if isinstance(node.func, ast.Name):
+                    if node.func.id in [
+                        "Where",
+                        "EventDataset",
+                        "SelectMany",
+                    ]:
+                        self._node = node
+                if isinstance(node.func, cpp_ast.CPPCodeValue):
                     self._node = node
-            self.generic_visit(node)
+                self.generic_visit(node)
 
     finder = find_where()
     finder.visit(a)
-    return finder.fill_node
+    return cast(ast.expr, finder.fill_node)
 
 
 class query_ast_visitor(FuncADLNodeVisitor, ABC):
@@ -302,7 +309,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             col_values = values.value_dict.values()
             col_names = ast.List(elts=list(values.value_dict.keys()))
             s_tuple = crep.cpp_tuple(tuple(col_values), values.scope())
-            tuple_sequence = crep.cpp_sequence(s_tuple, r.iterator_value(), r.scope())  # type: ignore
+            tuple_sequence = crep.cpp_sequence(s_tuple, r.iterator_value(), r.scope(), node)  # type: ignore
             crep.set_rep(node, tuple_sequence)
             assert isinstance(node, ast.expr)  # making sure that types are correct.
             ast_ttree = function_call(
@@ -383,7 +390,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         return None
 
     def make_sequence_from_collection(
-        self, rep: crep.cpp_collection
+        self, rep: crep.cpp_collection, node: ast.expr
     ) -> crep.cpp_sequence:
         """
         Take a collection and produce a sequence. Eventually this should likely be some sort of
@@ -404,10 +411,10 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # For a new sequence like this the sequence and iterator value are the same
         return crep.cpp_sequence(
-            iterator_value, iterator_value, self._gc.current_scope()
+            iterator_value, iterator_value, self._gc.current_scope(), node
         )
 
-    def as_sequence(self, generation_ast: ast.AST):
+    def as_sequence(self, generation_ast: ast.expr):
         r"""
         We will convert the generation_ast into a sequence if we can. If we can't, that indicates
         a likely programming error by this library or by the user.
@@ -434,7 +441,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # If this is a collection, then we need to turn it into a sequence.
         if isinstance(rep, crep.cpp_collection):
-            r = self.make_sequence_from_collection(rep)
+            r = self.make_sequence_from_collection(rep, generation_ast)
             self._gc.set_rep(rep, r)
             return r
 
@@ -1139,7 +1146,8 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
                 inner = seq.sequence_value()
                 scope = seq.scope()
                 if isinstance(inner, crep.cpp_sequence):
-                    scope = seq.iterator_value().scope()
+                    scope = self.as_sequence(find_fill_scope(seq.node())).scope()
+                    # scope = seq.iterator_value().scope()
                     storage = crep.cpp_variable(
                         unique_name("ntuple"), scope, cpp_type=inner.cpp_type()
                     )
@@ -1177,7 +1185,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         """This AST means we are taking an iterable and converting it to a ROOT file."""
         # Unpack the variables.
         assert len(args) == 4
-        source = args[0]
+        source = cast(ast.expr, args[0])
         column_names = _extract_column_names(args[1])
         tree_name = ast.literal_eval(args[2])
         assert isinstance(tree_name, str)
@@ -1267,7 +1275,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         assert isinstance(selection, ast.Lambda)
 
         # Make sure we are in a loop
-        seq = self.as_sequence(source)
+        seq = self.as_sequence(source)  # type: ignore
 
         # Simulate this as a "call"
         c = ast.Call(
@@ -1279,7 +1287,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # We need to build a new sequence.
         rep = crep.cpp_sequence(
-            new_sequence_value, seq.iterator_value(), self._gc.current_scope()
+            new_sequence_value, seq.iterator_value(), self._gc.current_scope(), node
         )
 
         crep.set_rep(node, rep)
@@ -1291,7 +1299,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         loop over that collection.
         """
         assert len(args) == 2
-        source = args[0]
+        source = cast(ast.expr, args[0])
         selection = args[1]
         assert isinstance(selection, ast.Lambda)
 
@@ -1316,11 +1324,11 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         crep.set_rep(node, seq)
         return seq
 
-    def call_Where(self, node: ast.AST, args: List[ast.AST]):
+    def call_Where(self, node: ast.expr, args: List[ast.AST]):
         "Apply a filtering to the current loop."
 
         assert len(args) == 2
-        source = args[0]
+        source = cast(ast.expr, args[0])
         filter = args[1]
         assert isinstance(filter, ast.Lambda)
 
@@ -1350,7 +1358,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         crep.set_rep(
             node,
             crep.cpp_sequence(
-                new_sequence_var, seq.iterator_value(), self._gc.current_scope()
+                new_sequence_var, seq.iterator_value(), self._gc.current_scope(), node
             ),
         )
 
@@ -1412,7 +1420,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         self._gc.add_statement(statement.arbitrary_statement(self.get_rep(c).as_cpp()))  # type: ignore
 
-        seq = self.make_sequence_from_collection(vector_value)
+        seq = self.make_sequence_from_collection(vector_value, node)
         crep.set_rep(node, seq)
         return seq
 
@@ -1421,7 +1429,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
         # Unpack the source here
         assert len(args) == 1
-        source = args[0]
+        source = cast(ast.expr, args[0])
 
         # Make sure we are in a loop.
         seq = self.as_sequence(source)
