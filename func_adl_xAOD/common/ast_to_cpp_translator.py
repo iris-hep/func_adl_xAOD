@@ -1146,8 +1146,12 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
                 inner = seq.sequence_value()
                 scope = seq.scope()
                 if isinstance(inner, crep.cpp_sequence):
+                    # The sequence should already be built. Getting it is a little
+                    # tricky in that if it was a collection, and it will have been rendered,
+                    # mapping between collections and sequences is stored on the scope stack.
+                    # So, reset the scope stack.
+                    self._gc.set_scope(scope)
                     scope = self.as_sequence(find_fill_scope(seq.node())).scope()
-                    # scope = seq.iterator_value().scope()
                     storage = crep.cpp_variable(
                         unique_name("ntuple"), scope, cpp_type=inner.cpp_type()
                     )
