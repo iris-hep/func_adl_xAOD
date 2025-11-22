@@ -61,6 +61,26 @@ def test_metadata_method():
     assert not t.r_type.is_a_pointer
 
 
+def test_metadata_method_2_clean():
+    "Make sure we lose type information between calls"
+
+    a1 = parse_statement(
+        "Select(MetaData(ds, {"
+        '"metadata_type": "add_method_type_info", '
+        '"type_string": "my_namespace::obj", '
+        '"method_name": "pT", '
+        '"return_type": "int", '
+        "}), lambda e: e + 1)"
+    )
+    _ = do_nothing_executor().apply_ast_transformations(a1)
+
+    a2 = parse_statement("Select(ds, lambda e: e + 1)")
+    _ = do_nothing_executor().apply_ast_transformations(a2)
+
+    t = method_type_info("my_namespace::obj", "pT")
+    assert t is None
+
+
 def test_metadata_cpp_code():
     "Make sure the metadata from a C++ bit of code is correctly put into type system"
 
