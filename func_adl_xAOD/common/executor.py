@@ -151,7 +151,9 @@ class executor(ABC):
         """
         # Do tuple resolutions. This might eliminate a whole bunch fo code!
         a, meta_data = extract_metadata(a)
-        cpp_functions = process_metadata(meta_data, self._extended_md)
+        combined_extended_md: Dict[str, Any] = dict(self._extended_md)
+        combined_extended_md.update(self._found_extended_md)
+        cpp_functions = process_metadata(meta_data, combined_extended_md)
         a = change_extension_functions_to_calls(a)
         a = aggregate_node_transformer().visit(a)
         a = simplify_chained_calls().visit(a)
