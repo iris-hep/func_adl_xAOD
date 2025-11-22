@@ -79,21 +79,22 @@ def test_run(docker_mock, tmp_path):
     assert len(r) == 1
 
 
-# def test_run_docker_md(docker_mock):
-#     """Test a simple run using docker mock"""
-#     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
-#     from func_adl_xAOD.atlas.xaod import xAODDataset
+@pytest.mark.skip("Not doing docker tags")
+def test_run_docker_md(docker_mock):
+    """Test a simple run using docker mock"""
+    # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
+    from func_adl_xAOD.atlas.xaod import xAODDataset
 
-#     (
-#         xAODDataset(f_location)
-#         .MetaData({"metadata_type": "docker", "image": "crazy/atlas:latest"})
-#         .Select(lambda e: e.EventInfo("EventInfo").runNumber())
-#         .AsROOTTTree("junk.root", "my_tree", ["eventNumber"])
-#         .value()
-#     )
+    (
+        xAODDataset(f_location)
+        .MetaData({"metadata_type": "docker", "image": "crazy/atlas:latest"})
+        .Select(lambda e: e.EventInfo("EventInfo").runNumber())
+        .AsROOTTTree("junk.root", "my_tree", ["eventNumber"])
+        .value()
+    )
 
-#     global docker_mock_args  # noqa
-#     assert docker_mock_args[0] == "crazy/atlas:latest"
+    global docker_mock_args  # noqa
+    assert docker_mock_args[0] == "crazy/atlas:latest"
 
 
 def test_string_file(docker_mock):
