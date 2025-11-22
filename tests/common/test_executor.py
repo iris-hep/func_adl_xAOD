@@ -106,6 +106,7 @@ def test_metadata_cpp_code_clean_second():
     )
 
     exe = do_nothing_executor()
+    _ = exe.apply_ast_transformations(a1)
 
     a2 = parse_statement("Select(ds, lambda e: MyDeltaR(1,2,3,4))")
     new_a2 = exe.apply_ast_transformations(a2)
