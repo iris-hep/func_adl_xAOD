@@ -87,6 +87,32 @@ def test_metadata_cpp_code():
     assert isinstance(call_obj, CPPCodeValue)
 
 
+def test_metadata_cpp_code_clean_second():
+    "Make sure functions aren't remembers between calls"
+
+    a1 = parse_statement(
+        "Select(MetaData(ds, {"
+        '"metadata_type": "add_cpp_function",'
+        '"name": "MyDeltaR",'
+        '"include_files": ["TVector2.h", "math.h"],'
+        '"arguments": ["eta1", "phi1", "eta2", "phi2"],'
+        '"code": ['
+        '   "auto d_eta = eta1 - eta2;",'
+        '   "auto d_phi = TVector2::Phi_mpi_pi(phi1-phi2);",'
+        '   "auto result = (d_eta*d_eta + d_phi*d_phi);"'
+        "],"
+        '"return_type": "double"'
+        "}), lambda e: MyDeltaR(1,2,3,4))"
+    )
+
+    exe = do_nothing_executor()
+
+    a2 = parse_statement("Select(ds, lambda e: MyDeltaR(1,2,3,4))")
+    new_a2 = exe.apply_ast_transformations(a2)
+
+    assert "CPPCodeValue" not in ast.dump(new_a2)
+
+
 def test_metadata_cpp_code_unneeded():
     "Make sure the metadata from a C++ bit of code is correctly put into type system"
 
