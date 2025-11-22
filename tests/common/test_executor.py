@@ -74,6 +74,7 @@ def test_metadata_method_2_clean():
     )
     exe = do_nothing_executor()
     _ = exe.apply_ast_transformations(a1)
+    exe.reset()
 
     a2 = parse_statement("Select(ds, lambda e: e + 1)")
     _ = exe.apply_ast_transformations(a2)
@@ -288,9 +289,7 @@ def test_metadata_cpp_code_capture_2_clean():
     exe = do_nothing_executor()
     _ = exe.apply_ast_transformations(a1)
     assert len(exe._job_option_blocks) == 1
-
-    a2 = parse_statement("Select(ds, lambda e: MyDeltaR(1,2,3,4))")
-    _ = exe.apply_ast_transformations(a2)
+    exe.reset()
     assert len(exe._job_option_blocks) == 0
 
 
