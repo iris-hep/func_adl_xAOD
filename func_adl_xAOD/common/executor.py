@@ -116,7 +116,7 @@ class executor(ABC):
 
     def add_extended_md(self, extended_md: Dict[str, Any]):
         "Add extended metadata to the executor"
-        self._extended_md.update(extended_md)
+        self._found_extended_md.update(extended_md)
 
     def _copy_template_file(self, j2_env, info, template_file, final_dir: Path):
         "Copy a file to a final directory"
@@ -137,7 +137,7 @@ class executor(ABC):
         # Reset out object
         self._job_option_blocks = []
         self._inject_blocks = []
-        self._extended_md = {}
+        self._found_extended_md = {}
 
         # Reset the type system
         import func_adl_xAOD.common.cpp_types as ctyp
@@ -151,7 +151,9 @@ class executor(ABC):
         """
         # Do tuple resolutions. This might eliminate a whole bunch fo code!
         a, meta_data = extract_metadata(a)
-        cpp_functions = process_metadata(meta_data, self._extended_md)
+        combined_extended_md: Dict[str, Any] = dict(self._extended_md)
+        combined_extended_md.update(self._found_extended_md)
+        cpp_functions = process_metadata(meta_data, combined_extended_md)
         a = change_extension_functions_to_calls(a)
         a = aggregate_node_transformer().visit(a)
         a = simplify_chained_calls().visit(a)

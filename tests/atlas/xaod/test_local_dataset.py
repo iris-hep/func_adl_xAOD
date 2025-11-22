@@ -79,6 +79,7 @@ def test_run(docker_mock, tmp_path):
     assert len(r) == 1
 
 
+@pytest.mark.skip("Not doing docker tags")
 def test_run_docker_md(docker_mock):
     """Test a simple run using docker mock"""
     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message

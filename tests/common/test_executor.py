@@ -61,6 +61,27 @@ def test_metadata_method():
     assert not t.r_type.is_a_pointer
 
 
+def test_metadata_method_2_clean():
+    "Make sure we lose type information between calls"
+
+    a1 = parse_statement(
+        "Select(MetaData(ds, {"
+        '"metadata_type": "add_method_type_info", '
+        '"type_string": "my_namespace::obj", '
+        '"method_name": "pT", '
+        '"return_type": "int", '
+        "}), lambda e: e + 1)"
+    )
+    exe = do_nothing_executor()
+    _ = exe.apply_ast_transformations(a1)
+    exe.reset()
+
+    a2 = parse_statement("Select(ds, lambda e: e + 1)")
+    _ = exe.apply_ast_transformations(a2)
+    t = method_type_info("my_namespace::obj", "pT")
+    assert t is None
+
+
 def test_metadata_cpp_code():
     "Make sure the metadata from a C++ bit of code is correctly put into type system"
 
@@ -85,6 +106,33 @@ def test_metadata_cpp_code():
 
     call_obj = new_a1.args[1].body.func  # type: ignore
     assert isinstance(call_obj, CPPCodeValue)
+
+
+def test_metadata_cpp_code_clean_second():
+    "Make sure functions aren't remembers between calls"
+
+    a1 = parse_statement(
+        "Select(MetaData(ds, {"
+        '"metadata_type": "add_cpp_function",'
+        '"name": "MyDeltaR",'
+        '"include_files": ["TVector2.h", "math.h"],'
+        '"arguments": ["eta1", "phi1", "eta2", "phi2"],'
+        '"code": ['
+        '   "auto d_eta = eta1 - eta2;",'
+        '   "auto d_phi = TVector2::Phi_mpi_pi(phi1-phi2);",'
+        '   "auto result = (d_eta*d_eta + d_phi*d_phi);"'
+        "],"
+        '"return_type": "double"'
+        "}), lambda e: MyDeltaR(1,2,3,4))"
+    )
+
+    exe = do_nothing_executor()
+    _ = exe.apply_ast_transformations(a1)
+
+    a2 = parse_statement("Select(ds, lambda e: MyDeltaR(1,2,3,4))")
+    new_a2 = exe.apply_ast_transformations(a2)
+
+    assert "CPPCodeValue" not in ast.dump(new_a2)
 
 
 def test_metadata_cpp_code_unneeded():
@@ -213,6 +261,36 @@ def test_metadata_cpp_code_capture():
 
     call_obj = new_a1.args[1].body.func  # type: ignore
     assert isinstance(call_obj, CPPCodeValue)
+
+
+def test_metadata_cpp_code_capture_2_clean():
+    "Make sure we do not capture bad data (bug seen)"
+
+    a1 = parse_statement(
+        "Select(MetaData(MetaData(ds, {"
+        '"metadata_type": "add_job_script",'
+        '"name": "apply_corrections",'
+        '"script": ["line1"],'
+        '"depends_on": [],'
+        "}),{"
+        '"metadata_type": "add_cpp_function",'
+        '"name": "MyDeltaR",'
+        '"include_files": ["TVector2.h", "math.h"],'
+        '"arguments": ["eta1", "phi1", "eta2", "phi2"],'
+        '"code": ['
+        '   "auto d_eta = eta1 - eta2;",'
+        '   "auto d_phi = TVector2::Phi_mpi_pi(phi1-phi2);",'
+        '   "auto result = (d_eta*d_eta + d_phi*d_phi);"'
+        "],"
+        '"return_type": "double"'
+        "}), lambda e: MyDeltaR(1,2,3,4))"
+    )
+
+    exe = do_nothing_executor()
+    _ = exe.apply_ast_transformations(a1)
+    assert len(exe._job_option_blocks) == 1
+    exe.reset()
+    assert len(exe._job_option_blocks) == 0
 
 
 def test_metadata_collection():
