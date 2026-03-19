@@ -70,7 +70,7 @@ if [ $compile = 1 ]; then
 project(func_adl_ntupler)
 
 # Set the minimum required CMake version:
-cmake_minimum_required( VERSION 3.4 FATAL_ERROR )
+cmake_minimum_required( VERSION 4.0 FATAL_ERROR )
 
 # Try to figure out what project is our parent. Just using a hard-coded list
 # of possible project names. Basically the names of all the other
