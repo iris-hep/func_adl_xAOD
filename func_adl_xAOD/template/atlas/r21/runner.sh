@@ -8,7 +8,6 @@ set -e
 # This follows the tutorial from https://atlassoftwaredocs.web.cern.ch/ABtutorial/release_setup/
 
 # Parse the command line arguments. Our defaults
-output_method="cp"
 output_dir="/results"
 input_method="filelist"
 input_file=""
@@ -200,15 +199,5 @@ if [ $run = 1 ]; then
    python ../source/analysis/share/ATestRun_eljob.py --submission-dir=bogus
 
    # Place the output file where it belongs
-   if [ $output_method == "cp" ]; then
-      cmd="cp"
-      destination=$output_dir
-   else
-      destination=$1
-      cmd="cp"
-      if [[ $destination == "root:"* ]]; then
-         cmd="xrdcp"
-      fi
-   fi
-   $cmd ./bogus/data-ANALYSIS/ANALYSIS.root $destination
+   cp ./bogus/data-ANALYSIS/ANALYSIS.root $output_dir
 fi
