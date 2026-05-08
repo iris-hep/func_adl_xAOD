@@ -172,7 +172,7 @@ fi
 
 # Sort out the input file location
 if [ $run = 1 ]; then
-   source ${AnalysisBaseExternals_PLATFORM}/setup.sh
+   source x86_64*/setup.sh
    if [ "$input_method" == "filelist" ]; then
       if [ -e $DIR/filelist.txt ]; then
          cp $DIR/filelist.txt .
