@@ -67,10 +67,10 @@ if [ $compile = 1 ]; then
 #
 # Project configuration for UserAnalysis.
 #
-project(func_adl_ntupler)
-
 # Set the minimum required CMake version:
 cmake_minimum_required( VERSION 3.12...4.3 )
+
+project(func_adl_ntupler)
 
 # Try to figure out what project is our parent. Just using a hard-coded list
 # of possible project names. Basically the names of all the other
@@ -164,7 +164,7 @@ EOF
 
    # Do the build
    cd ../build
-   cmake ../source
+   cmake -Wno-dev ../source
    make
 else
    cd rel/build
