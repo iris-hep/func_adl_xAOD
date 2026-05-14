@@ -164,7 +164,7 @@ EOF
 
    # Do the build
    cd ../build
-   cmake ../source
+   cmake -Wno-dev ../source
    make
 else
    cd rel/build
