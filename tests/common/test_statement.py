@@ -1,5 +1,12 @@
 # Test the statement objects
-from func_adl_xAOD.common.statement import BlockException, block, push_back, set_var
+from func_adl_xAOD.common.statement import (
+    BlockException,
+    block,
+    push_back,
+    push_back_pair,
+    set_var,
+    sort_collection_by_first,
+)
 import func_adl_xAOD.common.cpp_representation as crep
 import func_adl_xAOD.common.cpp_types as ctyp
 
@@ -130,4 +137,41 @@ def test_push_back_diff_types(mocker):
 
     e.add_line.assert_called_once_with(
         "r_sequence.push_back(static_cast<int>(r_value));"
+    )
+
+
+def test_push_back_pair(mocker):
+    r_sequence = crep.cpp_value(
+        "r_sequence",
+        scope=None,
+        cpp_type=ctyp.collection(ctyp.terminal("std::pair<double, xAOD::Jet*>")),
+    )
+    r_key = crep.cpp_value("r_key", scope=None, cpp_type=ctyp.terminal("double"))
+    r_value = crep.cpp_value(
+        "r_value", scope=None, cpp_type=ctyp.terminal("xAOD::Jet", p_depth=1)
+    )
+
+    pb = push_back_pair(r_sequence, r_key, r_value)
+
+    e = mocker.Mock()
+    pb.emit(e)
+
+    e.add_line.assert_called_once_with("r_sequence.emplace_back(r_key, r_value);")
+
+
+def test_sort_collection_by_first(mocker):
+    r_sequence = crep.cpp_value(
+        "r_sequence",
+        scope=None,
+        cpp_type=ctyp.collection(ctyp.terminal("std::pair<double, xAOD::Jet*>")),
+    )
+
+    sorter = sort_collection_by_first(r_sequence)
+
+    e = mocker.Mock()
+    sorter.emit(e)
+
+    e.add_line.assert_called_once_with(
+        "std::sort(r_sequence.begin(), r_sequence.end(), "
+        "[](const auto &a, const auto &b) { return a.first < b.first; });"
     )

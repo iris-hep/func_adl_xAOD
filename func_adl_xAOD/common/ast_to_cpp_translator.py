@@ -755,7 +755,12 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         if isinstance(call_node.func, ast.Lambda):
             self.visit_Call_Lambda(call_node)
         elif isinstance(call_node.func, ast.Attribute):
-            self.visit_Call_Member(call_node)
+            if call_node.func.attr == "OrderBy":
+                self.call_OrderBy(
+                    call_node, [cast(ast.AST, call_node.func.value)] + call_node.args
+                )
+            else:
+                self.visit_Call_Member(call_node)
         elif isinstance(call_node.func, cpp_ast.CPPCodeValue):
             crep.set_rep(call_node, cpp_ast.process_ast_node(self, self._gc, call_node))
         elif isinstance(call_node.func, FunctionAST):
@@ -1365,6 +1370,82 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
                 new_sequence_var, seq.iterator_value(), self._gc.current_scope(), node
             ),
         )
+
+    def call_OrderBy(self, node: ast.Call, args: List[ast.AST]):
+        "Order a sequence by a scalar key."
+
+        assert len(args) == 2
+        source = cast(ast.expr, args[0])
+        order_by = args[1]
+        assert isinstance(order_by, ast.Lambda)
+
+        # Make sure we are in the source loop and compute the ordering key there.
+        seq = self.as_sequence(source)
+        sequence_value = seq.sequence_value()
+        if isinstance(sequence_value, crep.cpp_sequence):
+            raise RuntimeError(
+                "OrderBy over a sequence-valued sequence is not supported."
+            )
+
+        c = ast.Call(
+            func=lambda_unwrap(order_by),
+            args=[sequence_value.as_ast()],
+            keywords=[],
+        )
+        sort_key = cast(crep.cpp_value, self.get_rep(c))
+
+        # The ordered vector must survive the whole source loop, so declare it
+        # just outside the loop that created the source sequence.
+        ordered_scope = seq.iterator_value().scope()[-1]
+        pair_type = ctyp.terminal(
+            f"std::pair<{sort_key.cpp_type()}, {sequence_value.cpp_type()}>"
+        )
+        ordered_collection = crep.cpp_collection(
+            unique_name("orderby"),
+            ordered_scope,
+            ctyp.collection(pair_type),
+        )
+        ordered_scope.declare_variable(
+            crep.cpp_variable(
+                ordered_collection.as_cpp(),
+                ordered_scope,
+                ordered_collection.cpp_type(),
+            )
+        )
+
+        # Fill the materialized vector at the scope where both the key and value
+        # are valid. This naturally preserves any Where filters in the source.
+        self._gc.set_scope(deepest_scope(sort_key, sequence_value).scope())
+        self._gc.add_statement(
+            statement.push_back_pair(ordered_collection, sort_key, sequence_value)
+        )
+
+        # Sort after the source loop finishes, then expose the pair.second value
+        # as the value of a new sequence loop over the sorted vector.
+        self._gc.set_scope(ordered_scope)
+        self._gc.add_include("algorithm")
+        self._gc.add_include("utility")
+        self._gc.add_include("vector")
+        self._gc.add_statement(statement.sort_collection_by_first(ordered_collection))
+
+        sorted_pair_sequence = self.make_sequence_from_collection(
+            ordered_collection, node
+        )
+        sorted_pair = sorted_pair_sequence.sequence_value()
+        assert isinstance(sorted_pair, crep.cpp_value)
+        ordered_value = crep.cpp_value(
+            f"{sorted_pair.as_cpp()}.second",
+            sorted_pair.scope(),
+            sequence_value.cpp_type(),
+        )
+        ordered_sequence = crep.cpp_sequence(
+            ordered_value,
+            sorted_pair_sequence.iterator_value(),
+            self._gc.current_scope(),
+            node,
+        )
+        crep.set_rep(node, ordered_sequence)
+        return ordered_sequence
 
     def call_Range(self, node: ast.Call, args: List[ast.AST]):
         "Create a collection of numbers from lower_bound"
