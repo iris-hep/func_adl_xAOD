@@ -7,6 +7,10 @@ from tests.utils.locators import (  # type: ignore
 )
 
 
+def OrderByDescending(source, key_func):
+    raise RuntimeError("OrderByDescending should be processed by the backend")
+
+
 def test_orderby_first_jet_pt():
     r = (
         atlas_xaod_dataset()
@@ -28,6 +32,48 @@ def test_orderby_first_jet_pt():
     assert len(l_first) == 2
     assert l_sorted_loop < l_first[0]
     assert any(".second->pt()" in line for line in lines)
+
+
+def test_orderby_descending_first_jet_pt():
+    r = (
+        atlas_xaod_dataset()
+        .Select(
+            lambda e: e.Jets("AntiKt4EMTopoJets")
+            .OrderByDescending(lambda j: j.pt())
+            .First()
+            .pt()
+        )
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    l_collect = find_line_with(".emplace_back", lines)
+    l_sort = find_line_with("std::sort", lines)
+    l_sorted_loop = find_line_with("for (auto &&", lines[l_sort:]) + l_sort
+
+    assert l_collect < l_sort < l_sorted_loop
+    assert "a.first > b.first" in lines[l_sort]
+    assert any(".second->pt()" in line for line in lines)
+
+
+def test_orderby_descending_normalized_ast_call():
+    r = (
+        atlas_xaod_dataset()
+        .Select(
+            lambda e: OrderByDescending(e.Jets("AntiKt4EMTopoJets"), lambda j: j.pt())
+            .First()
+            .pt()
+        )
+        .value()
+    )
+
+    lines = get_lines_of_code(r)
+    print_lines(lines)
+
+    l_sort = find_line_with("std::sort", lines)
+    assert "a.first > b.first" in lines[l_sort]
 
 
 def test_orderby_after_where_collects_inside_filter():

@@ -218,13 +218,15 @@ class push_back_pair:
 class sort_collection_by_first:
     "sort a collection of pairs by their first item"
 
-    def __init__(self, target_collection: crep.cpp_value):
+    def __init__(self, target_collection: crep.cpp_value, descending: bool = False):
         self._target = target_collection
+        self._descending = descending
 
     def emit(self, e):
+        op = ">" if self._descending else "<"
         e.add_line(
             f"std::sort({self._target.as_cpp()}.begin(), {self._target.as_cpp()}.end(), "
-            "[](const auto &a, const auto &b) { return a.first < b.first; });"
+            f"[](const auto &a, const auto &b) {{ return a.first {op} b.first; }});"
         )
 
 

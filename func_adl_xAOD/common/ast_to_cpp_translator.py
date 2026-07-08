@@ -755,10 +755,12 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         if isinstance(call_node.func, ast.Lambda):
             self.visit_Call_Lambda(call_node)
         elif isinstance(call_node.func, ast.Attribute):
-            if call_node.func.attr == "OrderBy":
-                self.call_OrderBy(
-                    call_node, [cast(ast.AST, call_node.func.value)] + call_node.args
-                )
+            if call_node.func.attr in ("OrderBy", "OrderByDescending"):
+                call_args = [cast(ast.AST, call_node.func.value)] + call_node.args
+                if call_node.func.attr == "OrderBy":
+                    self.call_OrderBy(call_node, call_args)
+                else:
+                    self.call_OrderByDescending(call_node, call_args)
             else:
                 self.visit_Call_Member(call_node)
         elif isinstance(call_node.func, cpp_ast.CPPCodeValue):
@@ -1371,9 +1373,10 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             ),
         )
 
-    def call_OrderBy(self, node: ast.Call, args: List[ast.AST]):
+    def _call_order_by(
+        self, node: ast.Call, args: List[ast.AST], descending: bool
+    ) -> crep.cpp_sequence:
         "Order a sequence by a scalar key."
-
         assert len(args) == 2
         source = cast(ast.expr, args[0])
         order_by = args[1]
@@ -1426,7 +1429,9 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         self._gc.add_include("algorithm")
         self._gc.add_include("utility")
         self._gc.add_include("vector")
-        self._gc.add_statement(statement.sort_collection_by_first(ordered_collection))
+        self._gc.add_statement(
+            statement.sort_collection_by_first(ordered_collection, descending)
+        )
 
         sorted_pair_sequence = self.make_sequence_from_collection(
             ordered_collection, node
@@ -1446,6 +1451,14 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         )
         crep.set_rep(node, ordered_sequence)
         return ordered_sequence
+
+    def call_OrderBy(self, node: ast.Call, args: List[ast.AST]):
+        "Order a sequence by a scalar key in ascending order."
+        return self._call_order_by(node, args, descending=False)
+
+    def call_OrderByDescending(self, node: ast.Call, args: List[ast.AST]):
+        "Order a sequence by a scalar key in descending order."
+        return self._call_order_by(node, args, descending=True)
 
     def call_Range(self, node: ast.Call, args: List[ast.AST]):
         "Create a collection of numbers from lower_bound"

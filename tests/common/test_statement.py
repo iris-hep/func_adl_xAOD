@@ -175,3 +175,21 @@ def test_sort_collection_by_first(mocker):
         "std::sort(r_sequence.begin(), r_sequence.end(), "
         "[](const auto &a, const auto &b) { return a.first < b.first; });"
     )
+
+
+def test_sort_collection_by_first_descending(mocker):
+    r_sequence = crep.cpp_value(
+        "r_sequence",
+        scope=None,
+        cpp_type=ctyp.collection(ctyp.terminal("std::pair<double, xAOD::Jet*>")),
+    )
+
+    sorter = sort_collection_by_first(r_sequence, descending=True)
+
+    e = mocker.Mock()
+    sorter.emit(e)
+
+    e.add_line.assert_called_once_with(
+        "std::sort(r_sequence.begin(), r_sequence.end(), "
+        "[](const auto &a, const auto &b) { return a.first > b.first; });"
+    )
