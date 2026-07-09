@@ -1,5 +1,5 @@
 from .config import f_location
-from tests.utils.base import as_root_ttree
+from tests.utils.base import evaluate_root_ttree
 import pytest
 
 python_on_whales = pytest.importorskip("python_on_whales")
@@ -11,14 +11,14 @@ def test_integrated_run():
     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
     from func_adl_xAOD.cms.aod.local_dataset import CMSRun1AODDataset
 
-    r = as_root_ttree(
+    r = evaluate_root_ttree(
         CMSRun1AODDataset(f_location)
         .SelectMany(lambda e: e.TrackMuons("globalMuons"))
         .Select(lambda m: m.pt()),
         "junk.root",
         "my_tree",
         ["muon_pt"],
-    ).value()
+    )
 
     assert len(r) == 1
 
@@ -46,13 +46,13 @@ def test_run(docker_mock):
     """Test a simple run using docker mock"""
     from func_adl_xAOD.cms.aod.local_dataset import CMSRun1AODDataset
 
-    r = as_root_ttree(
+    r = evaluate_root_ttree(
         CMSRun1AODDataset(f_location)
         .SelectMany(lambda e: e.TrackMuons("globalMuons"))
         .Select(lambda m: m.pt()),
         "junk.root",
         "my_tree",
         ["muon_pt"],
-    ).value()
+    )
 
     assert len(r) == 1

@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from .config import f_location
-from tests.utils.base import as_root_ttree
+from tests.utils.base import evaluate_root_ttree
 
 python_on_whales = pytest.importorskip("python_on_whales")
 
@@ -15,12 +15,12 @@ def test_integrated_run():
     from func_adl_xAOD.atlas.xaod import xAODDataset
 
     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
-    r = as_root_ttree(
+    r = evaluate_root_ttree(
         xAODDataset(f_location).Select(lambda e: e.EventInfo("EventInfo").runNumber()),
         "junk.root",
         "my_tree",
         ["eventNumber"],
-    ).value()
+    )
 
     assert len(r) == 1
     assert r[0].exists()
@@ -70,12 +70,12 @@ def test_run(docker_mock, tmp_path):
     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
     from func_adl_xAOD.atlas.xaod import xAODDataset
 
-    r = as_root_ttree(
+    r = evaluate_root_ttree(
         xAODDataset(f_location).Select(lambda e: e.EventInfo("EventInfo").runNumber()),
         "junk.root",
         "my_tree",
         ["eventNumber"],
-    ).value()
+    )
 
     assert len(r) == 1
 
@@ -86,7 +86,7 @@ def test_run_docker_md(docker_mock):
     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
     from func_adl_xAOD.atlas.xaod import xAODDataset
 
-    as_root_ttree(
+    evaluate_root_ttree(
         xAODDataset(f_location)
         .MetaData({"metadata_type": "docker", "image": "crazy/atlas:latest"})
         .Select(lambda e: e.EventInfo("EventInfo").runNumber()),
@@ -103,14 +103,14 @@ def test_string_file(docker_mock):
     """Test a simple run using docker mock"""
     from func_adl_xAOD.atlas.xaod import xAODDataset
 
-    r = as_root_ttree(
+    r = evaluate_root_ttree(
         xAODDataset(str(f_location)).Select(
             lambda e: e.EventInfo("EventInfo").runNumber()
         ),
         "junk.root",
         "my_tree",
         ["eventNumber"],
-    ).value()
+    )
 
     assert len(r) == 1
 
@@ -119,14 +119,14 @@ def test_multiple_files(docker_mock):
     """Test a simple run using docker mock"""
     from func_adl_xAOD.atlas.xaod import xAODDataset
 
-    r = as_root_ttree(
+    r = evaluate_root_ttree(
         xAODDataset([f_location, f_location]).Select(
             lambda e: e.EventInfo("EventInfo").runNumber()
         ),
         "junk.root",
         "my_tree",
         ["eventNumber"],
-    ).value()
+    )
 
     assert len(r) == 1
 
@@ -135,14 +135,14 @@ def test_multiple_files_str(docker_mock):
     """Test a simple run using docker mock"""
     from func_adl_xAOD.atlas.xaod import xAODDataset
 
-    r = as_root_ttree(
+    r = evaluate_root_ttree(
         xAODDataset([str(f_location), str(f_location)]).Select(
             lambda e: e.EventInfo("EventInfo").runNumber()
         ),
         "junk.root",
         "my_tree",
         ["eventNumber"],
-    ).value()
+    )
 
     assert len(r) == 1
 
@@ -158,7 +158,7 @@ def test_different_directories(docker_mock):
         file_two = Path(d) / f_location.name
 
         with pytest.raises(RuntimeError) as e:
-            as_root_ttree(
+            evaluate_root_ttree(
                 xAODDataset([f_location, file_two]).Select(
                     lambda e: e.EventInfo("EventInfo").runNumber()
                 ),
@@ -175,7 +175,7 @@ def test_bad_file(docker_mock):
     from func_adl_xAOD.atlas.xaod import xAODDataset
 
     with pytest.raises(FileNotFoundError):
-        as_root_ttree(
+        evaluate_root_ttree(
             xAODDataset(Path("/bad/path")).Select(
                 lambda e: e.EventInfo("EventInfo").runNumber()
             ),
@@ -190,7 +190,7 @@ def test_no_file(docker_mock):
     from func_adl_xAOD.atlas.xaod import xAODDataset
 
     with pytest.raises(RuntimeError) as e:
-        as_root_ttree(
+        evaluate_root_ttree(
             xAODDataset([]).Select(lambda e: e.EventInfo("EventInfo").runNumber()),
             "junk.root",
             "my_tree",
@@ -206,7 +206,7 @@ def test_docker_error(docker_mock_fail):
     from python_on_whales.exceptions import DockerException
 
     with pytest.raises(DockerException):
-        as_root_ttree(
+        evaluate_root_ttree(
             xAODDataset([f_location]).Select(
                 lambda e: e.EventInfo("EventInfo").runNumber()
             ),
@@ -221,13 +221,13 @@ def test_alternate_dir(docker_mock):
     with tempfile.TemporaryDirectory() as tmpdir:
         from func_adl_xAOD.atlas.xaod import xAODDataset
 
-        r = as_root_ttree(
+        r = evaluate_root_ttree(
             xAODDataset(f_location, output_directory=Path(tmpdir)).Select(
                 lambda e: e.EventInfo("EventInfo").runNumber()
             ),
             "junk.root",
             "my_tree",
             ["eventNumber"],
-        ).value()
+        )
 
         assert str(r[0]).startswith(str(tmpdir))

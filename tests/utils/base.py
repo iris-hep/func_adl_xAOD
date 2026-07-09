@@ -20,11 +20,11 @@ from func_adl_xAOD.common.cpp_representation import cpp_sequence, cpp_variable, 
 dump_running_log = True
 
 
-def as_root_ttree(query, filename, treename, columns):
-    """Build the ResultTTree AST formerly provided by ObjectStream.AsROOTTTree."""
+def evaluate_root_ttree(query, filename, treename, columns):
+    """Evaluate a ResultTTree query without the removed ObjectStream.value API."""
     from func_adl.ast.func_adl_ast_utils import function_call
 
-    return query.clone_with_new_ast(
+    query = query.clone_with_new_ast(
         function_call(
             "ResultTTree",
             [
@@ -36,6 +36,7 @@ def as_root_ttree(query, filename, treename, columns):
         ),
         query.item_type,
     )
+    return asyncio.run(query.execute_result_async(query.query_ast, "test"))
 
 
 dump_cpp = True
