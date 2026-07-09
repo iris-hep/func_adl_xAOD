@@ -755,14 +755,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         if isinstance(call_node.func, ast.Lambda):
             self.visit_Call_Lambda(call_node)
         elif isinstance(call_node.func, ast.Attribute):
-            if call_node.func.attr in ("OrderBy", "OrderByDescending"):
-                call_args = [cast(ast.AST, call_node.func.value)] + call_node.args
-                if call_node.func.attr == "OrderBy":
-                    self.call_OrderBy(call_node, call_args)
-                else:
-                    self.call_OrderByDescending(call_node, call_args)
-            else:
-                self.visit_Call_Member(call_node)
+            self.visit_Call_Member(call_node)
         elif isinstance(call_node.func, cpp_ast.CPPCodeValue):
             crep.set_rep(call_node, cpp_ast.process_ast_node(self, self._gc, call_node))
         elif isinstance(call_node.func, FunctionAST):

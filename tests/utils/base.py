@@ -188,6 +188,10 @@ class dataset(EventDataset, ABC):
         # this as a place holder for now.
         return "'sx_placeholder'"
 
+    def value(self):
+        """Keep the test query API compatible with func_adl 3.x."""
+        return asyncio.run(self.execute_result_async(self.query_ast, "test"))
+
     @abstractmethod
     def get_dummy_executor_obj(self) -> dummy_executor:
         pass
