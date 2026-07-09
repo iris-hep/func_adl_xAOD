@@ -18,6 +18,27 @@ from func_adl_xAOD.common.cpp_representation import cpp_sequence, cpp_variable, 
 
 # Use this to turn on dumping of output and C++
 dump_running_log = True
+
+
+def evaluate_root_ttree(query, filename, treename, columns):
+    """Evaluate a ResultTTree query without the removed ObjectStream.value API."""
+    from func_adl.ast.func_adl_ast_utils import function_call
+
+    query = query.clone_with_new_ast(
+        function_call(
+            "ResultTTree",
+            [
+                query.query_ast,
+                ast.List(elts=[ast.Constant(c) for c in columns], ctx=ast.Load()),
+                ast.Constant(treename),
+                ast.Constant(filename),
+            ],
+        ),
+        query.item_type,
+    )
+    return asyncio.run(query.execute_result_async(query.query_ast, "test"))
+
+
 dump_cpp = True
 
 
@@ -187,6 +208,10 @@ class dataset(EventDataset, ABC):
         # When we need to move into a representation, use
         # this as a place holder for now.
         return "'sx_placeholder'"
+
+    def value(self):
+        """Keep the test query API compatible with func_adl 3.x."""
+        return asyncio.run(self.execute_result_async(self.query_ast, "test"))
 
     @abstractmethod
     def get_dummy_executor_obj(self) -> dummy_executor:

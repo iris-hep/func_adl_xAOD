@@ -19,7 +19,7 @@ def test_xaod_executor(tmp_path):
     "Write out C++ files for a simple query"
 
     # Get the ast to play with
-    a = query_as_ast().Select(lambda e: e.EventInfo("EventInfo").runNumber()).value()
+    a = query_as_ast().Select(lambda e: e.EventInfo("EventInfo").runNumber()).query_ast
 
     exe = atlas_xaod_executor()
     f_spec = exe.write_cpp_files(exe.apply_ast_transformations(a), tmp_path)
@@ -30,7 +30,7 @@ def test_xaod_executor(tmp_path):
 def test_xaod_library_there(tmp_path):
     "Make sure a required library is in the link list"
     # Get the ast to play with
-    a = query_as_ast().Select(lambda e: e.EventInfo("EventInfo").runNumber()).value()
+    a = query_as_ast().Select(lambda e: e.EventInfo("EventInfo").runNumber()).query_ast
 
     exe = atlas_xaod_executor()
     exe.write_cpp_files(exe.apply_ast_transformations(a), tmp_path)
@@ -43,7 +43,7 @@ def test_xaod_library_there(tmp_path):
 def test_eventinfo_handle_code(tmp_path):
     "Make sure a required library is in the link list"
     # Get the ast to play with
-    a = query_as_ast().Select(lambda e: e.EventInfo("EventInfo").runNumber()).value()
+    a = query_as_ast().Select(lambda e: e.EventInfo("EventInfo").runNumber()).query_ast
 
     exe = atlas_xaod_executor()
     exe.write_cpp_files(exe.apply_ast_transformations(a), tmp_path)
@@ -108,7 +108,7 @@ def test_md_job_options(tmp_path):
             }
         )
         .Select(lambda e: e.EventInfo("EventInfo").runNumber())
-        .value()
+        .query_ast
     )
 
     exe = atlas_xaod_executor()
@@ -135,7 +135,7 @@ def test_md_replaced_collection(tmp_path):
             }
         )
         .Select(lambda e: e.EventInfo("EventInfo").runNumber())
-        .value()
+        .query_ast
     )
 
     exe = atlas_xaod_executor()

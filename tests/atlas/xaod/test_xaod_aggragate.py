@@ -1,3 +1,7 @@
+import ast
+
+from func_adl.ast.func_adl_ast_utils import function_call
+
 from tests.utils.locators import (
     find_line_numbers_with,
     find_line_with,
@@ -12,14 +16,21 @@ from tests.atlas.xaod.utils import atlas_xaod_dataset
 
 
 def test_tree_name():
-    r = (
-        atlas_xaod_dataset()
-        .Select(
-            lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt() / 1000).Sum()
-        )
-        .AsROOTTTree("junk.root", "analysis", ["fork"])
-        .value()
+    q = atlas_xaod_dataset().Select(
+        lambda e: e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt() / 1000).Sum()
     )
+    r = q.clone_with_new_ast(
+        function_call(
+            "ResultTTree",
+            [
+                q.query_ast,
+                ast.List(elts=[ast.Constant("fork")], ctx=ast.Load()),
+                ast.Constant("analysis"),
+                ast.Constant("junk.root"),
+            ],
+        ),
+        q.item_type,
+    ).value()
     lines = get_lines_of_code(r)
     print_lines(lines)
     l_sets = find_line_numbers_with('tree("analysis")', lines)
