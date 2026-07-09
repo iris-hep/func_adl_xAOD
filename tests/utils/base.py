@@ -18,6 +18,26 @@ from func_adl_xAOD.common.cpp_representation import cpp_sequence, cpp_variable, 
 
 # Use this to turn on dumping of output and C++
 dump_running_log = True
+
+
+def as_root_ttree(query, filename, treename, columns):
+    """Build the ResultTTree AST formerly provided by ObjectStream.AsROOTTTree."""
+    from func_adl.ast.func_adl_ast_utils import function_call
+
+    return query.clone_with_new_ast(
+        function_call(
+            "ResultTTree",
+            [
+                query.query_ast,
+                ast.List(elts=[ast.Constant(c) for c in columns], ctx=ast.Load()),
+                ast.Constant(treename),
+                ast.Constant(filename),
+            ],
+        ),
+        query.item_type,
+    )
+
+
 dump_cpp = True
 
 

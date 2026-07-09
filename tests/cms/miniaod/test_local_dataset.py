@@ -1,4 +1,5 @@
 from tests.cms.miniaod.config import f_location
+from tests.utils.base import as_root_ttree
 import pytest
 
 python_on_whales = pytest.importorskip("python_on_whales")
@@ -10,13 +11,14 @@ def test_integrated_run():
     # TODO: Using the type stuff, make sure replacing Select below with SelectMany makes a good error message
     from func_adl_xAOD.cms.miniaod.local_dataset import CMSRun2miniAODDataset
 
-    r = (
+    r = as_root_ttree(
         CMSRun2miniAODDataset(f_location)
         .SelectMany(lambda e: e.Muons("slimmedMuons"))
-        .Select(lambda m: m.pt())
-        .AsROOTTTree("junk.root", "my_tree", ["muon_pt"])
-        .value()
-    )
+        .Select(lambda m: m.pt()),
+        "junk.root",
+        "my_tree",
+        ["muon_pt"],
+    ).value()
 
     assert len(r) == 1
 
@@ -44,12 +46,13 @@ def test_run(docker_mock):
     """Test a simple run using docker mock"""
     from func_adl_xAOD.cms.miniaod.local_dataset import CMSRun2miniAODDataset
 
-    r = (
+    r = as_root_ttree(
         CMSRun2miniAODDataset(f_location)
         .SelectMany(lambda e: e.Muons("slimmedMuons"))
-        .Select(lambda m: m.pt())
-        .AsROOTTTree("junk.root", "my_tree", ["muon_pt"])
-        .value()
-    )
+        .Select(lambda m: m.pt()),
+        "junk.root",
+        "my_tree",
+        ["muon_pt"],
+    ).value()
 
     assert len(r) == 1
