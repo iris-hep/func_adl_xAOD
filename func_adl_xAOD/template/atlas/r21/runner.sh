@@ -171,7 +171,26 @@ fi
 
 # Sort out the input file location
 if [ $run = 1 ]; then
-   source x86_64*/setup.sh
+   # Use the setup script for the platform selected by asetup. This is
+   # normally set to a directory such as x86_64-el9-gcc13-opt or
+   # aarch64-el9-gcc14-opt. Keep a guarded fallback for environments that do
+   # not export ATLAS_PLATFORM.
+   if [ -n "${ATLAS_PLATFORM:-}" ] && [ -f "${ATLAS_PLATFORM}/setup.sh" ]; then
+      source "${ATLAS_PLATFORM}/setup.sh"
+   else
+      shopt -s nullglob
+      setup_script_count=0
+      setup_script=""
+      for candidate in */setup.sh; do
+         setup_script_count=$((setup_script_count + 1))
+         setup_script="$candidate"
+      done
+      if [ "$setup_script_count" -ne 1 ]; then
+         echo "Could not identify a unique ATLAS setup.sh (ATLAS_PLATFORM='${ATLAS_PLATFORM:-}')" >&2
+         exit 1
+      fi
+      source "$setup_script"
+   fi
    if [ "$input_method" == "filelist" ]; then
       if [ -e $DIR/filelist.txt ]; then
          cp $DIR/filelist.txt .
