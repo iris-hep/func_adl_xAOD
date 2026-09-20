@@ -27,6 +27,20 @@ def test_xaod_executor(tmp_path):
         assert (tmp_path / name).exists()
 
 
+def test_runner_selects_setup_for_active_platform(tmp_path):
+    """The generated runner must work on x86_64 and aarch64 ATLAS platforms."""
+
+    a = query_as_ast().Select(lambda e: e.EventInfo("EventInfo").runNumber()).query_ast
+
+    exe = atlas_xaod_executor()
+    exe.write_cpp_files(exe.apply_ast_transformations(a), tmp_path)
+
+    runner = (tmp_path / "runner.sh").read_text()
+    assert "${ATLAS_PLATFORM}" in runner
+    assert "source x86_64*/setup.sh" not in runner
+    assert "for candidate in */setup.sh" in runner
+
+
 def test_xaod_library_there(tmp_path):
     "Make sure a required library is in the link list"
     # Get the ast to play with
