@@ -24,7 +24,11 @@ query :: query (const std::string& name,
   // for GRID jobs, but not so much for other jobs. For those of us not located at CERN
   // and for a large amount of data, this can sometimes take a minute.
   // So we get rid of it.
+  #if defined(FUNC_ADL_TRACER_INSTANCE)
+  xAOD::TFileAccessTracer::instance().enableDataSubmission(false);
+  #else
   xAOD::TFileAccessTracer::enableDataSubmission(false);
+  #endif
 
   {% for l in ctor_lines %}
   {{l}}
