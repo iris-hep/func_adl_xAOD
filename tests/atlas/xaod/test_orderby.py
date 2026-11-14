@@ -11,6 +11,20 @@ def OrderByDescending(source, key_func):
     raise RuntimeError("OrderByDescending should be processed by the backend")
 
 
+def test_orderby_preserves_const_atlas_elements():
+    result = (
+        atlas_xaod_dataset()
+        .Select(
+            lambda e: e.Jets("AntiKt4EMTopoJets").OrderBy(lambda j: j.pt()).First().pt()
+        )
+        .value()
+    )
+    assert any(
+        "std::pair<double, const xAOD::Jet*>" in line
+        for line in get_lines_of_code(result)
+    )
+
+
 def test_orderby_first_jet_pt():
     r = (
         atlas_xaod_dataset()
