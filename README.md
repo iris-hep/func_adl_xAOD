@@ -52,6 +52,12 @@ Template functions don't make sense yet in python.
 
 ### Math
 
+`OrderBy`/`OrderByDescending` can be followed immediately by `ThenBy` or
+`ThenByDescending` to add scalar tie-break keys. Each key has its own direction;
+items whose keys all tie retain their original order. For example,
+`jets.OrderBy(lambda j: j.eta()).ThenByDescending(lambda j: j.pt())` sorts first
+by eta, then by descending transverse momentum within equal-eta groups.
+
 - Math Operators: +, -, *, /, %, **
 - Comparison Operators: <, <=, >, >=, ==, !=
 - Unary Operators: +, -, not
