@@ -8,6 +8,13 @@ atlas_add_library (analysisLib
   PUBLIC_HEADERS analysis
   LINK_LIBRARIES AnaAlgorithmLib {% for lib in link_libraries %}{{ lib }} {% endfor %})
 
+# xAODRootAccess changed the tracer API in AnalysisBase 25.2.87.
+# ATLAS_PROJECT is set by the parent CMake project and its Config file supplies
+# the corresponding <project>_VERSION variable.
+if ( "${${ATLAS_PROJECT}_VERSION}" VERSION_GREATER_EQUAL "25.2.87" )
+  target_compile_definitions(analysisLib PRIVATE FUNC_ADL_TRACER_INSTANCE)
+endif ()
+
 if (XAOD_STANDALONE)
  # Add the dictionary (for AnalysisBase only):
  atlas_add_dictionary (queryDict
