@@ -158,7 +158,9 @@ class executor(ABC):
         combined_extended_md.update(self._found_extended_md)
         cpp_functions = process_metadata(meta_data, combined_extended_md)
         a = change_extension_functions_to_calls(
-            a, default_list_of_functions + ["ThenBy", "ThenByDescending"]
+            a,
+            default_list_of_functions
+            + ["ThenBy", "ThenByDescending", "Last", "Skip", "Take"],
         )
         a = aggregate_node_transformer().visit(a)
         a = simplify_chained_calls().visit(a)
