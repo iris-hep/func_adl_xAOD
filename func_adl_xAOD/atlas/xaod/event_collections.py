@@ -22,6 +22,13 @@ class atlas_xaod_event_collection_collection(event_collection_collection_contain
     def __str__(self):
         return f"const {self.type}*"
 
+    @property
+    def element_type(self) -> ctyp.terminal:
+        element = super().element_type
+        return ctyp.terminal(
+            element.type, p_depth=element.p_depth, is_const=element.is_a_pointer
+        )
+
 
 # all the collections types that are available. This is required because C++
 # is strongly typed, and thus we have to transmit this information.
