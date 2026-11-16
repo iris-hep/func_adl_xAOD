@@ -1,3 +1,5 @@
+import pytest
+
 from tests.atlas.xaod.utils import atlas_xaod_dataset  # type: ignore
 from tests.utils.general import get_lines_of_code, print_lines  # type: ignore
 from tests.utils.locators import (  # type: ignore
@@ -172,3 +174,42 @@ def test_orderby_selected_sequence_first_can_be_counted():
     assert len(find_line_numbers_with("for (auto &&", lines)) == 3
     assert find_line_with("std::sort", lines) > 0
     assert find_line_with("+1", lines) > 0
+
+
+@pytest.mark.atlas_xaod_runner
+@pytest.mark.parametrize("descending", [False, True])
+def test_orderby_atlas_data(tmp_path, descending):
+    """Compare generated ATLAS sorting with Python on the same event data."""
+    import awkward as ak
+    import uproot
+    from func_adl_xAOD.atlas.xaod import xAODDataset
+    from tests.atlas.xaod.config import f_location
+    from tests.utils.base import evaluate_root_ttree
+
+    operation = "OrderByDescending" if descending else "OrderBy"
+    query = xAODDataset(f_location, output_directory=tmp_path).Select(
+        "lambda e: ("
+        "e.Jets('AntiKt4EMTopoJets').Select(lambda j: j.pt()), "
+        f"e.Jets('AntiKt4EMTopoJets').{operation}(lambda j: j.pt()).Select(lambda j: j.pt()), "
+        f"e.Jets('AntiKt4EMTopoJets').Select(lambda j: j.pt()).{operation}(lambda p: p), "
+        f"e.Jets('AntiKt4EMTopoJets').Where(lambda j: j.pt() > 30000).{operation}(lambda j: j.pt()).Select(lambda j: j.pt()), "
+        f"e.Jets('AntiKt4EMTopoJets').{operation}(lambda j: j.pt()).First().pt(), "
+        f"e.Jets('AntiKt4EMTopoJets').Where(lambda j: j.pt() < 0).{operation}(lambda j: j.pt()).Select(lambda j: j.pt()))"
+    )
+    files = evaluate_root_ttree(
+        query,
+        "ordering.root",
+        "ordering",
+        ["all", "objects", "scalars", "filtered", "first", "empty"],
+    )
+    with uproot.open(files[0]) as root_file:
+        rows = ak.to_list(root_file["ordering"].arrays())
+    assert len(rows) == 10
+    for row in rows:
+        expected = sorted(row["all"], reverse=descending)
+        assert row["objects"] == row["scalars"] == expected
+        assert row["filtered"] == sorted(
+            [v for v in row["all"] if v > 30000], reverse=descending
+        )
+        assert row["first"] == expected[0]
+        assert row["empty"] == []
