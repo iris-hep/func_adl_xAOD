@@ -1374,6 +1374,34 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         source = cast(ast.expr, args[0])
         order_by = args[1]
         assert isinstance(order_by, ast.Lambda)
+        orderings = [(order_by, descending)]
+        if isinstance(node.func, ast.Name) and node.func.id in [
+            "ThenBy",
+            "ThenByDescending",
+        ]:
+            primary_found = False
+            while isinstance(source, ast.Call) and isinstance(source.func, ast.Name):
+                operation = source.func.id
+                if operation not in [
+                    "OrderBy",
+                    "OrderByDescending",
+                    "ThenBy",
+                    "ThenByDescending",
+                ]:
+                    break
+                if len(source.args) != 2 or not isinstance(source.args[1], ast.Lambda):
+                    raise ValueError(
+                        f"Ordering requires a source and key lambda - {ast.unparse(source)}"
+                    )
+                orderings.insert(0, (source.args[1], operation.endswith("Descending")))
+                source = cast(ast.expr, source.args[0])
+                if operation in ["OrderBy", "OrderByDescending"]:
+                    primary_found = True
+                    break
+            if not primary_found:
+                raise ValueError(
+                    f"ThenBy must immediately follow an ordering operation - {ast.unparse(node)}"
+                )
 
         # Make sure we are in the source loop and compute the ordering key there.
         seq = self.as_sequence(source)
@@ -1383,12 +1411,33 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
                 "OrderBy over a sequence-valued sequence is not supported."
             )
 
-        c = ast.Call(
-            func=lambda_unwrap(order_by),
-            args=[sequence_value.as_ast()],
-            keywords=[],
-        )
-        sort_key = cast(crep.cpp_value, self.get_rep(c))
+        sort_keys = []
+        key_scope_value = sequence_value
+        for key_lambda, _ in orderings:
+            c = ast.Call(
+                func=lambda_unwrap(key_lambda),
+                args=[sequence_value.as_ast()],
+                keywords=[],
+            )
+            key = self.get_rep(c)
+            if not isinstance(key, crep.cpp_value) or isinstance(
+                key.cpp_type(), ctyp.collection
+            ):
+                raise ValueError(f"Ordering requires scalar keys - {ast.unparse(node)}")
+            sort_keys.append(key)
+            key_scope_value = deepest_scope(key_scope_value, key)
+        sort_key = sort_keys[0]
+        if len(sort_keys) > 1:
+            self._gc.add_include("tuple")
+            sort_key = crep.cpp_value(
+                "std::make_tuple(" + ", ".join(key.as_cpp() for key in sort_keys) + ")",
+                key_scope_value.scope(),
+                ctyp.terminal(
+                    "std::tuple<"
+                    + ", ".join(str(key.cpp_type()) for key in sort_keys)
+                    + ">"
+                ),
+            )
 
         # The ordered vector must survive the whole source loop, so declare it
         # just outside the loop that created the source sequence.
@@ -1423,7 +1472,15 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         self._gc.add_include("utility")
         self._gc.add_include("vector")
         self._gc.add_statement(
-            statement.sort_collection_by_first(ordered_collection, descending)
+            statement.sort_collection_by_first(
+                ordered_collection,
+                descending,
+                directions=(
+                    [direction for _, direction in orderings]
+                    if len(orderings) > 1
+                    else None
+                ),
+            )
         )
 
         sorted_pair_sequence = self.make_sequence_from_collection(
@@ -1451,6 +1508,12 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
     def call_OrderByDescending(self, node: ast.Call, args: List[ast.AST]):
         "Order a sequence by a scalar key in descending order."
+        return self._call_order_by(node, args, descending=True)
+
+    def call_ThenBy(self, node: ast.Call, args: List[ast.AST]):
+        return self._call_order_by(node, args, descending=False)
+
+    def call_ThenByDescending(self, node: ast.Call, args: List[ast.AST]):
         return self._call_order_by(node, args, descending=True)
 
     def call_Range(self, node: ast.Call, args: List[ast.AST]):

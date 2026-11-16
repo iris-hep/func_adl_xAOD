@@ -1,6 +1,6 @@
 # Statements
 from abc import ABC, abstractmethod  # For declaring abstract base class
-from typing import Any
+from typing import Any, List, Optional
 
 import func_adl_xAOD.common.cpp_representation as crep
 import func_adl_xAOD.common.cpp_types as ctyp
@@ -218,11 +218,34 @@ class push_back_pair:
 class sort_collection_by_first:
     "sort a collection of pairs by their first item"
 
-    def __init__(self, target_collection: crep.cpp_value, descending: bool = False):
+    def __init__(
+        self,
+        target_collection: crep.cpp_value,
+        descending: bool = False,
+        directions: Optional[List[bool]] = None,
+    ):
         self._target = target_collection
         self._descending = descending
+        self._directions = directions
 
     def emit(self, e):
+        if self._directions is not None:
+            comparisons = []
+            for index, descending in enumerate(self._directions):
+                op = ">" if descending else "<"
+                left = f"std::get<{index}>(a.first)"
+                right = f"std::get<{index}>(b.first)"
+                comparisons += [
+                    f"if ({left} {op} {right}) return true;",
+                    f"if ({right} {op} {left}) return false;",
+                ]
+            e.add_line(
+                f"std::stable_sort({self._target.as_cpp()}.begin(), {self._target.as_cpp()}.end(), "
+                "[](const auto &a, const auto &b) { "
+                + " ".join(comparisons)
+                + " return false; });"
+            )
+            return
         op = ">" if self._descending else "<"
         e.add_line(
             f"std::sort({self._target.as_cpp()}.begin(), {self._target.as_cpp()}.end(), "

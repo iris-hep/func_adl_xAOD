@@ -19,7 +19,10 @@ import func_adl_xAOD.common.cpp_ast as cpp_ast
 import func_adl_xAOD.common.cpp_representation as crep
 import jinja2
 from func_adl.ast.aggregate_shortcuts import aggregate_node_transformer
-from func_adl.ast.func_adl_ast_utils import change_extension_functions_to_calls
+from func_adl.ast.func_adl_ast_utils import (
+    change_extension_functions_to_calls,
+    default_list_of_functions,
+)
 from func_adl.ast.function_simplifier import simplify_chained_calls
 from func_adl.ast import extract_metadata
 from func_adl_xAOD.common.ast_to_cpp_translator import query_ast_visitor
@@ -154,7 +157,9 @@ class executor(ABC):
         combined_extended_md: Dict[str, Any] = dict(self._extended_md)
         combined_extended_md.update(self._found_extended_md)
         cpp_functions = process_metadata(meta_data, combined_extended_md)
-        a = change_extension_functions_to_calls(a)
+        a = change_extension_functions_to_calls(
+            a, default_list_of_functions + ["ThenBy", "ThenByDescending"]
+        )
         a = aggregate_node_transformer().visit(a)
         a = simplify_chained_calls().visit(a)
         a = find_known_functions().visit(a)
