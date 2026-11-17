@@ -1,9 +1,12 @@
 from typing import Iterable
 
+import ast
+
 import pytest
 
 from tests.atlas.xaod.utils import atlas_xaod_dataset
 from tests.utils.general import get_lines_of_code
+from func_adl_xAOD.atlas.xaod.query_ast_visitor import atlas_xaod_query_ast_visitor
 
 
 class Jet:
@@ -41,16 +44,45 @@ def test_last_object_and_scalar():
         )
 
 
-@pytest.mark.parametrize("count", ["1.5", "True", "n"])
-def test_invalid_slice_count(count):
+@pytest.mark.parametrize("operation", ["Skip", "Take"])
+@pytest.mark.parametrize("count", ["1.5", "True", "n", "e.EventNumber()"])
+def test_invalid_slice_count(operation, count):
     with pytest.raises(ValueError, match="literal integer count"):
         atlas_xaod_dataset().Select(
-            f"lambda e: e.Jets('AntiKt4EMTopoJets').Take({count}).Count()"
+            f"lambda e: e.Jets('AntiKt4EMTopoJets').{operation}({count}).Count()"
         ).value()
 
 
+@pytest.mark.parametrize("operation", ["Last()", "Skip(1)", "Take(1)"])
+@pytest.mark.parametrize("computed", [False, True])
+@pytest.mark.parametrize("typed", [False, True])
+def test_nested_sequence_items_rejected(operation, computed, typed):
+    jets = "e.Jets('AntiKt4EMTopoJets')"
+    inner = jets + (".Where(lambda k: k.pt() > j.pt())" if computed else "")
+    source = atlas_xaod_dataset()
+    if typed:
+        source = source.clone_with_new_ast(source.query_ast, Event)
+    query = source.Select(f"lambda e: {jets}.Select(lambda j: {inner}).{operation}")
+    with pytest.raises(
+        ValueError, match="sequence-valued items is unsupported"
+    ) as error:
+        query.value()
+    assert operation.split("(")[0] in str(error.value)
+
+
+@pytest.mark.parametrize("operation", ["Last", "Skip", "Take"])
+def test_normalized_call_rejects_keywords(operation):
+    args = "source" if operation == "Last" else "source, 2"
+    node = ast.parse(f"{operation}({args}, n=3)").body[0].value
+    visitor = atlas_xaod_query_ast_visitor()
+    with pytest.raises(ValueError) as error:
+        getattr(visitor, f"call_{operation}")(node, node.args)
+    assert ast.unparse(node) in str(error.value)
+
+
 @pytest.mark.atlas_xaod_runner
-def test_sequence_operations_atlas_data(tmp_path):
+@pytest.mark.parametrize("typed", [False, True])
+def test_sequence_operations_atlas_data(tmp_path, typed):
     import awkward as ak
     import uproot
     from func_adl_xAOD.atlas.xaod import xAODDataset
@@ -58,14 +90,15 @@ def test_sequence_operations_atlas_data(tmp_path):
     from tests.utils.base import evaluate_root_ttree
 
     source = xAODDataset(f_location, output_directory=tmp_path)
-    source = source.clone_with_new_ast(source.query_ast, Event)
+    if typed:
+        source = source.clone_with_new_ast(source.query_ast, Event)
     skip, take = 1, 2
     query = source.Select(
         lambda e: (
             e.Jets("AntiKt4EMTopoJets").Select(lambda j: j.pt()),
             e.Jets("AntiKt4EMTopoJets").Last().pt(),
-            e.Jets("AntiKt4EMTopoJets").Skip(skip).Select(lambda j: j.pt()),
-            e.Jets("AntiKt4EMTopoJets").Take(take).Select(lambda j: j.pt()),
+            e.Jets("AntiKt4EMTopoJets").Skip(n=skip).Select(lambda j: j.pt()),
+            e.Jets("AntiKt4EMTopoJets").Take(n=take).Select(lambda j: j.pt()),
             e.Jets("AntiKt4EMTopoJets")
             .Where(lambda j: j.pt() > 10000)
             .Skip(1)
