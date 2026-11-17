@@ -13,6 +13,8 @@
 This allows you to query hierarchical data stored in a root file that has been written using the ATLAS xAOD format.
 This code allows you to query that.
 
+Python 3.10 or newer is required.
+
 ## Features
 
 A short list of some of the features that are supported by the `xAOD` C++ translator follows.
@@ -237,7 +239,7 @@ To run tests:
 
 - `pytest -m "not atlas_xaod_runner and not cms_runner and not cms_aod_runner and not atlas_r22_xaod_runner and not cms_miniaod_runner"` will run the _fast_ tests.
 - `pytest -m "atlas_xaod_runner"`, `pytest -m "cms_aod_runner"` and `pytest -m "cms_miniaod_runner"`  will run the slow tests for ATLAS xAOD, CMS AOD and CMS miniAOD respectively that require docker installed on your command line. `docker` is involved via pythons `os.system` - so it needs to be available to the test runner.
-- The CI on github is setup to run tests against python `3.7`, `3.8`, and `3.9` (only the non-xaod-runner tests).
+- CI runs the tests that do not require Docker on Python `3.10`, `3.11`, `3.12`, and `3.13` across Linux, macOS, and Windows.
 
 Contributing:
 
