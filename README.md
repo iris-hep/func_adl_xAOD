@@ -58,6 +58,12 @@ items whose keys all tie retain their original order. For example,
 `jets.OrderBy(lambda j: j.eta()).ThenByDescending(lambda j: j.pt())` sorts first
 by eta, then by descending transverse momentum within equal-eta groups.
 
+`Last()` returns the final object/scalar in a sequence and raises an error for an
+empty sequence. `Skip(n)` and `Take(n)` operate after upstream filters and accept
+literal integer counts (including captured integers). Negative counts act as zero.
+These operations currently require object/scalar items, rather than sequences of
+sequences.
+
 - Math Operators: +, -, *, /, %, **
 - Comparison Operators: <, <=, >, >=, ==, !=
 - Unary Operators: +, -, not

@@ -1,4 +1,5 @@
 import ast
+import json
 import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Type, Union, cast
@@ -1577,6 +1578,106 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
         seq = self.make_sequence_from_collection(vector_value, node)
         crep.set_rep(node, seq)
         return seq
+
+    def _call_slice(self, node: ast.Call, args: List[ast.AST], take: bool):
+        """Filter a sequence by its position after any upstream filtering."""
+        if len(args) != 2:
+            raise ValueError(
+                f"Skip/Take require a source and integer count - {ast.unparse(node)}"
+            )
+        try:
+            count = ast.literal_eval(args[1])
+        except (ValueError, TypeError):
+            count = None
+        if type(count) is not int:
+            raise ValueError(
+                f"Skip/Take require a literal integer count - {ast.unparse(node)}"
+            )
+        seq = self.as_sequence(cast(ast.expr, args[0]))
+        value = seq.sequence_value()
+        if isinstance(value, crep.cpp_sequence):
+            raise ValueError(
+                f"Skip/Take over sequence-valued items is unsupported - {ast.unparse(node)}"
+            )
+        outside = seq.iterator_value().scope()[-1]
+        index = crep.cpp_variable(
+            unique_name("slice_index"),
+            outside,
+            ctyp.terminal("int"),
+            initial_value=crep.cpp_value("0", outside, ctyp.terminal("int")),
+        )
+        outside.declare_variable(index)
+        self._gc.set_scope(value.scope())
+        comparison = "<" if take else ">="
+        self._gc.add_statement(
+            statement.iftest(
+                crep.cpp_value(
+                    f"{index.as_cpp()}++ {comparison} {max(0, count)}",
+                    self._gc.current_scope(),
+                    ctyp.terminal("bool"),
+                )
+            )
+        )
+        crep.set_rep(
+            node,
+            crep.cpp_sequence(
+                value.copy_with_new_scope(self._gc.current_scope()),
+                seq.iterator_value(),
+                self._gc.current_scope(),
+                node,
+            ),
+        )
+
+    def call_Skip(self, node: ast.Call, args: List[ast.AST]):
+        return self._call_slice(node, args, take=False)
+
+    def call_Take(self, node: ast.Call, args: List[ast.AST]):
+        return self._call_slice(node, args, take=True)
+
+    def call_Last(self, node: ast.Call, args: List[ast.AST]):
+        """Retain the last scalar/object value and expose it after the source loop."""
+        if len(args) != 1:
+            raise ValueError(f"Last requires one source - {ast.unparse(node)}")
+        seq = self.as_sequence(cast(ast.expr, args[0]))
+        value = seq.sequence_value()
+        if isinstance(value, crep.cpp_sequence):
+            raise ValueError(
+                f"Last over sequence-valued items is unsupported - {ast.unparse(node)}"
+            )
+        outside = seq.iterator_value().scope()[-1]
+        last_type = value.cpp_type()
+        if last_type.is_a_pointer:
+            last_type = ctyp.terminal(
+                last_type.type, p_depth=last_type.p_depth, is_const=True
+            )
+        last = crep.cpp_variable(unique_name("last"), outside, last_type)
+        seen = crep.cpp_variable(
+            unique_name("last_seen"),
+            outside,
+            ctyp.terminal("bool"),
+            initial_value=crep.cpp_value("false", outside, ctyp.terminal("bool")),
+        )
+        outside.declare_variable(last)
+        outside.declare_variable(seen)
+        self._gc.set_scope(value.scope())
+        self._gc.add_statement(statement.set_var(last, value))
+        self._gc.add_statement(
+            statement.set_var(
+                seen, crep.cpp_value("true", outside, ctyp.terminal("bool"))
+            )
+        )
+        self._gc.set_scope(outside)
+        self._gc.add_include("stdexcept")
+        failure = statement.iftest(
+            crep.cpp_value(f"!{seen.as_cpp()}", outside, ctyp.terminal("bool"))
+        )
+        failure.add_statement(
+            statement.arbitrary_statement(
+                f'throw std::runtime_error({json.dumps("Last() called on an empty sequence - " + ast.unparse(node))});'
+            )
+        )
+        outside.frame_statements(-1).add_statement(failure)
+        crep.set_rep(node, last)
 
     def call_First(self, node: ast.AST, args: List[ast.AST]) -> Any:
         "We are in a sequence. Take the first element of the sequence and use that for future things."
