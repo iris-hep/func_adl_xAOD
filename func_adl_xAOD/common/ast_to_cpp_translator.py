@@ -1581,7 +1581,7 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
     def _call_slice(self, node: ast.Call, args: List[ast.AST], take: bool):
         """Filter a sequence by its position after any upstream filtering."""
-        if len(args) != 2:
+        if len(args) != 2 or node.keywords:
             raise ValueError(
                 f"Skip/Take require a source and integer count - {ast.unparse(node)}"
             )
@@ -1595,7 +1595,10 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
             )
         seq = self.as_sequence(cast(ast.expr, args[0]))
         value = seq.sequence_value()
-        if isinstance(value, crep.cpp_sequence):
+        if isinstance(value, crep.cpp_sequence) or (
+            isinstance(value, crep.cpp_value)
+            and isinstance(value.cpp_type(), ctyp.collection)
+        ):
             raise ValueError(
                 f"Skip/Take over sequence-valued items is unsupported - {ast.unparse(node)}"
             )
@@ -1636,11 +1639,14 @@ class query_ast_visitor(FuncADLNodeVisitor, ABC):
 
     def call_Last(self, node: ast.Call, args: List[ast.AST]):
         """Retain the last scalar/object value and expose it after the source loop."""
-        if len(args) != 1:
+        if len(args) != 1 or node.keywords:
             raise ValueError(f"Last requires one source - {ast.unparse(node)}")
         seq = self.as_sequence(cast(ast.expr, args[0]))
         value = seq.sequence_value()
-        if isinstance(value, crep.cpp_sequence):
+        if isinstance(value, crep.cpp_sequence) or (
+            isinstance(value, crep.cpp_value)
+            and isinstance(value.cpp_type(), ctyp.collection)
+        ):
             raise ValueError(
                 f"Last over sequence-valued items is unsupported - {ast.unparse(node)}"
             )
