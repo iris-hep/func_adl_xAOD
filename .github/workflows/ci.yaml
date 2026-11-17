@@ -56,7 +56,8 @@ jobs:
       matrix:
         platform: [ubuntu-latest, macOS-latest, windows-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-    runs-on: ${{ matrix.platform }}
+    # Python 3.9 binaries are available on Ubuntu 24.04, but not 26.04.
+    runs-on: ${{ matrix.platform == 'ubuntu-latest' && matrix.python-version == '3.9' && 'ubuntu-24.04' || matrix.platform }}
     needs: flake8
 
     steps:
