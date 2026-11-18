@@ -1,4 +1,6 @@
 import tempfile
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -7,6 +9,37 @@ from .config import f_location
 from tests.utils.base import evaluate_root_ttree
 
 python_on_whales = pytest.importorskip("python_on_whales")
+
+
+@pytest.mark.parametrize("explicit_output", [False, True])
+def test_constructor_with_uninitialized_tempdir(tmp_path, explicit_output):
+    """Construction must work before tempfile's default-directory cache is initialized."""
+    script = """
+import sys
+import tempfile
+from pathlib import Path
+from func_adl_xAOD.atlas.xaod import xAODDataset
+
+tempfile.tempdir = None
+output = Path(sys.argv[2]) if len(sys.argv) > 2 else None
+dataset = xAODDataset(Path(sys.argv[1]), output_directory=output)
+if output is None:
+    assert dataset._output_directory == Path(tempfile.gettempdir())
+else:
+    assert dataset._output_directory == output
+    assert tempfile.tempdir is None
+"""
+    args = [sys.executable, "-c", script, str(f_location)]
+    if explicit_output:
+        args.append(str(tmp_path))
+    result = subprocess.run(
+        args,
+        cwd=Path(__file__).resolve().parents[3],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 @pytest.mark.atlas_xaod_runner
