@@ -84,9 +84,10 @@ class LocalDataset(EventDataset, ABC):
             if not f.exists():
                 raise FileNotFoundError(f"File {f} does not exist")
 
-        assert tempfile.tempdir is not None
         self._output_directory = (
-            output_directory if output_directory is not None else Path(tempfile.tempdir)
+            output_directory
+            if output_directory is not None
+            else Path(tempfile.gettempdir())
         )
 
         # Put everything into the ast so that we can safely be carried over qastle and used in
