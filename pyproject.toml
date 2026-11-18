@@ -11,7 +11,7 @@ maintainers = [
     { name = "Gordon Watts (IRIS-HEP/UW Seattle)", email = "gwatts@uw.edu" },
 ]
 license = { text = "MIT" }
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -21,11 +21,10 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.9",
     "Topic :: Software Development",
     "Topic :: Utilities",
 ]
-dependencies = ["requests", "retry", "jinja2", "qastle", "func_adl>=4.0.0b2"]
+dependencies = ["requests", "retry", "jinja2", "qastle", "func_adl>=4.0.0b3"]
 dynamic = ["version"]
 
 [project.optional-dependencies]
