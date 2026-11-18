@@ -24,7 +24,7 @@ classifiers = [
     "Topic :: Software Development",
     "Topic :: Utilities",
 ]
-dependencies = ["requests", "retry", "jinja2", "qastle", "func_adl>=4.0.0b2"]
+dependencies = ["requests", "retry", "jinja2", "qastle", "func_adl>=4.0.0b3"]
 dynamic = ["version"]
 
 [project.optional-dependencies]
