@@ -4,14 +4,20 @@ on:
   release:
     types: [released, prereleased]
 
+permissions: {}
+
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Install dependencies
@@ -24,8 +30,25 @@ jobs:
           version=$(echo "${{ github.ref }}" | sed 's/refs\/tags\///')
           echo "__version__=\"$version\"" > func_adl_xAOD/version.txt
           hatch build
+      - name: Store distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    # Must match the separately configured PyPI Trusted Publisher.
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Retrieve distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist/
       - name: Publish func_adl_xAOD to PyPI
         uses: pypa/gh-action-pypi-publish@v1.14.3
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_password_func_adl_xaod }}
